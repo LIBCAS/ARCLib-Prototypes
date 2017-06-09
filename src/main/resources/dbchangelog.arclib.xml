@@ -7,12 +7,23 @@
     <property name="now" value="now()" dbms="mysql"/>
     <property name="now" value="now()" dbms="postgresql"/>
 
-    <include file="dbchangelog.core.xml"/>
     <changeSet id="arclib:1" author="hochla">
         <createTable tableName="arclib_batch">
             <column name="id" type="varchar(255)">
                 <constraints primaryKey="true" primaryKeyName="arclib_batch_pkey" nullable="false"/>
             </column>
+            <column name="created" type="datetime"/>
+            <column name="updated" type="datetime"/>
+            <column name="deleted" type="datetime"/>
+            <column name="state" type="varchar(2000)"/>
+        </createTable>
+
+        <createTable tableName="arclib_sip">
+            <column name="id" type="varchar(255)">
+                <constraints primaryKey="true" primaryKeyName="arclib_sip_pkey" nullable="false"/>
+            </column>
+            <column name="path" type= "nvarchar(2000)"/>
+            <column name="state" type="varchar(2000)"/>
         </createTable>
 
         <createTable tableName="arclib_batch_i">

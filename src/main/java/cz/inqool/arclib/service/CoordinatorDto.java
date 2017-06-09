@@ -1,4 +1,4 @@
-package cz.inqool.arclib;
+package cz.inqool.arclib.service;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,8 +7,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class Dto {
-    private String objectId;
+public class CoordinatorDto {
+    private String sipId;
 
-    private String entityId;
+    private String batchId;
 }

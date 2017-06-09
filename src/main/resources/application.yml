@@ -12,3 +12,8 @@ spring:
         ddl-auto: validate
         naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
         use-new-id-generator-mappings: true
+liquibase:
+  changeLog: classpath:/dbchangelog.arclib.xml
+  url: jdbc:postgresql://localhost:5432/arclib
+  user: arclib
+  password: vuji61oilo

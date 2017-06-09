@@ -1,16 +1,14 @@
-package cz.inqool.arclib;
+package cz.inqool.arclib.domain;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * Dávka
@@ -19,16 +17,16 @@ import java.util.UUID;
 @Setter
 @BatchSize(size = 100)
 @Entity
-@NoArgsConstructor
-@AllArgsConstructor
 @Table(name = "arclib_batch")
-public class Batch {
-    @Id
-    protected String id = UUID.randomUUID().toString();
+public class Batch extends DatedObject {
 
     @BatchSize(size=100)
     @Fetch(FetchMode.SELECT)
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name="arclib_batch_i", joinColumns=@JoinColumn(name="batch_id"))
-    private Set<String> ids;
+    @Column(name="id")
+    private Set<String> ids = new HashSet<>();
+
+    @Enumerated(EnumType.STRING)
+    private BatchState state;
 }
