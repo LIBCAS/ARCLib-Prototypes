@@ -1,5 +1,6 @@
 package cz.inqool.arclib.service;
 
+import cz.inqool.arclib.bpm.IngestBpmService;
 import cz.inqool.arclib.domain.Batch;
 import cz.inqool.arclib.domain.BatchState;
 import cz.inqool.arclib.domain.Sip;
@@ -23,6 +24,7 @@ public class WorkerService {
     private SipStore sipStore;
     private BatchStore batchStore;
     private JmsTemplate template;
+    protected IngestBpmService service;
 
     @Transactional
     @Async
@@ -32,6 +34,14 @@ public class WorkerService {
 
         Batch batch = batchStore.find(coordinatorDto.getBatchId());
 
+        if (stopAtMultipleFailures(batch)) return;
+
+        if (batch.getState() == BatchState.PROCESSING) {
+            service.processSip(coordinatorDto.getSipId());
+        }
+    }
+
+    private boolean stopAtMultipleFailures(Batch batch) {
         int allSipsCount = batch.getIds().size();
         long failedSipsCount = batch.getIds()
             .stream()
@@ -43,21 +53,15 @@ public class WorkerService {
 
         if (failedSipsCount > allSipsCount / 2) {
             template.convertAndSend("coordinator", new WorkerDto(batch.getId(), BatchState.CANCELED));
-            return;
+            return true;
+        } else {
+            return false;
         }
+    }
 
-        if (batch.getState() == BatchState.PROCESSING) {
-            Sip sip = sipStore.find(coordinatorDto.getSipId());
-
-            log.info("Processing SIP " + sip.getId() + ". Thread " + Thread.currentThread().getId() + " is putting itself to " +
-                    "sleep.");
-
-            Thread.sleep(3000);
-            sip.setState(SipState.PROCESSED);
-            sipStore.save(sip);
-
-            log.info("SIP " + sip.getId() + " has been processed.");
-        }
+    @Inject
+    public void setService(IngestBpmService service) {
+        this.service = service;
     }
 
     @Inject
