@@ -9,6 +9,14 @@ import java.util.Map;
 
 public class JsonHelper {
 
+    /**
+     * Performs deep merge of two json objects. If there are two equally named attributes in both objects, the source json has the priority
+     * over the target json.
+     * json.
+     * @param target target json object
+     * @param source source json object
+     * @return resulting json object
+     */
     public static JsonNode merge(final JsonNode target, final JsonNode source) {
         if (target instanceof ArrayNode && source instanceof ArrayNode) {
             // Both the target and source are array nodes, then append the

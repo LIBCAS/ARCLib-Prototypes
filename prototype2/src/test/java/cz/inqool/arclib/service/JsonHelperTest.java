@@ -10,7 +10,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 public class JsonHelperTest {
-    protected JsonHelper jsonHelper;
 
     @Test
     public void mergeJsonObjectsTest() throws IOException {
@@ -48,22 +47,15 @@ public class JsonHelperTest {
                 "}");
 
         newJson = mapper.readTree("{\n" +
-                "  \"atribut2\": \"hodnota2Profil\"\n" +
-                "}");
-
-        mergedJson = JsonHelper.merge(oldJson, newJson);
-
-        oldJson = mergedJson;
-        newJson = mapper.readTree("{\n" +
                 "  \"atribut3\": {\n" +
-                "    \"vnorenyAtribut1\": \"hodnota3Davka\"\n" +
+                "    \"vnorenyAtribut1\": \"hodnota5\"\n" +
                 "  }\n" +
                 "}");
 
         mergedJson = JsonHelper.merge(oldJson, newJson);
 
-        expectedResult = mapper.readTree("{\"atribut1\":\"hodnota1\",\"atribut2\":\"hodnota2Profil\"," +
-                "\"atribut3\":{\"vnorenyAtribut1\":\"hodnota3Davka\",\"vnorenyAtribut2\":\"hodnota4\"}}");
+        expectedResult = mapper.readTree("{\"atribut1\":\"hodnota1\",\"atribut2\":\"hodnota2\"," +
+                "\"atribut3\":{\"vnorenyAtribut1\":\"hodnota5\",\"vnorenyAtribut2\":\"hodnota4\"}}");
 
         assertThat(mergedJson, is(expectedResult));
     }

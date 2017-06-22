@@ -1,0 +1,2 @@
+arclib:
+  applicationIngestConfig: classpath:applicationIngestConfig.json
