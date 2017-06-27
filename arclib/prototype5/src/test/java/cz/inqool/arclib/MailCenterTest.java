@@ -60,3 +60,4 @@ public class MailCenterTest {
         assertThat(content.toString(), containsString("test text"));
     }
 }
+
