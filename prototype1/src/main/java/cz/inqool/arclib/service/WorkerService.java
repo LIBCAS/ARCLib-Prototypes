@@ -1,22 +1,25 @@
 package cz.inqool.arclib.service;
 
-import cz.inqool.arclib.bpm.IngestBpmService;
 import cz.inqool.arclib.domain.Batch;
 import cz.inqool.arclib.domain.BatchState;
 import cz.inqool.arclib.domain.Sip;
 import cz.inqool.arclib.domain.SipState;
-import cz.inqool.arclib.service.CoordinatorDto;
-import cz.inqool.arclib.service.WorkerDto;
 import cz.inqool.arclib.store.BatchStore;
 import cz.inqool.arclib.store.SipStore;
 import cz.inqool.arclib.store.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.camunda.bpm.engine.RuntimeService;
+import org.camunda.bpm.engine.TaskService;
+import org.camunda.bpm.engine.task.Task;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -24,7 +27,14 @@ public class WorkerService {
     private SipStore sipStore;
     private BatchStore batchStore;
     private JmsTemplate template;
-    protected IngestBpmService service;
+
+    @Autowired
+    private RuntimeService runtimeService;
+
+    @Autowired
+    private TaskService taskService;
+
+    private String processInstanceId;
 
     @Transactional
     @Async
@@ -37,8 +47,18 @@ public class WorkerService {
         if (stopAtMultipleFailures(batch)) return;
 
         if (batch.getState() == BatchState.PROCESSING) {
-            service.processSip(coordinatorDto.getSipId());
+            processSip(coordinatorDto.getSipId());
         }
+    }
+
+    private void processSip(String sipId) throws InterruptedException {
+        Map variables = new HashMap();
+        variables.put("sipId", sipId);
+
+        processInstanceId = runtimeService.startProcessInstanceByKey("Ingest", variables).getProcessInstanceId();
+
+        Task task = taskService.createTaskQuery().processInstanceId(processInstanceId).singleResult();
+        taskService.complete(task.getId());
     }
 
     private boolean stopAtMultipleFailures(Batch batch) {
@@ -60,11 +80,6 @@ public class WorkerService {
     }
 
     @Inject
-    public void setService(IngestBpmService service) {
-        this.service = service;
-    }
-
-    @Inject
     public void setSipStore(SipStore sipStore) {
         this.sipStore = sipStore;
     }
@@ -77,5 +92,9 @@ public class WorkerService {
     @Inject
     public void setTemplate(JmsTemplate template) {
         this.template = template;
+    }
+
+    public String getProcessInstanceId() {
+        return processInstanceId;
     }
 }
