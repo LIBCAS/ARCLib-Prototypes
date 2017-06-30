@@ -8,7 +8,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
 public class FixityCounterTests {
@@ -28,7 +27,7 @@ public class FixityCounterTests {
 
     @Test
     public void testCorrupted() throws IOException{
-        String corruptedDigest = DIGEST.substring(1)+"1";
+        String corruptedDigest = DIGEST.substring(1) + "1";
         assertThat(fixityCounter.verifyFixity(PATH_TO_FILE,corruptedDigest),equalTo(false));}
 
     @Test(expected= FileNotFoundException.class)
