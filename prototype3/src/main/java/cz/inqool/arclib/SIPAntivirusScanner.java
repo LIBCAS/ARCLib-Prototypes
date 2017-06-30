@@ -17,4 +17,11 @@ public interface SIPAntivirusScanner {
      * @throws SIPAntivirusScannerException if error occurs during the antivirus scan process
      */
     List<Path> scan(String pathToSIP) throws IOException, InterruptedException, SIPAntivirusScannerException;
+
+    /**
+     * Moves infected files to quarantine.
+     *
+     * @param infectedFiles
+     */
+    void moveToQuarantine(List<Path> infectedFiles) throws IOException;
 }

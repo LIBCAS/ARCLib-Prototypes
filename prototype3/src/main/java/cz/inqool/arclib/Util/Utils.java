@@ -1,4 +1,4 @@
-package cz.inqool.arclib;
+package cz.inqool.arclib.Util;
 
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;

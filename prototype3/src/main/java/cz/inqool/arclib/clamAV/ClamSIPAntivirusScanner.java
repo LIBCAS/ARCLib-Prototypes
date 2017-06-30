@@ -4,6 +4,7 @@ import cz.inqool.arclib.SIPAntivirusScanner;
 import cz.inqool.arclib.SIPAntivirusScannerException;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -11,7 +12,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static cz.inqool.arclib.Utils.notNull;
+import static cz.inqool.arclib.Util.Utils.notNull;
 
 public class ClamSIPAntivirusScanner implements SIPAntivirusScanner {
 
@@ -67,4 +68,23 @@ public class ClamSIPAntivirusScanner implements SIPAntivirusScanner {
                 throw new SIPAntivirusScannerException(sb.toString());
         }
     }
+
+    /**
+     * Moves files to quarantine. There must be CLAMAV environment variable pointing to CLAMAV directory.
+     *
+     * @param infectedFiles
+     */
+    @Override
+    public void moveToQuarantine(List<Path> infectedFiles) throws IOException {
+        infectedFiles.stream().forEach(
+                path -> {
+                    try {
+                        Files.move(path, Paths.get(System.getenv("CLAMAV"), "quarantine").resolve(path.getFileName()));
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+        );
+    }
 }
+
