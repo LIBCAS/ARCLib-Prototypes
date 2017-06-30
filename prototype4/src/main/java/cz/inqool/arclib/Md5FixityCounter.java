@@ -16,7 +16,9 @@ public class Md5FixityCounter extends FixityCounter {
 
     @Override
     public byte[] computeDigest(Path pathToFile) throws IOException {
-        notNull(pathToFile,() ->{throw new IllegalArgumentException();});
+        notNull(pathToFile, () -> {
+            throw new IllegalArgumentException();
+        });
         try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(pathToFile.toAbsolutePath().toString()))) {
             byte[] buffer = new byte[1024];
             MessageDigest complete = MessageDigest.getInstance("MD5");
