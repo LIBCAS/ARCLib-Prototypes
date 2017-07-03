@@ -9,9 +9,6 @@ import cz.inqool.arclib.store.SipStore;
 import cz.inqool.arclib.store.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.camunda.bpm.engine.RuntimeService;
-import org.camunda.bpm.engine.TaskService;
-import org.camunda.bpm.engine.task.Task;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.scheduling.annotation.Async;
@@ -27,15 +24,19 @@ public class WorkerService {
     private SipStore sipStore;
     private BatchStore batchStore;
     private JmsTemplate template;
-
-    @Autowired
     private RuntimeService runtimeService;
 
-    @Autowired
-    private TaskService taskService;
-
-    private String processInstanceId;
-
+    /**
+     * Receives JMS message from the coordinator and does the following:
+     * <p>
+     * 1. retrieves the specified batch from database, if the batch has got more than 1/2 failures in processing of its SIPs,
+     * method stops evaluation, otherwise continues with the next step
+     * <p>
+     * 2. checks that the batch state is PROCESSING and then processes the SIP
+     *
+     * @param coordinatorDto object with the batch id and sip id
+     * @throws InterruptedException
+     */
     @Transactional
     @Async
     @JmsListener(destination = "worker")
@@ -51,25 +52,35 @@ public class WorkerService {
         }
     }
 
+    /**
+     * Starts the ingest BPM process for the given SIP
+     *
+     * @param sipId id of the SIP to run
+     * @throws InterruptedException
+     */
     private void processSip(String sipId) throws InterruptedException {
         Map variables = new HashMap();
         variables.put("sipId", sipId);
 
-        processInstanceId = runtimeService.startProcessInstanceByKey("Ingest", variables).getProcessInstanceId();
-
-        Task task = taskService.createTaskQuery().processInstanceId(processInstanceId).singleResult();
-        taskService.complete(task.getId());
+        runtimeService.startProcessInstanceByKey("Ingest", variables).getProcessInstanceId();
     }
 
+    /**
+     * Counts the number of SIPs with the state FAILED for the given batch. If the count is bigger than 1/2 of all the SIPs of the batch,
+     * sets the batch state to CANCELED and returns true, otherwise returns false.
+     *
+     * @param batch
+     * @return
+     */
     private boolean stopAtMultipleFailures(Batch batch) {
         int allSipsCount = batch.getIds().size();
         long failedSipsCount = batch.getIds()
-            .stream()
-            .filter(id -> {
-                Sip sip = sipStore.find(id);
-                return (sip.getState() == SipState.FAILED);
-            })
-            .count();
+                .stream()
+                .filter(id -> {
+                    Sip sip = sipStore.find(id);
+                    return (sip.getState() == SipState.FAILED);
+                })
+                .count();
 
         if (failedSipsCount > allSipsCount / 2) {
             template.convertAndSend("coordinator", new WorkerDto(batch.getId(), BatchState.CANCELED));
@@ -94,7 +105,8 @@ public class WorkerService {
         this.template = template;
     }
 
-    public String getProcessInstanceId() {
-        return processInstanceId;
+    @Inject
+    public void setRuntimeService(RuntimeService runtimeService) {
+        this.runtimeService = runtimeService;
     }
 }
