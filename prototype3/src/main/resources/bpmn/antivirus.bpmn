@@ -4,7 +4,7 @@
     <bpmn:startEvent id="StartEvent_1">
       <bpmn:outgoing>SequenceFlow_0ed0vpf</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:serviceTask id="scan" name="scan for viruses" camunda:class="cz.inqool.arclib.bpm.ScanBpmDelegate">
+    <bpmn:serviceTask id="scan" name="scan for viruses" camunda:delegateExpression="${scanBpmDelegate}">
       <bpmn:incoming>SequenceFlow_0ed0vpf</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0ubraqu</bpmn:outgoing>
     </bpmn:serviceTask>
@@ -14,7 +14,7 @@
       <bpmn:incoming>SequenceFlow_1k9p9tk</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_1k9p9tk" sourceRef="quarantine" targetRef="EndEvent_0x1dtva" />
-    <bpmn:serviceTask id="quarantine" name="move infected files to quarantine" camunda:class="cz.inqool.arclib.bpm.QuarantineBpmDelegate">
+    <bpmn:serviceTask id="quarantine" name="move infected files to quarantine" camunda:delegateExpression="${quarantineBpmDelegate}">
       <bpmn:incoming>SequenceFlow_0ubraqu</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1k9p9tk</bpmn:outgoing>
     </bpmn:serviceTask>

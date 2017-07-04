@@ -5,15 +5,18 @@ import cz.inqool.arclib.clamAV.ClamSIPAntivirusScanner;
 import lombok.extern.slf4j.Slf4j;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
+import org.springframework.stereotype.Component;
 
+import javax.inject.Inject;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
+@Component
 public class ScanBpmDelegate implements JavaDelegate {
 
-    protected SIPAntivirusScanner scanner;
+    private SIPAntivirusScanner scanner;
 
     @Override
     public void execute(DelegateExecution execution) throws Exception {
@@ -25,5 +28,10 @@ public class ScanBpmDelegate implements JavaDelegate {
                         filePath -> filePath.toString()
                 ).collect(Collectors.toList())
         );
+    }
+
+    @Inject
+    public void setScanner(SIPAntivirusScanner scanner) {
+        this.scanner = scanner;
     }
 }

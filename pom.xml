@@ -9,6 +9,7 @@
 	<modules>
 	    <module>prototype1</module>
 		<module>prototype2</module>
+        <module>prototype3</module>
 	</modules>
 	<packaging>pom</packaging>
 

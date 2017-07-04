@@ -2,6 +2,7 @@ package cz.inqool.arclib.clamAV;
 
 import cz.inqool.arclib.SIPAntivirusScanner;
 import cz.inqool.arclib.SIPAntivirusScannerException;
+import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -14,6 +15,7 @@ import java.util.regex.Pattern;
 
 import static cz.inqool.arclib.Util.Utils.notNull;
 
+@Service
 public class ClamSIPAntivirusScanner implements SIPAntivirusScanner {
 
     private static final String CMD = "clamscan";
