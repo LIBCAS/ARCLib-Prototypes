@@ -11,6 +11,10 @@
     <name>arclib</name>
     <description>Project with prototypes for the Arclib</description>
 
+    <modules>
+        <module>prototype3</module>
+    </modules>
+
     <build>
         <resources>
             <resource>
