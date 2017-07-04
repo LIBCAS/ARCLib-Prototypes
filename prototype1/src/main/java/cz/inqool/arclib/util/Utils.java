@@ -1,6 +1,7 @@
 package cz.inqool.arclib.util;
 
 import cz.inqool.arclib.domain.DomainObject;
+import cz.inqool.arclib.exception.GeneralException;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 
@@ -49,5 +50,23 @@ public class Utils {
                 .map(map::get)
                 .filter(o -> o != null)
                 .collect(Collectors.toList());
+    }
+
+    @FunctionalInterface
+    public interface Checked {
+        void checked() throws Exception;
+    }
+
+    public static void checked(Checked method) {
+        try {
+            method.checked();
+        } catch (Exception ex) {
+            if (ex instanceof GeneralException) {
+                throw (GeneralException)ex;
+            } else {
+                throw new GeneralException(ex);
+            }
+
+        }
     }
 }

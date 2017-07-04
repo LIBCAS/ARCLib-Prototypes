@@ -33,3 +33,5 @@ camunda:
     metrics:
       enabled: false
       db-reporter-activate: false
+arclib:
+  workspace: workspace
