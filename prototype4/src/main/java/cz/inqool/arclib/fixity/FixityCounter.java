@@ -1,4 +1,4 @@
-package cz.inqool.arclib;
+package cz.inqool.arclib.fixity;
 
 import java.io.IOException;
 import java.nio.file.Path;

@@ -1,4 +1,4 @@
-package cz.inqool.arclib;
+package cz.inqool.arclib.fixity;
 
 import org.springframework.stereotype.Service;
 
