@@ -14,6 +14,13 @@ import static cz.inqool.arclib.utils.Utils.notNull;
 @Service
 public class Md5FixityCounter extends FixityCounter {
 
+    /**
+     * Computes MD5 digest from a file.
+     *
+     * @param pathToFile Path to file which digest has to be computed.
+     * @return byte array with computed digest
+     * @throws IOException
+     */
     @Override
     public byte[] computeDigest(Path pathToFile) throws IOException {
         notNull(pathToFile, () -> {
