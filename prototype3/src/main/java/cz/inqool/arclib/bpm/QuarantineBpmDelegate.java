@@ -1,13 +1,13 @@
 package cz.inqool.arclib.bpm;
 
 import cz.inqool.arclib.SIPAntivirusScanner;
-import cz.inqool.arclib.clamAV.ClamSIPAntivirusScanner;
 import lombok.extern.slf4j.Slf4j;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,11 +18,14 @@ public class QuarantineBpmDelegate implements JavaDelegate {
 
     private SIPAntivirusScanner scanner;
 
+    /**
+     * Moves infected files to quarantine.
+     * <p>
+     * Task expects that list with String paths to infected files is stored in process variable <i>infectedFiles</i>.
+     */
     @Override
-    public void execute(DelegateExecution execution) throws Exception {
-        scanner = new ClamSIPAntivirusScanner();
+    public void execute(DelegateExecution execution) throws IOException {
         List<String> infectedFiles = (List<String>) execution.getVariable("infectedFiles");
-
         scanner.moveToQuarantine(infectedFiles.stream().map(
                 pathString -> Paths.get(pathString)
         ).collect(Collectors.toList()));
