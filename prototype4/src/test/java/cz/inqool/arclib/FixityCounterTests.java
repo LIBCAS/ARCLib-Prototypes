@@ -1,4 +1,6 @@
-import cz.inqool.arclib.Md5FixityCounter;
+package cz.inqool.arclib;
+
+import cz.inqool.arclib.fixity.Md5FixityCounter;
 import org.junit.Before;
 import org.junit.Test;
 

@@ -9,7 +9,7 @@
       <bpmn2:incoming>SequenceFlow_2</bpmn2:incoming>
     </bpmn2:endEvent>
     <bpmn2:sequenceFlow id="SequenceFlow_2" sourceRef="verify-fixity" targetRef="end" />
-    <bpmn2:serviceTask id="verify-fixity" name="verify &#10;fixity&#10;" camunda:class="cz.inqool.arclib.bpm.FixityBpmDelegate">
+    <bpmn2:serviceTask id="verify-fixity" name="verify &#10;fixity&#10;" camunda:delegateExpression="${fixityBpmDelegate}">
       <bpmn2:incoming>SequenceFlow_1</bpmn2:incoming>
       <bpmn2:outgoing>SequenceFlow_2</bpmn2:outgoing>
     </bpmn2:serviceTask>
