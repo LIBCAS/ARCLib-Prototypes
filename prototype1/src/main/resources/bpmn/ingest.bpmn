@@ -9,7 +9,7 @@
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_0lj0r1c" sourceRef="StartEvent_1" targetRef="ServiceTask_1" />
     <bpmn:sequenceFlow id="SequenceFlow_0dbiab3" sourceRef="ServiceTask_1" targetRef="EndEvent_0od9xho" />
-    <bpmn:serviceTask id="ServiceTask_1" name="ingest" camunda:delegateExpression="${ingestBpmDelegate}">
+    <bpmn:serviceTask id="ServiceTask_1" name="ingest" camunda:asyncBefore="true" camunda:asyncAfter="true" camunda:delegateExpression="${ingestBpmDelegate}">
       <bpmn:incoming>SequenceFlow_0lj0r1c</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0dbiab3</bpmn:outgoing>
     </bpmn:serviceTask>

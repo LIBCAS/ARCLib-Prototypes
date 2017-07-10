@@ -82,6 +82,8 @@ public class CoordinatorService {
      * Cancels processing of the batch by updating its state to CANCELED.
      * @param batchId id of the batch
      */
+    @Async
+    @JmsListener(destination = "cancelBatch")
     @Transactional
     public void cancel(String batchId) {
         Batch batch = batchStore.find(batchId);
@@ -138,19 +140,6 @@ public class CoordinatorService {
         });
 
         return true;
-    }
-
-    /**
-     * Waits for the message from Worker and on message cancels the batch if the provided state is CANCELED
-     * @param workerDto dto with id of the batch and its new state
-     */
-    @Transactional
-    @Async
-    @JmsListener(destination = "coordinator")
-    public void onMessage(WorkerDto workerDto) {
-        if (workerDto.getBatchState() == BatchState.CANCELED) {
-            cancel(workerDto.getBatchId());
-        }
     }
 
     @Inject

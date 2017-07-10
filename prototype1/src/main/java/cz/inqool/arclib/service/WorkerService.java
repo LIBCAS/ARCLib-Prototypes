@@ -83,7 +83,7 @@ public class WorkerService {
                 .count();
 
         if (failedSipsCount > allSipsCount / 2) {
-            template.convertAndSend("coordinator", new WorkerDto(batch.getId(), BatchState.CANCELED));
+            template.convertAndSend("cancelBatch", batch.getId());
             return true;
         } else {
             return false;
