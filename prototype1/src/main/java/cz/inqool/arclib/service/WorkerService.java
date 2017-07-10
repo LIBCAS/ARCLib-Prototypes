@@ -4,6 +4,8 @@ import cz.inqool.arclib.domain.Batch;
 import cz.inqool.arclib.domain.BatchState;
 import cz.inqool.arclib.domain.Sip;
 import cz.inqool.arclib.domain.SipState;
+import cz.inqool.arclib.exception.ForbiddenObject;
+import cz.inqool.arclib.exception.MissingObject;
 import cz.inqool.arclib.store.BatchStore;
 import cz.inqool.arclib.store.SipStore;
 import cz.inqool.arclib.store.Transactional;
@@ -15,8 +17,10 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
-import java.util.HashMap;
-import java.util.Map;
+
+import static cz.inqool.arclib.util.Utils.asMap;
+import static cz.inqool.arclib.util.Utils.in;
+import static cz.inqool.arclib.util.Utils.notNull;
 
 @Slf4j
 @Component
@@ -32,37 +36,33 @@ public class WorkerService {
      * 1. retrieves the specified batch from database, if the batch has got more than 1/2 failures in processing of its SIPs,
      * method stops evaluation, otherwise continues with the next step
      * <p>
-     * 2. checks that the batch state is PROCESSING and then processes the SIP
+     * 2. checks that the batch state is PROCESSING and then starts BPM process for the SIP
      *
-     * @param coordinatorDto object with the batch id and sip id
+     * @param dto object with the batch id and sip id
      * @throws InterruptedException
      */
     @Transactional
     @Async
     @JmsListener(destination = "worker")
-    public void onMessage(CoordinatorDto coordinatorDto) throws InterruptedException {
-        log.info("Message received at worker. Entity ID: " + coordinatorDto.getBatchId() + ", SIP ID: " + coordinatorDto.getSipId());
+    public void processSip(CoordinatorDto dto) throws InterruptedException {
+        String sipId = dto.getSipId();
+        String batchId = dto.getBatchId();
 
-        Batch batch = batchStore.find(coordinatorDto.getBatchId());
+        log.info("Message received at worker. Batch ID: " + batchId + ", SIP ID: " + sipId);
 
-        if (stopAtMultipleFailures(batch)) return;
+        Batch batch = batchStore.find(batchId);
+
+        notNull(batch, () -> new MissingObject(Batch.class, batchId));
+        in(sipId, batch.getIds(), () -> new ForbiddenObject(Batch.class, batchId));
+
+        if (tooManyFailedSips(batch)) {
+            log.info("Processing of batch " + batchId + " stopped because of too many SIP failures.");
+            return;
+        }
 
         if (batch.getState() == BatchState.PROCESSING) {
-            processSip(coordinatorDto.getSipId());
+            runtimeService.startProcessInstanceByKey("Ingest", asMap("sipId", sipId)).getProcessInstanceId();
         }
-    }
-
-    /**
-     * Starts the ingest BPM process for the given SIP
-     *
-     * @param sipId id of the SIP to run
-     * @throws InterruptedException
-     */
-    private void processSip(String sipId) throws InterruptedException {
-        Map variables = new HashMap();
-        variables.put("sipId", sipId);
-
-        runtimeService.startProcessInstanceByKey("Ingest", variables).getProcessInstanceId();
     }
 
     /**
@@ -72,12 +72,13 @@ public class WorkerService {
      * @param batch
      * @return
      */
-    private boolean stopAtMultipleFailures(Batch batch) {
+    private boolean tooManyFailedSips(Batch batch) {
         int allSipsCount = batch.getIds().size();
         long failedSipsCount = batch.getIds()
                 .stream()
                 .filter(id -> {
                     Sip sip = sipStore.find(id);
+                    notNull(sip, () -> new MissingObject(Sip.class, id));
                     return (sip.getState() == SipState.FAILED);
                 })
                 .count();

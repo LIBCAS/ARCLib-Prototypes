@@ -69,4 +69,19 @@ public class Utils {
 
         }
     }
+
+    public static <T> Set<T> asSet(T... a) {
+        return new HashSet<>(Arrays.asList(a));
+    }
+
+    public static <U, T extends RuntimeException> void in(U o1,  Collection<U> o2, Supplier<T> supplier) {
+        if (!o2.contains(o1)) {
+            throw supplier.get();
+        }
+    }
+
+    public static <T> Map<String, T> asMap(String key, T value) {
+        return Collections.singletonMap(key, value);
+    }
+
 }
