@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+    <property name="now" value="sysdate" dbms="oracle"/>
+    <property name="now" value="getDate()" dbms="mssql"/>
+    <property name="now" value="now()" dbms="mysql"/>
+    <property name="now" value="now()" dbms="postgresql"/>
+
+    <changeSet id="1" author="zamborsky">
+        <createTable tableName="arclib_job">
+            <column name="id" type="varchar(255)">
+                <constraints primaryKey="true" primaryKeyName="arclib_job_pkey" nullable="false"/>
+            </column>
+            <column name="created" type="datetime"/>
+            <column name="updated" type="datetime"/>
+            <column name="deleted" type="datetime"/>
+
+            <column name="name" type="nvarchar(255)"/>
+
+            <column name="timing" type="nvarchar(255)"/>
+            <column name="script" type="nclob"/>
+            <column name="script_type" type="varchar(255)"/>
+
+            <column name="active" type="boolean"/>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>
