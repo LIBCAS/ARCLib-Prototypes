@@ -28,19 +28,35 @@ public class JobApi implements GeneralApi<Job> {
     private JobStore adapter;
 
     /**
-     * Runs the job now.
+     * Schedules the job.
      * @param id Id of the {@link Job}
      */
     @Transactional
-    @ApiOperation(value = "Runs the job now.")
+    @ApiOperation(value = "Schedules the job now.")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Successful response"),
             @ApiResponse(code = 404, message = "Job not found")})
-    @RequestMapping(value = "/{id}/run", method = RequestMethod.POST)
-    public void run(@ApiParam(value = "Id of the sequence", required = true)
+    @RequestMapping(value = "/{id}/schedule", method = RequestMethod.POST)
+    public void schedule(@ApiParam(value = "Id of the sequence", required = true)
                     @PathVariable("id") String id) {
         Job job = adapter.find(id);
-        runner.run(job);
+        runner.schedule(job);
+    }
+
+    /**
+     * Unschedules the job.
+     * @param id Id of the {@link Job}
+     */
+    @Transactional
+    @ApiOperation(value = "Unschedules the job.")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Successful response"),
+            @ApiResponse(code = 404, message = "Job not found")})
+    @RequestMapping(value = "/{id}/unschedule", method = RequestMethod.POST)
+    public void unschedule(@ApiParam(value = "Id of the sequence", required = true)
+                    @PathVariable("id") String id) {
+        Job job = adapter.find(id);
+        runner.unschedule(job);
     }
 
     @Inject
