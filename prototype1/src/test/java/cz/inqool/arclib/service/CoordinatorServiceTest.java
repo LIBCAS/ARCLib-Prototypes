@@ -109,12 +109,12 @@ public class CoordinatorServiceTest extends DbTest {
     }
 
     @Test
-    public void resumeTest() {
+    public void resumeTestNonExistentBatch() {
         assertThrown(() -> service.resume("#%#$")).isInstanceOf(MissingObject.class);
+    }
 
-        /*
-        No SIPs
-         */
+    @Test
+    public void resumeTestNoSips() {
         Batch batch1 = new Batch();
         batch1.setState(BatchState.SUSPENDED);
         batchStore.save(batch1);
@@ -125,10 +125,10 @@ public class CoordinatorServiceTest extends DbTest {
 
         batch1 = batchStore.find(batch1.getId());
         assertThat(batch1.getState(), is(BatchState.PROCESSING));
+    }
 
-        /*
-        Batch has SIP with state PROCESSING
-        */
+    @Test
+    public void resumeTestSipWithStateProcessing() {
         Sip sip1 = new Sip();
         sip1.setState(SipState.PROCESSING);
         sipStore.save(sip1);
@@ -145,17 +145,17 @@ public class CoordinatorServiceTest extends DbTest {
         assertThat(hasResumed, is(false));
         batch2 = batchStore.find(batch2.getId());
         assertThat(batch2.getState(), is(BatchState.SUSPENDED));
+    }
 
-        /*
-        Batch has no SIPs with state PROCESSING
-        */
+    @Test
+    public void resumeTestNoSipWithStateProcessing() {
         Sip sip2 = new Sip();
         sip2.setState(SipState.NEW);
         sipStore.save(sip2);
 
         Batch batch3 = new Batch();
         batch3.setState(BatchState.SUSPENDED);
-        batch2.setIds(asSet(sip2.getId()));
+        batch3.setIds(asSet(sip2.getId()));
         batchStore.save(batch3);
 
         flushCache();

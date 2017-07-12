@@ -58,12 +58,8 @@ public class WorkerServiceTest extends DbTest {
         service.setTemplate(template);
     }
 
-    @Ignore
     @Test
-    public void stopAtMultipleFailuresTest() throws InterruptedException {
-        /*
-        Half of packages failed
-         */
+    public void stopAtMultipleFailuresTestHalfPackagesFailed() throws InterruptedException {
         Sip sip1 = new Sip();
         sip1.setState(SipState.PROCESSING);
         sipStore.save(sip1);
@@ -83,10 +79,11 @@ public class WorkerServiceTest extends DbTest {
 
         batch = batchStore.find(batch.getId());
         assertThat(batch.getState(), is(BatchState.PROCESSING));
+    }
 
-        /*
-        More than half failed
-         */
+    @Ignore
+    @Test
+    public void stopAtMultipleFailuresTestMoreThanHalfPackagesFailed() throws InterruptedException {
         Sip sip4 = new Sip();
         sip4.setState(SipState.PROCESSING);
         sipStore.save(sip4);
@@ -101,7 +98,8 @@ public class WorkerServiceTest extends DbTest {
 
         flushCache();
 
-        batch = new Batch();
+        Batch batch = new Batch();
+        batch.setState(BatchState.PROCESSING);
         batch.setIds(asSet(sip4.getId(), sip5.getId(), sip6.getId()));
         batchStore.save(batch);
 
@@ -112,19 +110,7 @@ public class WorkerServiceTest extends DbTest {
     }
 
     @Test
-    public void processSipTest() throws InterruptedException {
-        /*
-        Nonexistent batch
-         */
-        Sip sip1 = new Sip();
-        sip1.setState(SipState.PROCESSING);
-        sipStore.save(sip1);
-
-        assertThrown(() -> service.processSip(new CoordinatorDto(sip1.getId(), "%@#@^#$#"))).isInstanceOf(MissingObject.class);
-
-        /*
-        Nonexistent SIP
-         */
+    public void processSipTestNonExistentSip() {
         String sipId = "%@#@^#$#";
 
         Batch batch = new Batch();
@@ -132,10 +118,19 @@ public class WorkerServiceTest extends DbTest {
         batchStore.save(batch);
 
         assertThrown(() -> service.processSip(new CoordinatorDto(sipId, batch.getId()))).isInstanceOf(MissingObject.class);
+    }
 
-        /*
-        SIP does not belong given batch
-         */
+    @Test
+    public void processSipTestNonExistentBatch() throws InterruptedException {
+        Sip sip1 = new Sip();
+        sip1.setState(SipState.PROCESSING);
+        sipStore.save(sip1);
+
+        assertThrown(() -> service.processSip(new CoordinatorDto(sip1.getId(), "%@#@^#$#"))).isInstanceOf(MissingObject.class);
+    }
+
+    @Test
+    public void processSipTestInvalidSip() {
         Sip sip3 = new Sip();
         sip3.setState(SipState.PROCESSING);
         sipStore.save(sip3);
