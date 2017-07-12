@@ -3,13 +3,10 @@ package cz.inqool.arclib.fixity;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Path;
+import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-
-import static cz.inqool.arclib.utils.Utils.notNull;
 
 @Service
 public class Md5FixityCounter extends FixityCounter {
@@ -17,16 +14,13 @@ public class Md5FixityCounter extends FixityCounter {
     /**
      * Computes MD5 digest from a file.
      *
-     * @param pathToFile Path to file which digest has to be computed.
+     * @param fileStream Stream of file which digest has to be computed.
      * @return byte array with computed digest
      * @throws IOException
      */
     @Override
-    public byte[] computeDigest(Path pathToFile) throws IOException {
-        notNull(pathToFile, () -> {
-            throw new IllegalArgumentException();
-        });
-        try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(pathToFile.toAbsolutePath().toString()))) {
+    public byte[] computeDigest(InputStream fileStream) throws IOException {
+        try (BufferedInputStream bis = new BufferedInputStream(fileStream)) {
             byte[] buffer = new byte[1024];
             MessageDigest complete = MessageDigest.getInstance("MD5");
             int numRead;
