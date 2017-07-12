@@ -2,7 +2,10 @@ package cz.inqool.arclib;
 
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,6 +20,7 @@ import java.util.Map;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 /**
  * Ensure the antivirus.bpmn Process is working correctly
@@ -57,7 +61,7 @@ public class AntivirusProcessTest {
         Map variables = new HashMap();
         variables.put("pathToSip", SIP.resolve("clean.txt").toString());
         runtimeService.startProcessInstanceByKey("antivirus", variables).getId();
-        Assert.assertThat(Files.list(QUARANTINE_FOLDER).count(), equalTo(0L));
+        assertThat(Files.list(QUARANTINE_FOLDER).count(), equalTo(0L));
     }
 
     @Test
@@ -65,9 +69,9 @@ public class AntivirusProcessTest {
         Map variables = new HashMap();
         variables.put("pathToSip", SIP.toString());
         runtimeService.startProcessInstanceByKey("antivirus", variables).getId();
-        Assert.assertThat(Files.list(QUARANTINE_FOLDER).count(), equalTo(1L));
-        Assert.assertThat(Files.exists(QUARANTINE_FOLDER.resolve(CORRUPTED_FILE_NAME)), equalTo(true));
-        Assert.assertThat(Files.notExists(SIP.resolve(CORRUPTED_FILE_NAME)), equalTo(true));
+        assertThat(Files.list(QUARANTINE_FOLDER).count(), equalTo(1L));
+        assertThat(Files.exists(QUARANTINE_FOLDER.resolve(CORRUPTED_FILE_NAME)), equalTo(true));
+        assertThat(Files.notExists(SIP.resolve(CORRUPTED_FILE_NAME)), equalTo(true));
     }
 }
 

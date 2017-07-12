@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
+import static helper.ThrowableAssertion.assertThrown;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
@@ -33,16 +34,16 @@ public class SIPAntivirusScannerTests {
         Files.deleteIfExists(QUARANTINE_FOLDER.resolve(CORRUPTED_FILE_NAME));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void nullFilePathTest() throws InterruptedException, SIPAntivirusScannerException, IOException {
         SIPAntivirusScanner scanner = new ClamSIPAntivirusScanner();
-        scanner.scan(null);
+        assertThrown(() -> scanner.scan(null)).isInstanceOf(IllegalArgumentException.class);
     }
 
-    @Test(expected = FileNotFoundException.class)
+    @Test
     public void fileNotFoundPathTest() throws InterruptedException, SIPAntivirusScannerException, IOException {
         SIPAntivirusScanner scanner = new ClamSIPAntivirusScanner();
-        scanner.scan("invalid path");
+        assertThrown(() -> scanner.scan("invalid path")).isInstanceOf(FileNotFoundException.class);
     }
 
     @Test()
