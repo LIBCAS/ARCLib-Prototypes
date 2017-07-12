@@ -18,16 +18,3 @@ liquibase:
   url: jdbc:postgresql://localhost:5432/arclib12
   user: arclib
   password: vuji61oilo
-camunda:
-  bpm:
-    application:
-      isDeleteUponUndeploy: false
-      isScanForProcessDefinitions: false
-      isDeployChangedOnly: true
-      isResumePreviousVersions: true
-      resumePreviousBy: a value
-    job-execution:
-      enabled: true
-    metrics:
-      enabled: false
-      db-reporter-activate: false

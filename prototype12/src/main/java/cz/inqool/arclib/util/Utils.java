@@ -116,25 +116,10 @@ public class Utils {
         }
     }
 
-    public static <T> Set<T> asSet(Collection<T> a) {
-        return new HashSet<>(a);
-    }
-
     public static <T> Set<T> asSet(T... a) {
         return new HashSet<>(Arrays.asList(a));
     }
 
-    public static <T> List<T> asList(Collection<T> a) {
-        return a.stream().collect(Collectors.toList());
-    }
-
-    public static <T> List<T> asList(T... a) {
-        return Arrays.asList(a);
-    }
-
-    public static <T> T[] asArray(T... a) {
-        return a;
-    }
 
     public static <T> List<T> asList(Collection<T> base, T... a) {
         List<T> list = new ArrayList<>(base);
