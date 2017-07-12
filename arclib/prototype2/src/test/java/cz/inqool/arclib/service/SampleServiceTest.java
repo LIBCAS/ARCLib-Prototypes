@@ -23,19 +23,19 @@ public class SampleServiceTest {
     }
 
     @Test
-    public void computeIngestConfigTest() throws IOException {
+    public void computeIngestConfigBatchIngestConfigNull() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode applicationIngestConfigJson = mapper.readTree(applicationIngestConfig.getInputStream());
 
-        /*
-        Batch ingest config is null
-         */
         String computedIngestConfig = service.computeIngestConfig(null);
         assertThat(computedIngestConfig, is(mapper.writeValueAsString(applicationIngestConfigJson)));
+    }
 
-        /*
-        Batch ingest config overrides application config
-         */
+    @Test
+    public void computeIngestConfigBatchIngestConfigProvided() throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode applicationIngestConfigJson = mapper.readTree(applicationIngestConfig.getInputStream());
+
         String batchConfig = "{\n" +
                 "  \"atribut2\": \"hodnota3\",\n" +
                 "  \"atribut3\": \"hodnota4\"\n" +
