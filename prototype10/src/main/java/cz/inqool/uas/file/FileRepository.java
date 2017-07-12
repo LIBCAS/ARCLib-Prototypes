@@ -56,7 +56,7 @@ public class FileRepository {
      */
     @Transactional
     public FileRef get(String id) {
-        checkUUID(id);
+        //checkUUID(id);
 
         FileRef fileRef = store.find(id);
         notNull(fileRef, () -> new MissingObject(FileRef.class, id));
@@ -146,22 +146,24 @@ public class FileRepository {
      * </p>
      *
      * @param stream Content stream to save
-     * @param name Name of the file
+     * @param id Id of the file
      * @param contentType MIME type
      * @param indexContent Should the file content be indexed
      * @return Newly created {@link FileRef}
      * @throws BadArgument If any argument is null
      */
     @Transactional
-    public FileRef create(InputStream stream, String name, String contentType, boolean indexContent) {
+    public FileRef create(InputStream stream, String id, String contentType, boolean indexContent) {
         notNull(stream, () -> new BadArgument("stream"));
-        notNull(name, () -> new BadArgument("name"));
+        notNull(id, () -> new BadArgument("id"));
         notNull(contentType, () -> new BadArgument("contentType"));
 
         FileRef ref = new FileRef();
-        ref.setName(name);
+        ref.setId(id);
+        ref.setName(id);
         ref.setContentType(contentType);
         ref.setIndexedContent(false);
+
 
         checked(() -> {
             Path folder = Paths.get(basePath);
@@ -171,7 +173,6 @@ public class FileRepository {
             } else if (!isDirectory(folder)) {
                 createDirectories(folder);
             }
-
             Path path = Paths.get(basePath, ref.getId());
             copy(stream, path);
 
@@ -225,11 +226,10 @@ public class FileRepository {
 
     /**
      * Specifies the path on file system, where the files should be saved.
-     * @param basePath Path on file system
      */
     @Inject
-    public void setBasePath(@Value("${file.path}") String basePath) {
-        this.basePath = basePath;
+    public void setBasePath() {
+        this.basePath = System.getProperty("user.dir");
     }
 
     @Inject
