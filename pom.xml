@@ -7,6 +7,7 @@
 	<artifactId>arclib</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<modules>
+	    <module>prototype1</module>
 		<module>prototype2</module>
 	</modules>
 	<packaging>pom</packaging>
@@ -84,5 +85,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
 </project>
