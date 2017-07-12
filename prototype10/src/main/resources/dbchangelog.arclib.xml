@@ -7,6 +7,41 @@
     <property name="now" value="now()" dbms="mysql"/>
     <property name="now" value="now()" dbms="postgresql"/>
 
+    <changeSet id="arclib:1" author="tomasek">
+        <createTable tableName="arclib_aip">
+            <column name="id" type="varchar(255)">
+                <constraints primaryKey="true" primaryKeyName="arclib_aip_pkey" nullable="false"/>
+            </column>
+            <column name="created" type="datetime"/>
+            <column name="updated" type="datetime"/>
+            <column name="deleted" type="datetime"/>
+            <column name="md5" type="varchar(32)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="state" type="varchar(32)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="arclib_aip_xml">
+            <column name="id" type="varchar(255)">
+                <constraints primaryKey="true" primaryKeyName="arclib_aip_xml_pkey" nullable="false"/>
+            </column>
+            <column name="arclib_aip_id" type="varchar(255)">
+                <constraints nullable="false" foreignKeyName="arclib_aip_xml_aip_fk"
+                             referencedTableName="arclib_aip" referencedColumnNames="id"/>
+            </column>
+            <column name="created" type="datetime"/>
+            <column name="updated" type="datetime"/>
+            <column name="deleted" type="datetime"/>
+            <column name="md5" type="varchar(32)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="integer">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
 
     <changeSet id="2" author="zamborsky">
         <createTable tableName="uas_file">
