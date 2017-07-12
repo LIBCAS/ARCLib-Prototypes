@@ -43,6 +43,6 @@ public class FixityCounterTests {
 
     @Test
     public void testNullPath() throws IOException {
-        assertThrown(() -> fixityCounter.computeDigest(null)).isInstanceOf(IllegalArgumentException.class);
+        assertThrown(() -> fixityCounter.computeDigest((Path) null)).isInstanceOf(IllegalArgumentException.class);
     }
 }
