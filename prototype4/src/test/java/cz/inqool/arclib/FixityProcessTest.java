@@ -4,7 +4,6 @@ import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,6 +15,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 
 /**
@@ -55,7 +57,7 @@ public class FixityProcessTest {
         variables.put("pathToFile", PATH_TO_FILE.toString());
         variables.put("digest", DIGEST);
         processInstanceId = runtimeService.startProcessInstanceByKey("fixity", variables).getId();
-        Assert.assertTrue((boolean) historyService.createHistoricVariableInstanceQuery().variableName("ok").singleResult().getValue());
+        assertThat(historyService.createHistoricVariableInstanceQuery().variableName("ok").singleResult().getValue(), equalTo(true));
     }
 
     @Test
@@ -65,6 +67,6 @@ public class FixityProcessTest {
         variables.put("pathToFile", PATH_TO_FILE.toString());
         variables.put("digest", corruptedDigest);
         processInstanceId = runtimeService.startProcessInstanceByKey("fixity", variables).getId();
-        Assert.assertFalse((boolean) historyService.createHistoricVariableInstanceQuery().variableName("ok").singleResult().getValue());
+        assertThat(historyService.createHistoricVariableInstanceQuery().variableName("ok").singleResult().getValue(), equalTo(false));
     }
 }
