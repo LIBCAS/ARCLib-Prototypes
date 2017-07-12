@@ -6,7 +6,6 @@ import org.springframework.aop.support.AopUtils;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import static jdk.nashorn.api.scripting.ScriptUtils.unwrap;
 
 public class Utils {
 
@@ -21,6 +20,18 @@ public class Utils {
             if (unwrap(o) == null) {
                 throw supplier.get();
             }
+        }
+    }
+
+    public static <T> T unwrap(T a) {
+        if (isProxy(a)) {
+            try {
+                return (T) ((Advised) a).getTargetSource().getTarget();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            return a;
         }
     }
 
