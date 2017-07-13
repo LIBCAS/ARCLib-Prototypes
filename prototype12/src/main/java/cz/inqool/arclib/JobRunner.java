@@ -35,6 +35,10 @@ public class JobRunner {
         }
     }
 
+    /**
+     * Schedules the job.
+     * @param job job to schedule
+     */
     public void schedule(Job job) {
         CronTrigger trigger = new CronTrigger(job.getTiming());
 
@@ -43,6 +47,10 @@ public class JobRunner {
         jobIdToScheduleFuture.put(job.getId(), future);
     }
 
+    /**
+     * Cancels scheduling of the job.
+     * @param job to unschedule
+     */
     public void unschedule(Job job) {
         notNull(job, () -> new BadArgument("job"));
 
@@ -66,6 +74,10 @@ public class JobRunner {
         }
     }
 
+    /**
+     * Returns instance of the scheduler.
+     * @return instance of the scheduler
+     */
     public ThreadPoolTaskScheduler scheduler() {
         if (scheduler == null) {
             scheduler = new ThreadPoolTaskScheduler();

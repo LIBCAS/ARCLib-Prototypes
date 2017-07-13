@@ -32,7 +32,7 @@ public class JobApi implements GeneralApi<Job> {
      * @param id Id of the {@link Job}
      */
     @Transactional
-    @ApiOperation(value = "Schedules the job now.")
+    @ApiOperation(value = "Schedules the job.")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Successful response"),
             @ApiResponse(code = 404, message = "Job not found")})
