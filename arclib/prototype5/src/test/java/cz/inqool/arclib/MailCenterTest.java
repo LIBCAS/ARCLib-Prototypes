@@ -46,6 +46,7 @@ public class MailCenterTest {
 
         Object content = mockMailSender.getJavaMailProperties().get("mailContent");
         mockMailSender.getJavaMailProperties().remove("mailContent");
+
         assertThat(content,is(not(nullValue())));
         assertThat(content.toString(), containsString("test text"));
     }
@@ -56,6 +57,7 @@ public class MailCenterTest {
 
         Object content = mockMailSender.getJavaMailProperties().get("mailContent");
         mockMailSender.getJavaMailProperties().remove("mailContent");
+
         assertThat(content,is(not(nullValue())));
         assertThat(content.toString(), containsString("test text"));
     }
