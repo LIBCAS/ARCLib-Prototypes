@@ -7,6 +7,5 @@ public enum AipState {
     PROCESSING,
     ARCHIVED,
     DELETED,
-    CORRUPTED,
     REMOVED
 }

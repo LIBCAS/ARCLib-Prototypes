@@ -5,6 +5,8 @@ import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
 
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 @Getter
@@ -13,5 +15,10 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "arclib_aip_xml")
 public class AipXml extends ArchivalObject {
+
+    @ManyToOne
+    @JoinColumn(name = "arclib_aip_id")
+    private AipSip sip;
     private int version;
+    private boolean processing;
 }

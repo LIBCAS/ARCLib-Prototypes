@@ -8,7 +8,7 @@ import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 
 /**
- * Abstract class for core files of archival storage i.e. Aip data and Aip XML.
+ * Abstract class for core files of archival storage i.e. AipSip data and AipSip XML.
  */
 @Getter
 @Setter
