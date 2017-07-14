@@ -50,6 +50,7 @@ public abstract class FixityCounter {
         notNull(expectedDigest, () -> {
             throw new IllegalArgumentException();
         });
+        expectedDigest = expectedDigest.toLowerCase();
         return expectedDigest.equals(bytesToHexString(computeDigest(pathToFile)));
     }
 
@@ -68,6 +69,7 @@ public abstract class FixityCounter {
         notNull(expectedDigest, () -> {
             throw new IllegalArgumentException();
         });
+        expectedDigest = expectedDigest.toLowerCase();
         return expectedDigest.equals(bytesToHexString(computeDigest(fileStream)));
     }
 }
