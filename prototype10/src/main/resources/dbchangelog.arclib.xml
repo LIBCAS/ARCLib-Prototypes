@@ -8,9 +8,9 @@
     <property name="now" value="now()" dbms="postgresql"/>
 
     <changeSet id="arclib:1" author="tomasek">
-        <createTable tableName="arclib_aip">
+        <createTable tableName="arclib_aip_sip">
             <column name="id" type="varchar(255)">
-                <constraints primaryKey="true" primaryKeyName="arclib_aip_pkey" nullable="false"/>
+                <constraints primaryKey="true" primaryKeyName="arclib_aip_sip_pkey" nullable="false"/>
             </column>
             <column name="created" type="datetime"/>
             <column name="updated" type="datetime"/>
@@ -27,46 +27,20 @@
             <column name="id" type="varchar(255)">
                 <constraints primaryKey="true" primaryKeyName="arclib_aip_xml_pkey" nullable="false"/>
             </column>
-            <column name="arclib_aip_id" type="varchar(255)">
-                <constraints nullable="false" foreignKeyName="arclib_aip_xml_aip_fk"
-                             referencedTableName="arclib_aip" referencedColumnNames="id"/>
+            <column name="arclib_aip_sip_id" type="varchar(255)">
+                <constraints nullable="false" foreignKeyName="arclib_aip_sip_fk"
+                             referencedTableName="arclib_aip_sip" referencedColumnNames="id"/>
             </column>
             <column name="created" type="datetime"/>
             <column name="updated" type="datetime"/>
             <column name="deleted" type="datetime"/>
-            <column name="md5" type="varchar(32)">
-                <constraints nullable="false"/>
-            </column>
+            <column name="md5" type="varchar(32)"/>
             <column name="version" type="integer">
                 <constraints nullable="false"/>
             </column>
-        </createTable>
-    </changeSet>
-
-    <changeSet id="2" author="zamborsky">
-        <createTable tableName="uas_file">
-            <column name="id" type="varchar(255)">
-                <constraints primaryKey="true" primaryKeyName="uas_file_pkey" nullable="false"/>
+            <column name="processing" type="boolean">
+                <constraints nullable="false"/>
             </column>
-            <column name="name" type="varchar(255)"/>
-            <column name="content_type" type="varchar(255)"/>
         </createTable>
-    </changeSet>
-    <changeSet id="3" author="zamborsky">
-        <addColumn tableName="uas_file">
-            <column name="description" type="nclob"/>
-        </addColumn>
-    </changeSet>
-    <changeSet id="4" author="zamborsky">
-        <addColumn tableName="uas_file">
-            <column name="created" type="datetime"/>
-            <column name="updated" type="datetime"/>
-            <column name="deleted" type="datetime"/>
-        </addColumn>
-    </changeSet>
-    <changeSet id="5" author="zamborsky">
-        <addColumn tableName="uas_file">
-            <column name="indexed_content" type="boolean"/>
-        </addColumn>
     </changeSet>
 </databaseChangeLog>
