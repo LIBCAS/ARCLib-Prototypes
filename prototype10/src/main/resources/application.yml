@@ -13,6 +13,11 @@ spring:
         ddl-auto: validate
         naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
         use-new-id-generator-mappings: true
+    http:
+      multipart:
+        maxFileSize: -1
+        maxRequestSize: -1
+
 liquibase:
   changeLog: classpath:/dbchangelog.arclib.xml
   url: jdbc:postgresql://localhost:5432/arclib
