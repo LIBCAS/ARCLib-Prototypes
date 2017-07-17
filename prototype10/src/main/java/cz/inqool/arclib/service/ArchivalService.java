@@ -2,6 +2,7 @@ package cz.inqool.arclib.service;
 
 import cz.inqool.arclib.domain.AipSip;
 import cz.inqool.arclib.domain.AipXml;
+import cz.inqool.arclib.dto.StoredFileInfoDto;
 import cz.inqool.arclib.fixity.FixityCounter;
 import cz.inqool.arclib.storage.StorageService;
 import org.apache.commons.io.IOUtils;
@@ -12,6 +13,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,6 +24,12 @@ public class ArchivalService {
     private FixityCounter fixityCounter;
     private ArchivalDbService archivalDbService;
 
+    /**
+     * Retrieves reference to AIP.
+     * @param sipId
+     * @return  Reference of AIP which contains id, name and stream of SIP and all its XMLs
+     * @throws IOException
+     */
     public AipRef get(String sipId) throws IOException {
         AipSip sipEntity = archivalDbService.getAip(sipId,true);
         List<InputStream> refs = storageService.getAip(sipId, (String[])sipEntity.getXmls().stream().map(xml -> xml.getId()).toArray());
@@ -35,7 +43,17 @@ public class ArchivalService {
         return aip;
     }
 
-    public boolean store(InputStream sip, String sipName, InputStream aipXml, String xmlName, InputStream meta) throws IOException {
+    /**
+     * Stores AIP to Archival Storage and its metadata to transaction database.
+     * @param sip   Stream of SIP file
+     * @param sipName   SIP file name
+     * @param aipXml    Stream of XML file
+     * @param xmlName   XML file name
+     * @param meta  Stream containing two lines, first is SIP md5 hash, second is XML md5 hash
+     * @return Information about both stored files containing file name, its assigned id and boolean flag determining whether the stored file is consistent i.e. was not changed during the transfer.
+     * @throws IOException
+     */
+    public List<StoredFileInfoDto> store(InputStream sip, String sipName, InputStream aipXml, String xmlName, InputStream meta) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(meta));
         String sipHash = br.readLine();
         String xmlHash = br.readLine();
@@ -45,39 +63,43 @@ public class ArchivalService {
 
         archivalDbService.registerAipCreation(sipId, sipName, sipHash, xmlId, xmlName, xmlHash);
         storageService.storeAip(sip, sipId, aipXml, xmlId);
+        archivalDbService.finishAipCreation(sipId, xmlId);
         List<InputStream> refs = storageService.getAip(sipId, xmlId);
-        AipRef aip = new AipRef();
-        aip.setSip(new FileRef(sipId, sipName, refs.get(0)));
-        aip.addXml(new FileRef(xmlId, xmlName, refs.get(1)));
-        boolean consistent = fixityCounter.verifyFixity(aip.getSip().getStream(), sipHash) && fixityCounter.verifyFixity(aip.getXml(0).getStream(), xmlHash);
-        if (consistent)
-            archivalDbService.finishAipCreation(sipId, xmlId);
-        IOUtils.closeQuietly(aip.getSip().getStream());
-        IOUtils.closeQuietly(aip.getXml(0).getStream());
-        return consistent;
+        List<StoredFileInfoDto> fileInfos = new ArrayList<>();
+        fileInfos.add(new StoredFileInfoDto(sipId,sipName,fixityCounter.verifyFixity(refs.get(0), sipHash)));
+        fileInfos.add(new StoredFileInfoDto(xmlId,xmlName,fixityCounter.verifyFixity(refs.get(1), xmlHash)));
+        IOUtils.closeQuietly(refs.get(0));
+        IOUtils.closeQuietly(refs.get(1));
+        return fileInfos;
     }
 
-    public boolean updateXml(String sipId, String xmlName, InputStream xml, InputStream meta) throws IOException {
-        String xmlHash = null;
-        if (meta != null) {
-            BufferedReader br = new BufferedReader(new InputStreamReader(meta));
-            xmlHash = br.readLine();
-        }
+    /**
+     * Stores ARCLib AIP XML into Archival Storage and its metadata to transaction database.
+     * @param sipId Id of SIP to which XML belongs
+     * @param xmlName   Name of xml file
+     * @param xml   Stream of xml file
+     * @param meta  Stream containing one line with ARCLib XML MD5 hash
+     * @return Information about stored xml containing file name, its assigned id and boolean flag determining whether the stored file is consistent i.e. was not changed during the transfer.
+     * @throws IOException
+     */
+    public StoredFileInfoDto updateXml(String sipId, String xmlName, InputStream xml, InputStream meta) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(meta));
+        String xmlHash = br.readLine();
         String xmlId = UUID.randomUUID().toString();
         archivalDbService.registerXmlUpdate(sipId, xmlId, xmlName, xmlHash);
         storageService.storeXml(xml, xmlId);
-        if (xmlHash == null) {
-            archivalDbService.finishXmlProcess(xmlId);
-            return true;
-        }
-        FileRef file = new FileRef(xmlId, xmlName, storageService.getXml(xmlId));
-        boolean consistent = fixityCounter.verifyFixity(file.getStream(), xmlHash);
-        if (consistent)
-            archivalDbService.finishXmlProcess(xmlId);
-        IOUtils.closeQuietly(file.getStream());
-        return consistent;
+        archivalDbService.finishXmlProcess(xmlId);
+        InputStream xmlRef = storageService.getXml(xmlId);
+        StoredFileInfoDto fileInfo =  new StoredFileInfoDto(xmlId,xmlName,fixityCounter.verifyFixity(xmlRef, xmlHash));
+        IOUtils.closeQuietly(xmlRef);
+        return fileInfo;
     }
 
+    /**
+     * Physically removes SIP from database. XMLs and data in transaction database are not removed.
+     * @param sipId
+     * @throws IOException
+     */
     public void delete(String sipId) throws IOException {
         archivalDbService.registerSipDeletion(sipId);
         storageService.deleteSip(sipId);

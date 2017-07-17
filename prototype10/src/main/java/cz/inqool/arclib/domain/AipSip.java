@@ -18,13 +18,6 @@ public class AipSip extends ArchivalObject {
     @Enumerated(EnumType.STRING)
     private AipState state;
 
-    public AipSip() {
-    }
-
-    public AipSip(String id) {
-        this.id = id;
-    }
-
     public void addXml(AipXml aipXml) {
         xmls.add(aipXml);
     }
@@ -35,5 +28,13 @@ public class AipSip extends ArchivalObject {
 
     public AipXml getXml( int i){
         return this.xmls.get(i);
+    }
+
+    public AipSip(String id) {
+        super(id,null,null);
+    }
+    public AipSip(String id, String name, String md5, AipState state){
+        super(id,name,md5);
+        this.state = state;
     }
 }

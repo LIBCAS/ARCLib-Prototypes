@@ -8,8 +8,8 @@ import org.springframework.context.annotation.ComponentScan;
 
 @Slf4j
 @SpringBootApplication
-@ComponentScan(basePackages = "cz.inqool")
-@EntityScan(basePackages = "cz.inqool")
+@ComponentScan(basePackages = "cz.inqool.arclib")
+@EntityScan(basePackages = "cz.inqool.arclib.domain")
 public class Initializer {
 
     public static void main(String[] args) {

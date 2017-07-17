@@ -1,11 +1,12 @@
-package cz.inqool.arclib.storage;
+package cz.inqool.arclib.dto;
 
+import cz.inqool.arclib.storage.BasicStateInfo;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class NodeStateDto extends BasicStateInfo{
+public class NodeStateDto extends BasicStateInfo {
     String id;
     String ip;
 

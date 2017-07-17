@@ -18,4 +18,10 @@ public abstract class ArchivalObject extends DatedObject {
     protected String md5;
     @Column(updatable = false)
     protected String name;
+
+    public ArchivalObject(String id, String name, String md5){
+        this.id=id;
+        this.md5 = md5;
+        this.name = name;
+    }
 }

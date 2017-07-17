@@ -1,6 +1,8 @@
-package cz.inqool.arclib.storage;
+package cz.inqool.arclib.dto;
 
-import lombok.AllArgsConstructor;
+import cz.inqool.arclib.dto.NodeStateDto;
+import cz.inqool.arclib.storage.BasicStateInfo;
+import cz.inqool.arclib.storage.StorageType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,16 +10,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+@Getter
+@Setter
+public class StorageStateDto extends BasicStateInfo {
 
-public class StorageStateDto extends BasicStateInfo{
-    @Getter
-    @Setter
     private StorageType type;
-    private List<NodeStateDto> nodes = new ArrayList<>();
 
-    public List<NodeStateDto> getNodes(){
-        return Collections.unmodifiableList(this.nodes);
-    }
+    private List<NodeStateDto> nodes = new ArrayList<>();
 
     public void addNode(NodeStateDto node){
         this.nodes.add(node);
@@ -26,6 +25,5 @@ public class StorageStateDto extends BasicStateInfo{
     public StorageStateDto(long capacity, long free, boolean running, StorageType type){
         super(capacity,free,running);
         this.setType(type);
-        this.setRunning(running);
     }
 }

@@ -1,8 +1,12 @@
 package cz.inqool.arclib.api;
 
 import cz.inqool.arclib.domain.AipState;
-import cz.inqool.arclib.service.*;
-import cz.inqool.arclib.storage.StorageStateDto;
+import cz.inqool.arclib.dto.StorageStateDto;
+import cz.inqool.arclib.dto.StoredFileInfoDto;
+import cz.inqool.arclib.service.AipRef;
+import cz.inqool.arclib.service.ArchivalDbService;
+import cz.inqool.arclib.service.ArchivalService;
+import cz.inqool.arclib.service.FileRef;
 import cz.inqool.uas.exception.BadArgument;
 import org.apache.commons.io.IOUtils;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +18,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -26,7 +31,7 @@ public class AipApi {
 
 
     /**
-     * Retrieves specified AIP
+     * Retrieves specified AIP as a ZIP package containing AipSip and all AipXmls.
      *
      * @param sipId unique AIP identifier
      */
@@ -64,14 +69,13 @@ public class AipApi {
      *             <li>SIP MD5 hash</li>
      *             <li>ARCLib XML MD5 hash</li>
      *             </ol>
-     * @return true if data are consistent after transfer and store process, false otherwise
+     * @return Information about both stored files containing file name, its assigned id and boolean flag determining whether the stored file is consistent i.e. was not changed during the transfer.
      */
     @RequestMapping(value = "/store", method = RequestMethod.POST)
-    public boolean save(@RequestParam("sip") MultipartFile sip, @RequestParam("xml") MultipartFile xml, @RequestParam("meta") MultipartFile meta) throws IOException {
+    public List<StoredFileInfoDto> save(@RequestParam("sip") MultipartFile sip, @RequestParam("xml") MultipartFile xml, @RequestParam("meta") MultipartFile meta) throws IOException {
         try (InputStream sipStream = sip.getInputStream();
              InputStream xmlStream = xml.getInputStream();
              InputStream metaStream = meta.getInputStream()) {
-
             return archivalService.store(sipStream, sip.getOriginalFilename(), xmlStream, xml.getOriginalFilename(), metaStream);
         }
     }
@@ -84,25 +88,17 @@ public class AipApi {
      *
      * @param sipId Id of SIP to which XML belongs
      * @param xml   ARCLib XML
-     * @param meta  <i>Optional</i> File containing one line with ARCLib XML MD5 hash
-     * @return true if data are consistent after transfer and store process or if <i>meta</i> parameter was not set, false otherwise
+     * @param meta  File containing one line with ARCLib XML MD5 hash
+     * @return Information about stored xml containing file name, its assigned id and boolean flag determining whether the stored file is consistent i.e. was not changed during the transfer.
      */
     @RequestMapping(value = "/{sipId}/update", method = RequestMethod.POST)
-    public boolean updateXml(@PathVariable("sipId") String sipId, @RequestParam("xml") MultipartFile xml, @RequestParam(value = "meta", required = false) MultipartFile meta) {
-        if (meta != null) {
-            try (InputStream xmlStream = xml.getInputStream();
-                 InputStream metaStream = meta.getInputStream()) {
-                return archivalService.updateXml(sipId, xml.getOriginalFilename(), xmlStream, metaStream);
-            } catch (IOException e) {
-                throw new BadArgument(e);
-            }
-        }
-        try (InputStream xmlStream = xml.getInputStream()) {
-            return archivalService.updateXml(sipId, xml.getOriginalFilename(), xmlStream, null);
+    public StoredFileInfoDto updateXml(@PathVariable("sipId") String sipId, @RequestParam("xml") MultipartFile xml, @RequestParam("meta") MultipartFile meta) {
+        try (InputStream xmlStream = xml.getInputStream();
+             InputStream metaStream = meta.getInputStream()) {
+            return archivalService.updateXml(sipId, xml.getOriginalFilename(), xmlStream, metaStream);
         } catch (IOException e) {
             throw new BadArgument(e);
         }
-
     }
 
     /**
@@ -116,7 +112,7 @@ public class AipApi {
     }
 
     /**
-     * Physically removes SIP part of AIP package and setts its state to <i><deleted/i>.
+     * Physically removes SIP part of AIP package and setts its state to <i><deleted/i>. XMLs and data in transaction database are not removed.
      *
      * @param sipId
      */
@@ -133,12 +129,12 @@ public class AipApi {
      */
     @RequestMapping(value = "/{uuid}/state", method = RequestMethod.GET)
     public AipState getAipState(@PathVariable("uuid") String uuid) {
-        return archivalDbService.getAip(uuid,false).getState();
+        return archivalDbService.getAip(uuid, false).getState();
     }
 
 
     /**
-     * Retrieves state of Archival Storage: its nodes, their states etc.
+     * Retrieves state of Archival Storage.
      *
      * @return
      */

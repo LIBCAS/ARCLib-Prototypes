@@ -1,5 +1,6 @@
 package cz.inqool.arclib.storage;
 
+import cz.inqool.arclib.dto.StorageStateDto;
 import cz.inqool.uas.store.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,10 @@ import java.util.List;
 
 @Service
 @Transactional
+/**
+ * File System implementation of {@link StorageService}. Files are stored to filesystem into <i>sip</i> and <i>xml</i> folders in <i>working directory</i>.
+ * <p>Data are distributed into three level folder structure based on their uuid. E.g. sip file with id <i>38a4a26f-67fd-4e4c-8af3-1fd0f26465f6</i> will be stored into sip/38/a4/a2 folder</p>
+ */
 public class FileSystemStorageService implements StorageService {
 
     @Override

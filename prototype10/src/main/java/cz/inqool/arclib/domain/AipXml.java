@@ -21,4 +21,11 @@ public class AipXml extends ArchivalObject {
     private AipSip sip;
     private int version;
     private boolean processing;
+
+    public AipXml(String id, String name, String md5, AipSip sip, int version, boolean processing){
+        super(id,name,md5);
+        this.sip = sip;
+        this.version = version;
+        this.processing = processing;
+    }
 }

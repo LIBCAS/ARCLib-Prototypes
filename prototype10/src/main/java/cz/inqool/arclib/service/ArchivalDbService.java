@@ -16,28 +16,35 @@ import static cz.inqool.uas.util.Utils.notNull;
 
 @Service
 @Transactional
+/**
+ * Class used for communication with Archival Storage database which contains transactional data about Archival Storage packages.
+ */
 public class ArchivalDbService {
 
     private AipSipStore aipSipStore;
     private AipXmlStore aipXmlStore;
 
+    /**
+     * Registers that AIP creation process has started. Stores AIP records to database and sets their state to <i>processing</i>.
+     * @param sipId
+     * @param sipName
+     * @param sipHash
+     * @param xmlId
+     * @param xmlName
+     * @param xmlHash
+     */
     public void registerAipCreation(String sipId, String sipName, String sipHash, String xmlId, String xmlName, String xmlHash) {
-        AipSip sip = new AipSip();
-        sip.setId(sipId);
-        sip.setState(AipState.PROCESSING);
-        sip.setMd5(sipHash);
-        sip.setName(sipName);
-        AipXml xml = new AipXml();
-        xml.setId(xmlId);
-        xml.setVersion(1);
-        xml.setProcessing(true);
-        xml.setMd5(xmlHash);
-        xml.setSip(sip);
-        xml.setName(xmlName);
+        AipSip sip = new AipSip(sipId,sipName,sipHash,AipState.PROCESSING);
+        AipXml xml = new AipXml(xmlId,xmlName,xmlHash,sip,1,true);
         aipSipStore.save(sip);
         aipXmlStore.save(xml);
     }
 
+    /**
+     * Registers that AIP creation process has ended.
+     * @param sipId
+     * @param xmlId
+     */
     public void finishAipCreation(String sipId, String xmlId) {
         AipSip sip = aipSipStore.find(sipId);
         notNull(sip, () -> new MissingObject(AipSip.class, sipId));
@@ -46,17 +53,22 @@ public class ArchivalDbService {
         finishXmlProcess(xmlId);
     }
 
+    /**
+     * Registers that AIP XML update process has started.
+     * @param sipId
+     * @param xmlId
+     * @param xmlName
+     * @param xmlHash
+     */
     public void registerXmlUpdate(String sipId, String xmlId, String xmlName, String xmlHash) {
-        AipXml xml = new AipXml();
-        xml.setId(xmlId);
-        xml.setVersion(aipXmlStore.getNextXmlVersionNumber(sipId));
-        xml.setProcessing(true);
-        xml.setMd5(xmlHash);
-        xml.setSip(new AipSip(sipId));
-        xml.setName(xmlName);
+        AipXml xml = new AipXml(xmlId,xmlName,xmlHash,new AipSip(sipId),aipXmlStore.getNextXmlVersionNumber(sipId),true);
         aipXmlStore.save(xml);
     }
 
+    /**
+     * Registers that AIP SIP deletion process has started.
+     * @param sipId
+     */
     public void registerSipDeletion(String sipId) {
         AipSip sip = aipSipStore.find(sipId);
         notNull(sip, () -> new MissingObject(AipSip.class, sipId));
@@ -64,6 +76,10 @@ public class ArchivalDbService {
         aipSipStore.save(sip);
     }
 
+    /**
+     * Registers that AIP SIP deletion process has ended.
+     * @param sipId
+     */
     public void finishSipDeletion(String sipId) {
         AipSip sip = aipSipStore.find(sipId);
         notNull(sip, () -> new MissingObject(AipSip.class, sipId));
@@ -71,6 +87,10 @@ public class ArchivalDbService {
         aipSipStore.save(sip);
     }
 
+    /**
+     * Registers that process which used AIP XML file has ended.
+     * @param xmlId
+     */
     public void finishXmlProcess(String xmlId) {
         AipXml xml = aipXmlStore.find(xmlId);
         notNull(xml, () -> new MissingObject(AipXml.class, xmlId));
@@ -78,6 +98,10 @@ public class ArchivalDbService {
         aipXmlStore.save(xml);
     }
 
+    /**
+     * Logically removes SIP i.e. sets its state to <i>removed</i> in the database.
+     * @param sipId
+     */
     public void removeSip(String sipId) {
         AipSip sip = aipSipStore.find(sipId);
         notNull(sip, () -> new MissingObject(AipSip.class, sipId));
@@ -86,10 +110,10 @@ public class ArchivalDbService {
     }
 
     /**
-     * Retrieves Aip entity.
+     * Retrieves AipSip entity.
      * @param sipId
-     * @param populate
-     * @return  AipSip entity with list of xmls if populate is set to true, AipSip entity without list of xmls if populate is set to false.
+     * @param populate  whether to populate entity with xmls and therefore retrieve information about whole AIP or don't populate and therefore retrieve information about SIP part of AIP
+     * @return  AipSip entity with either populated or non-populated list of xmls
      */
     public AipSip getAip(String sipId, boolean populate) {
         AipSip sip = aipSipStore.find(sipId);
