@@ -1,17 +1,23 @@
 package cz.inqool.arclib.api;
 
 import cz.inqool.arclib.domain.AipState;
+import cz.inqool.arclib.service.AipRef;
 import cz.inqool.arclib.service.ArchivalService;
+import cz.inqool.arclib.service.FileRef;
 import cz.inqool.arclib.service.StorageStateDto;
 import cz.inqool.uas.exception.BadArgument;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.ResponseEntity;
+import org.apache.commons.io.IOUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @RestController
 @RequestMapping("/api/storage/aip")
@@ -26,9 +32,24 @@ public class AipApi {
      * @param sipId unique AIP identifier
      */
     @RequestMapping(value = "/{sipId}", method = RequestMethod.GET)
-    public ResponseEntity<InputStreamResource> get(@PathVariable("sipId") String sipId) throws IOException {
-        archivalService.get(sipId);
-        throw new UnsupportedOperationException("not implemented yet");
+    public void get(@PathVariable("sipId") String sipId, HttpServletResponse response) throws IOException {
+        AipRef aip = archivalService.get(sipId);
+        response.setContentType("application/zip");
+        response.setStatus(200);
+        response.addHeader("Content-Disposition", "attachment; filename=aip" + aip.getSip().getId());
+
+        try (ZipOutputStream zipOut = new ZipOutputStream(new BufferedOutputStream(response.getOutputStream()))) {
+            zipOut.putNextEntry(new ZipEntry(aip.getSip().getId()+".tar"));
+            IOUtils.copyLarge(new BufferedInputStream(aip.getSip().getStream()), zipOut);
+            zipOut.closeEntry();
+            IOUtils.closeQuietly(aip.getSip().getStream());
+            for (FileRef xml : aip.getXmls()) {
+                zipOut.putNextEntry(new ZipEntry(xml.getId()+".xml"));
+                IOUtils.copyLarge(new BufferedInputStream(xml.getStream()), zipOut);
+                zipOut.closeEntry();
+                IOUtils.closeQuietly(xml.getStream());
+            }
+        }
     }
 
 
@@ -48,13 +69,11 @@ public class AipApi {
      * @return true if data are consistent after transfer and store process, false otherwise
      */
     @RequestMapping(value = "/store", method = RequestMethod.POST)
-    public boolean saveFromStream(@RequestParam("sip") MultipartFile sip, @RequestParam("xml") MultipartFile xml, @RequestParam("meta") MultipartFile meta) {
+    public boolean saveFromStream(@RequestParam("sip") MultipartFile sip, @RequestParam("xml") MultipartFile xml, @RequestParam("meta") MultipartFile meta) throws IOException {
         try (InputStream sipStream = sip.getInputStream();
              InputStream xmlStream = xml.getInputStream();
              InputStream metaStream = meta.getInputStream()) {
             return archivalService.store(sipStream, xmlStream, metaStream);
-        } catch (IOException e) {
-            throw new BadArgument("file");
         }
     }
 

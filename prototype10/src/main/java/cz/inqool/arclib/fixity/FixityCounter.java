@@ -1,5 +1,7 @@
 package cz.inqool.arclib.fixity;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,6 +10,7 @@ import java.nio.file.Path;
 import static cz.inqool.uas.util.Utils.bytesToHexString;
 import static cz.inqool.uas.util.Utils.notNull;
 
+@Slf4j
 public abstract class FixityCounter {
 
     /**
@@ -70,6 +73,8 @@ public abstract class FixityCounter {
             throw new IllegalArgumentException();
         });
         expectedDigest = expectedDigest.toLowerCase();
-        return expectedDigest.equals(bytesToHexString(computeDigest(fileStream)));
+        String computedDigest = bytesToHexString(computeDigest(fileStream));
+        log.debug("fixity verification: "+expectedDigest.equals(computedDigest)+", provided digest: " + expectedDigest + ", digest computed from file: "+computedDigest);
+        return expectedDigest.equals(computedDigest);
     }
 }
