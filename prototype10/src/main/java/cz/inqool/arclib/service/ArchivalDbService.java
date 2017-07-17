@@ -31,7 +31,6 @@ public class ArchivalDbService {
         xml.setVersion(1);
         xml.setProcessing(true);
         xml.setMd5(xmlHash);
-        sip.addXml(xml);
         xml.setSip(sip);
         aipSipStore.save(sip);
         aipXmlStore.save(xml);

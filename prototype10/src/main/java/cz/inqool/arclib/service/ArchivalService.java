@@ -1,13 +1,11 @@
 package cz.inqool.arclib.service;
 
 import cz.inqool.arclib.fixity.FixityCounter;
+import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.List;
 import java.util.UUID;
 
@@ -37,6 +35,8 @@ public class ArchivalService {
         boolean consistent = fixityCounter.verifyFixity(aip.getSip().getStream(), sipHash) && fixityCounter.verifyFixity(aip.getXml(0).getStream(), xmlHash);
         if (consistent)
             archivalDbService.finishAipCreation(sipId, xmlId);
+        IOUtils.closeQuietly(aip.getSip().getStream());
+        IOUtils.closeQuietly(aip.getXml(0).getStream());
         return consistent;
     }
 
@@ -53,9 +53,11 @@ public class ArchivalService {
             archivalDbService.finishXmlProcess(xmlId);
             return true;
         }
-        boolean consistent = fixityCounter.verifyFixity(storageService.getXml(xmlId).getStream(), xmlHash);
+        FileRef file = storageService.getXml(xmlId);
+        boolean consistent = fixityCounter.verifyFixity(file.getStream(), xmlHash);
         if (consistent)
             archivalDbService.finishXmlProcess(xmlId);
+        IOUtils.closeQuietly(file.getStream());
         return consistent;
     }
 

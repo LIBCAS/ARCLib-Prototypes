@@ -16,48 +16,52 @@ public class FileSystemStorageService implements StorageService {
 
     @Override
     public void storeAip(InputStream sip, InputStream xml, String sipId, String xmlId) throws IOException {
-        store(sip, sipId);
-        store(xml, xmlId);
+        storeSipFile(sip, sipId);
+        storeXmlFile(xml, xmlId);
     }
 
     @Override
     public AipRef getAip(String sipId, String... xmlIds) throws IOException {
         AipRef aip = new AipRef();
-        try (InputStream is = new FileInputStream(getFilePath(sipId).toString())) {
-            aip.setSip(new FileRef(sipId, is));
-        }
+        aip.setSip(new FileRef(sipId, new FileInputStream(getSipFilePath(sipId).toString())));
         for (String xmlId : xmlIds) {
-            try (InputStream is = new FileInputStream(getFilePath(sipId).toString())) {
-                aip.addXml(new FileRef(xmlId, is));
-            }
+            aip.addXml(new FileRef(xmlId, new FileInputStream(getXmlFilePath(xmlId).toString())));
         }
         return aip;
     }
 
     @Override
     public void storeXml(InputStream xml, String xmlId) throws IOException {
-        store(xml, xmlId);
+        storeXmlFile(xml, xmlId);
     }
 
     @Override
     public FileRef getXml(String xmlId) throws IOException {
-        try (InputStream is = new FileInputStream(getFilePath(xmlId).toString())) {
-            return new FileRef(xmlId, is);
-        }
+        return new FileRef(xmlId, new FileInputStream(getXmlFilePath(xmlId).toString()));
     }
 
     @Override
     public void deleteSip(String sipId) throws IOException {
-        Files.delete(getFilePath(sipId));
+        Files.delete(getSipFilePath(sipId));
     }
 
-    private Path getFilePath(String uuid) throws IOException {
-        Path dirPath = Paths.get(uuid.substring(0, 2), uuid.substring(2, 4), uuid.substring(4, 6));
+    private Path getXmlFilePath(String uuid) throws IOException {
+        Path dirPath = Paths.get("xml",uuid.substring(0, 2), uuid.substring(2, 4), uuid.substring(4, 6));
         Files.createDirectories(dirPath);
         return Paths.get(dirPath.toString(), uuid);
     }
 
-    private void store(InputStream file, String id) throws IOException {
-        Files.copy(file, getFilePath(id));
+    private Path getSipFilePath(String uuid) throws IOException {
+        Path dirPath = Paths.get("sip",uuid.substring(0, 2), uuid.substring(2, 4), uuid.substring(4, 6));
+        Files.createDirectories(dirPath);
+        return Paths.get(dirPath.toString(), uuid);
+    }
+
+    private void storeSipFile(InputStream file, String id) throws IOException {
+        Files.copy(file, getSipFilePath(id));
+    }
+
+    private void storeXmlFile(InputStream file, String id) throws IOException {
+        Files.copy(file, getXmlFilePath(id));
     }
 }

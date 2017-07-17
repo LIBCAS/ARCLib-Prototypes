@@ -17,7 +17,7 @@ import javax.persistence.Table;
 public class AipXml extends ArchivalObject {
 
     @ManyToOne
-    @JoinColumn(name = "arclib_aip_id")
+    @JoinColumn(name = "arclib_aip_sip_id")
     private AipSip sip;
     private int version;
     private boolean processing;

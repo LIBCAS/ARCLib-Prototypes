@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "arclib_aip")
+@Table(name = "arclib_aip_sip")
 public class AipSip extends ArchivalObject {
 
     @OneToMany(mappedBy = "sip")
