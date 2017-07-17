@@ -11,5 +11,6 @@ import java.io.InputStream;
 @AllArgsConstructor
 public class FileRef {
     private String id;
+    private String name;
     private InputStream stream;
 }

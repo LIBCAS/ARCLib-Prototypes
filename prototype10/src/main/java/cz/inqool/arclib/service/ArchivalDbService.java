@@ -21,17 +21,19 @@ public class ArchivalDbService {
     private AipSipStore aipSipStore;
     private AipXmlStore aipXmlStore;
 
-    public void registerAipCreation(String sipId, String xmlId, String sipHash, String xmlHash) {
+    public void registerAipCreation(String sipId, String sipName, String sipHash, String xmlId, String xmlName, String xmlHash) {
         AipSip sip = new AipSip();
         sip.setId(sipId);
         sip.setState(AipState.PROCESSING);
         sip.setMd5(sipHash);
+        sip.setName(sipName);
         AipXml xml = new AipXml();
         xml.setId(xmlId);
         xml.setVersion(1);
         xml.setProcessing(true);
         xml.setMd5(xmlHash);
         xml.setSip(sip);
+        xml.setName(xmlName);
         aipSipStore.save(sip);
         aipXmlStore.save(xml);
     }
@@ -44,13 +46,14 @@ public class ArchivalDbService {
         finishXmlProcess(xmlId);
     }
 
-    public void registerXmlUpdate(String sipId, String xmlId, String xmlHash) {
+    public void registerXmlUpdate(String sipId, String xmlId, String xmlName, String xmlHash) {
         AipXml xml = new AipXml();
         xml.setId(xmlId);
         xml.setVersion(aipXmlStore.getNextXmlVersionNumber(sipId));
         xml.setProcessing(true);
         xml.setMd5(xmlHash);
         xml.setSip(new AipSip(sipId));
+        xml.setName(xmlName);
         aipXmlStore.save(xml);
     }
 
@@ -82,8 +85,17 @@ public class ArchivalDbService {
         aipSipStore.save(sip);
     }
 
-    public List<String> getXmls(String sipId) {
-        return aipXmlStore.getXmlIds(sipId);
+    /**
+     * Retrieves Aip entity.
+     * @param sipId
+     * @param populate
+     * @return  AipSip entity with list of xmls if populate is set to true, AipSip entity without list of xmls if populate is set to false.
+     */
+    public AipSip getAip(String sipId, boolean populate) {
+        AipSip sip = aipSipStore.find(sipId);
+        if(populate)
+            sip.getXmls().size();
+        return sip;
     }
 
     @Inject

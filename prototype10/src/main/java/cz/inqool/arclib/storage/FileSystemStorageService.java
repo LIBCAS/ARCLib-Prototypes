@@ -1,33 +1,36 @@
-package cz.inqool.arclib.service;
+package cz.inqool.arclib.storage;
 
 import cz.inqool.uas.store.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @Transactional
 public class FileSystemStorageService implements StorageService {
 
     @Override
-    public void storeAip(InputStream sip, InputStream xml, String sipId, String xmlId) throws IOException {
+    public void storeAip(InputStream sip, String sipId, InputStream xml, String xmlId) throws IOException {
         storeSipFile(sip, sipId);
         storeXmlFile(xml, xmlId);
     }
 
     @Override
-    public AipRef getAip(String sipId, String... xmlIds) throws IOException {
-        AipRef aip = new AipRef();
-        aip.setSip(new FileRef(sipId, new FileInputStream(getSipFilePath(sipId).toString())));
+    public List<InputStream> getAip(String sipId, String... xmlIds) throws IOException {
+        List<InputStream> refs = new ArrayList<>();
+        refs.add(new FileInputStream(getSipFilePath(sipId).toString()));
         for (String xmlId : xmlIds) {
-            aip.addXml(new FileRef(xmlId, new FileInputStream(getXmlFilePath(xmlId).toString())));
+            refs.add(new FileInputStream(getXmlFilePath(xmlId).toString()));
         }
-        return aip;
+        return refs;
     }
 
     @Override
@@ -36,13 +39,19 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
-    public FileRef getXml(String xmlId) throws IOException {
-        return new FileRef(xmlId, new FileInputStream(getXmlFilePath(xmlId).toString()));
+    public InputStream getXml(String xmlId) throws IOException {
+        return new FileInputStream(getXmlFilePath(xmlId).toString());
     }
 
     @Override
     public void deleteSip(String sipId) throws IOException {
         Files.delete(getSipFilePath(sipId));
+    }
+
+    @Override
+    public StorageStateDto getStorageState() {
+        File anchor = new File(".");
+        return new StorageStateDto(anchor.getTotalSpace(),anchor.getFreeSpace(),true,StorageType.FILESYSTEM);
     }
 
     private Path getXmlFilePath(String uuid) throws IOException {

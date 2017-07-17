@@ -4,16 +4,14 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Table(name = "arclib_aip_sip")
 public class AipSip extends ArchivalObject {
 
     @OneToMany(mappedBy = "sip")
-    private Set<AipXml> xmls = new HashSet<>();
+    private List<AipXml> xmls = new ArrayList<>();
 
     @Setter
     @Getter
@@ -31,7 +29,11 @@ public class AipSip extends ArchivalObject {
         xmls.add(aipXml);
     }
 
-    public Set<AipXml> getXmls() {
-        return Collections.unmodifiableSet(this.xmls);
+    public List<AipXml> getXmls() {
+        return Collections.unmodifiableList(this.xmls);
+    }
+
+    public AipXml getXml( int i){
+        return this.xmls.get(i);
     }
 }

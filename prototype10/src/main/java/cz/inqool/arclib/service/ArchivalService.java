@@ -1,11 +1,17 @@
 package cz.inqool.arclib.service;
 
+import cz.inqool.arclib.domain.AipSip;
+import cz.inqool.arclib.domain.AipXml;
 import cz.inqool.arclib.fixity.FixityCounter;
+import cz.inqool.arclib.storage.StorageService;
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,11 +23,19 @@ public class ArchivalService {
     private ArchivalDbService archivalDbService;
 
     public AipRef get(String sipId) throws IOException {
-        List<String> xmlIds = archivalDbService.getXmls(sipId);
-        return storageService.getAip(sipId, xmlIds.toArray(new String[xmlIds.size()]));
+        AipSip sipEntity = archivalDbService.getAip(sipId,true);
+        List<InputStream> refs = storageService.getAip(sipId, (String[])sipEntity.getXmls().stream().map(xml -> xml.getId()).toArray());
+        AipRef aip = new AipRef();
+        aip.setSip(new FileRef(sipEntity.getId(), sipEntity.getName(), refs.get(0)));
+        AipXml xml;
+        for (int i = 1; i < refs.size(); i++) {
+            xml = sipEntity.getXml(i - 1);
+            aip.addXml(new FileRef(xml.getId(), xml.getName(), refs.get(i)));
+        }
+        return aip;
     }
 
-    public boolean store(InputStream sip, InputStream aipXml, InputStream meta) throws IOException {
+    public boolean store(InputStream sip, String sipName, InputStream aipXml, String xmlName, InputStream meta) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(meta));
         String sipHash = br.readLine();
         String xmlHash = br.readLine();
@@ -29,9 +43,12 @@ public class ArchivalService {
         String sipId = UUID.randomUUID().toString();
         String xmlId = UUID.randomUUID().toString();
 
-        archivalDbService.registerAipCreation(sipId, xmlId, sipHash, xmlHash);
-        storageService.storeAip(sip, aipXml, sipId, xmlId);
-        AipRef aip = storageService.getAip(sipId, xmlId);
+        archivalDbService.registerAipCreation(sipId, sipName, sipHash, xmlId, xmlName, xmlHash);
+        storageService.storeAip(sip, sipId, aipXml, xmlId);
+        List<InputStream> refs = storageService.getAip(sipId, xmlId);
+        AipRef aip = new AipRef();
+        aip.setSip(new FileRef(sipId, sipName, refs.get(0)));
+        aip.addXml(new FileRef(xmlId, xmlName, refs.get(1)));
         boolean consistent = fixityCounter.verifyFixity(aip.getSip().getStream(), sipHash) && fixityCounter.verifyFixity(aip.getXml(0).getStream(), xmlHash);
         if (consistent)
             archivalDbService.finishAipCreation(sipId, xmlId);
@@ -40,20 +57,20 @@ public class ArchivalService {
         return consistent;
     }
 
-    public boolean updateXml(String sipId, InputStream xml, InputStream meta) throws IOException {
+    public boolean updateXml(String sipId, String xmlName, InputStream xml, InputStream meta) throws IOException {
         String xmlHash = null;
         if (meta != null) {
             BufferedReader br = new BufferedReader(new InputStreamReader(meta));
             xmlHash = br.readLine();
         }
         String xmlId = UUID.randomUUID().toString();
-        archivalDbService.registerXmlUpdate(sipId, xmlId, xmlHash);
+        archivalDbService.registerXmlUpdate(sipId, xmlId, xmlName, xmlHash);
         storageService.storeXml(xml, xmlId);
         if (xmlHash == null) {
             archivalDbService.finishXmlProcess(xmlId);
             return true;
         }
-        FileRef file = storageService.getXml(xmlId);
+        FileRef file = new FileRef(xmlId, xmlName, storageService.getXml(xmlId));
         boolean consistent = fixityCounter.verifyFixity(file.getStream(), xmlHash);
         if (consistent)
             archivalDbService.finishXmlProcess(xmlId);
@@ -65,10 +82,6 @@ public class ArchivalService {
         archivalDbService.registerSipDeletion(sipId);
         storageService.deleteSip(sipId);
         archivalDbService.finishSipDeletion(sipId);
-    }
-
-    public void remove(String sipId) {
-        archivalDbService.removeSip(sipId);
     }
 
     @Inject

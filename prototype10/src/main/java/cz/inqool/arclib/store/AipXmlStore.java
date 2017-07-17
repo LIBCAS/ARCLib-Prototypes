@@ -17,9 +17,4 @@ public class AipXmlStore extends DomainStore<AipXml, QAipXml> {
         QAipXml xml = qObject();
         return 1 + query().select(xml.version.max()).where(xml.sip.id.eq(sipId)).fetchFirst();
     }
-
-    public List<String> getXmlIds(String sipId) {
-        QAipXml xml = qObject();
-        return query().select(xml.id).where(xml.sip.id.eq(sipId)).fetch();
-    }
 }

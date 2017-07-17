@@ -18,6 +18,7 @@
             <column name="md5" type="varchar(32)">
                 <constraints nullable="false"/>
             </column>
+            <column name="name" type="varchar(255)"/>
             <column name="state" type="varchar(32)">
                 <constraints nullable="false"/>
             </column>
@@ -35,6 +36,7 @@
             <column name="updated" type="datetime"/>
             <column name="deleted" type="datetime"/>
             <column name="md5" type="varchar(32)"/>
+            <column name="name" type="varchar(255)"/>
             <column name="version" type="integer">
                 <constraints nullable="false"/>
             </column>

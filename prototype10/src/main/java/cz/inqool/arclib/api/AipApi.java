@@ -1,10 +1,8 @@
 package cz.inqool.arclib.api;
 
 import cz.inqool.arclib.domain.AipState;
-import cz.inqool.arclib.service.AipRef;
-import cz.inqool.arclib.service.ArchivalService;
-import cz.inqool.arclib.service.FileRef;
-import cz.inqool.arclib.service.StorageStateDto;
+import cz.inqool.arclib.service.*;
+import cz.inqool.arclib.storage.StorageStateDto;
 import cz.inqool.uas.exception.BadArgument;
 import org.apache.commons.io.IOUtils;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +22,7 @@ import java.util.zip.ZipOutputStream;
 public class AipApi {
 
     private ArchivalService archivalService;
+    private ArchivalDbService archivalDbService;
 
 
     /**
@@ -39,19 +38,18 @@ public class AipApi {
         response.addHeader("Content-Disposition", "attachment; filename=aip" + aip.getSip().getId());
 
         try (ZipOutputStream zipOut = new ZipOutputStream(new BufferedOutputStream(response.getOutputStream()))) {
-            zipOut.putNextEntry(new ZipEntry(aip.getSip().getId()+".tar"));
+            zipOut.putNextEntry(new ZipEntry(aip.getSip().getName()));
             IOUtils.copyLarge(new BufferedInputStream(aip.getSip().getStream()), zipOut);
             zipOut.closeEntry();
             IOUtils.closeQuietly(aip.getSip().getStream());
             for (FileRef xml : aip.getXmls()) {
-                zipOut.putNextEntry(new ZipEntry(xml.getId()+".xml"));
+                zipOut.putNextEntry(new ZipEntry(xml.getName()));
                 IOUtils.copyLarge(new BufferedInputStream(xml.getStream()), zipOut);
                 zipOut.closeEntry();
                 IOUtils.closeQuietly(xml.getStream());
             }
         }
     }
-
 
     /**
      * Stores AIP parts (SIP and ARCLib XML) into Archival Storage and verifies that data are consistent after transfer.
@@ -69,11 +67,12 @@ public class AipApi {
      * @return true if data are consistent after transfer and store process, false otherwise
      */
     @RequestMapping(value = "/store", method = RequestMethod.POST)
-    public boolean saveFromStream(@RequestParam("sip") MultipartFile sip, @RequestParam("xml") MultipartFile xml, @RequestParam("meta") MultipartFile meta) throws IOException {
+    public boolean save(@RequestParam("sip") MultipartFile sip, @RequestParam("xml") MultipartFile xml, @RequestParam("meta") MultipartFile meta) throws IOException {
         try (InputStream sipStream = sip.getInputStream();
              InputStream xmlStream = xml.getInputStream();
              InputStream metaStream = meta.getInputStream()) {
-            return archivalService.store(sipStream, xmlStream, metaStream);
+
+            return archivalService.store(sipStream, sip.getOriginalFilename(), xmlStream, xml.getOriginalFilename(), metaStream);
         }
     }
 
@@ -93,16 +92,15 @@ public class AipApi {
         if (meta != null) {
             try (InputStream xmlStream = xml.getInputStream();
                  InputStream metaStream = meta.getInputStream()) {
-                return archivalService.updateXml(sipId, xmlStream, metaStream);
+                return archivalService.updateXml(sipId, xml.getOriginalFilename(), xmlStream, metaStream);
             } catch (IOException e) {
-                throw new BadArgument("file");
+                throw new BadArgument(e);
             }
-
         }
         try (InputStream xmlStream = xml.getInputStream()) {
-            return archivalService.updateXml(sipId, xmlStream, null);
+            return archivalService.updateXml(sipId, xml.getOriginalFilename(), xmlStream, null);
         } catch (IOException e) {
-            throw new BadArgument("file");
+            throw new BadArgument(e);
         }
 
     }
@@ -114,7 +112,7 @@ public class AipApi {
      */
     @RequestMapping(value = "/{sipId}", method = RequestMethod.DELETE)
     public void remove(@PathVariable("sipId") String sipId) {
-        archivalService.remove(sipId);
+        archivalDbService.removeSip(sipId);
     }
 
     /**
@@ -135,7 +133,7 @@ public class AipApi {
      */
     @RequestMapping(value = "/{uuid}/state", method = RequestMethod.GET)
     public AipState getAipState(@PathVariable("uuid") String uuid) {
-        throw new UnsupportedOperationException();
+        return archivalDbService.getAip(uuid,false).getState();
     }
 
 
@@ -152,5 +150,10 @@ public class AipApi {
     @Inject
     public void setArchivalService(ArchivalService archivalService) {
         this.archivalService = archivalService;
+    }
+
+    @Inject
+    public void setArchivalDbService(ArchivalDbService archivalDbService) {
+        this.archivalDbService = archivalDbService;
     }
 }
