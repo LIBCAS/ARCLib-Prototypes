@@ -13,4 +13,21 @@ public class FileRef {
     private String id;
     private String name;
     private InputStream stream;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        FileRef fileRef = (FileRef) o;
+
+        return getId().equals(fileRef.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getId().hashCode();
+    }
 }
+
+

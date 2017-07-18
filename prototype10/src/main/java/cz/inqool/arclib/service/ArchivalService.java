@@ -16,6 +16,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class ArchivalService {
@@ -33,7 +34,8 @@ public class ArchivalService {
      */
     public AipRef get(String sipId) throws IOException {
         AipSip sipEntity = archivalDbService.getAip(sipId);
-        List<InputStream> refs = storageService.getAip(sipId, (String[]) sipEntity.getXmls().stream().map(xml -> xml.getId()).toArray());
+        List<AipXml> xmls = sipEntity.getXmls();
+        List<InputStream> refs = storageService.getAip(sipId, xmls.stream().map(xml -> xml.getId()).collect(Collectors.toList()).toArray(new String[xmls.size()]));
         AipRef aip = new AipRef();
         aip.setSip(new FileRef(sipEntity.getId(), sipEntity.getName(), refs.get(0)));
         AipXml xml;
