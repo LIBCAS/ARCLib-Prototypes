@@ -32,7 +32,7 @@ public class ArchivalService {
      * @throws IOException
      */
     public AipRef get(String sipId) throws IOException {
-        AipSip sipEntity = archivalDbService.getAip(sipId, true);
+        AipSip sipEntity = archivalDbService.getAip(sipId);
         List<InputStream> refs = storageService.getAip(sipId, (String[]) sipEntity.getXmls().stream().map(xml -> xml.getId()).toArray());
         AipRef aip = new AipRef();
         aip.setSip(new FileRef(sipEntity.getId(), sipEntity.getName(), refs.get(0)));

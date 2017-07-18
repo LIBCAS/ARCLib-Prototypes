@@ -14,9 +14,9 @@ import javax.persistence.MappedSuperclass;
 @Setter
 @MappedSuperclass
 public abstract class ArchivalObject extends DatedObject {
-    @Column(updatable = false)
+    @Column(updatable = false, nullable = false)
     protected String md5;
-    @Column(updatable = false)
+    @Column(updatable = false, nullable = false)
     protected String name;
 
     public ArchivalObject(String id, String name, String md5) {

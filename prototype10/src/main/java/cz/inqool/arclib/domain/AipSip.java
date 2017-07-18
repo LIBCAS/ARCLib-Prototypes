@@ -12,7 +12,7 @@ import java.util.List;
 @Table(name = "arclib_aip_sip")
 public class AipSip extends ArchivalObject {
 
-    @OneToMany(mappedBy = "sip")
+    @OneToMany(mappedBy = "sip", fetch = FetchType.EAGER)
     private List<AipXml> xmls = new ArrayList<>();
 
     @Setter
@@ -30,6 +30,10 @@ public class AipSip extends ArchivalObject {
 
     public AipXml getXml(int i) {
         return this.xmls.get(i);
+    }
+
+    public AipSip() {
+        super(null, null, null);
     }
 
     public AipSip(String id) {

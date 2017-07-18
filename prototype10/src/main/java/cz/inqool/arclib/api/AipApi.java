@@ -129,7 +129,7 @@ public class AipApi {
      */
     @RequestMapping(value = "/{uuid}/state", method = RequestMethod.GET)
     public AipState getAipState(@PathVariable("uuid") String uuid) {
-        return archivalDbService.getAip(uuid, false).getState();
+        return archivalDbService.getAip(uuid).getState();
     }
 
 
