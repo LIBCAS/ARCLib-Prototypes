@@ -74,7 +74,7 @@ public abstract class FixityCounter {
         });
         expectedDigest = expectedDigest.toLowerCase();
         String computedDigest = bytesToHexString(computeDigest(fileStream));
-        log.debug("fixity verification: "+expectedDigest.equals(computedDigest)+", provided digest: " + expectedDigest + ", digest computed from file: "+computedDigest);
+        log.debug("fixity verification: " + expectedDigest.equals(computedDigest) + ", provided digest: " + expectedDigest + ", digest computed from file: " + computedDigest);
         return expectedDigest.equals(computedDigest);
     }
 }

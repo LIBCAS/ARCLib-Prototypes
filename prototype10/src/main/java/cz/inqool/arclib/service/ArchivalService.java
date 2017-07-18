@@ -26,13 +26,14 @@ public class ArchivalService {
 
     /**
      * Retrieves reference to AIP.
+     *
      * @param sipId
-     * @return  Reference of AIP which contains id, name and stream of SIP and all its XMLs
+     * @return Reference of AIP which contains id, name and stream of SIP and all its XMLs
      * @throws IOException
      */
     public AipRef get(String sipId) throws IOException {
-        AipSip sipEntity = archivalDbService.getAip(sipId,true);
-        List<InputStream> refs = storageService.getAip(sipId, (String[])sipEntity.getXmls().stream().map(xml -> xml.getId()).toArray());
+        AipSip sipEntity = archivalDbService.getAip(sipId, true);
+        List<InputStream> refs = storageService.getAip(sipId, (String[]) sipEntity.getXmls().stream().map(xml -> xml.getId()).toArray());
         AipRef aip = new AipRef();
         aip.setSip(new FileRef(sipEntity.getId(), sipEntity.getName(), refs.get(0)));
         AipXml xml;
@@ -45,11 +46,12 @@ public class ArchivalService {
 
     /**
      * Stores AIP to Archival Storage and its metadata to transaction database.
-     * @param sip   Stream of SIP file
-     * @param sipName   SIP file name
-     * @param aipXml    Stream of XML file
-     * @param xmlName   XML file name
-     * @param meta  Stream containing two lines, first is SIP md5 hash, second is XML md5 hash
+     *
+     * @param sip     Stream of SIP file
+     * @param sipName SIP file name
+     * @param aipXml  Stream of XML file
+     * @param xmlName XML file name
+     * @param meta    Stream containing two lines, first is SIP md5 hash, second is XML md5 hash
      * @return Information about both stored files containing file name, its assigned id and boolean flag determining whether the stored file is consistent i.e. was not changed during the transfer.
      * @throws IOException
      */
@@ -66,8 +68,8 @@ public class ArchivalService {
         archivalDbService.finishAipCreation(sipId, xmlId);
         List<InputStream> refs = storageService.getAip(sipId, xmlId);
         List<StoredFileInfoDto> fileInfos = new ArrayList<>();
-        fileInfos.add(new StoredFileInfoDto(sipId,sipName,fixityCounter.verifyFixity(refs.get(0), sipHash)));
-        fileInfos.add(new StoredFileInfoDto(xmlId,xmlName,fixityCounter.verifyFixity(refs.get(1), xmlHash)));
+        fileInfos.add(new StoredFileInfoDto(sipId, sipName, fixityCounter.verifyFixity(refs.get(0), sipHash)));
+        fileInfos.add(new StoredFileInfoDto(xmlId, xmlName, fixityCounter.verifyFixity(refs.get(1), xmlHash)));
         IOUtils.closeQuietly(refs.get(0));
         IOUtils.closeQuietly(refs.get(1));
         return fileInfos;
@@ -75,10 +77,11 @@ public class ArchivalService {
 
     /**
      * Stores ARCLib AIP XML into Archival Storage and its metadata to transaction database.
-     * @param sipId Id of SIP to which XML belongs
-     * @param xmlName   Name of xml file
-     * @param xml   Stream of xml file
-     * @param meta  Stream containing one line with ARCLib XML MD5 hash
+     *
+     * @param sipId   Id of SIP to which XML belongs
+     * @param xmlName Name of xml file
+     * @param xml     Stream of xml file
+     * @param meta    Stream containing one line with ARCLib XML MD5 hash
      * @return Information about stored xml containing file name, its assigned id and boolean flag determining whether the stored file is consistent i.e. was not changed during the transfer.
      * @throws IOException
      */
@@ -90,13 +93,14 @@ public class ArchivalService {
         storageService.storeXml(xml, xmlId);
         archivalDbService.finishXmlProcess(xmlId);
         InputStream xmlRef = storageService.getXml(xmlId);
-        StoredFileInfoDto fileInfo =  new StoredFileInfoDto(xmlId,xmlName,fixityCounter.verifyFixity(xmlRef, xmlHash));
+        StoredFileInfoDto fileInfo = new StoredFileInfoDto(xmlId, xmlName, fixityCounter.verifyFixity(xmlRef, xmlHash));
         IOUtils.closeQuietly(xmlRef);
         return fileInfo;
     }
 
     /**
      * Physically removes SIP from database. XMLs and data in transaction database are not removed.
+     *
      * @param sipId
      * @throws IOException
      */

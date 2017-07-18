@@ -10,6 +10,7 @@ import java.util.List;
 public interface StorageService {
     /**
      * Stores Aip files into storage.
+     *
      * @param sip
      * @param sipId
      * @param xml
@@ -20,15 +21,17 @@ public interface StorageService {
 
     /**
      * Retrieves references to Aip files. Caller is responsible for closing retrieved streams.
+     *
      * @param sipId
      * @param xmlIds
-     * @return  List of opened input streams to Aip files in order specified by input params i.e. first is reference to AipSip and then references to AipXmls.
+     * @return List of opened input streams to Aip files in order specified by input params i.e. first is reference to AipSip and then references to AipXmls.
      * @throws IOException
      */
     List<InputStream> getAip(String sipId, String... xmlIds) throws IOException;
 
     /**
      * Stores AipXml files into storage.
+     *
      * @param xml   opened input stream to xml file
      * @param xmlId
      * @throws IOException
@@ -37,14 +40,16 @@ public interface StorageService {
 
     /**
      * Retrieves reference to AipXml file. Caller is responsible for closing retrieved stream.
+     *
      * @param xmlId
-     * @return  opened input stream to AipXml file
+     * @return opened input stream to AipXml file
      * @throws IOException
      */
     InputStream getXml(String xmlId) throws IOException;
 
     /**
      * Deletes AipSip file from storage.
+     *
      * @param sipId
      * @throws IOException
      */
@@ -52,6 +57,7 @@ public interface StorageService {
 
     /**
      * Returns state of currently used storage.
+     *
      * @return
      */
     StorageStateDto getStorageState();

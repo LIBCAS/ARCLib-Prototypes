@@ -5,8 +5,6 @@ import cz.inqool.arclib.domain.QAipXml;
 import cz.inqool.uas.store.DomainStore;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
 @Repository
 public class AipXmlStore extends DomainStore<AipXml, QAipXml> {
     public AipXmlStore() {

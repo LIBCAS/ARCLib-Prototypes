@@ -4,7 +4,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @Entity
 @Table(name = "arclib_aip_sip")
@@ -26,15 +28,16 @@ public class AipSip extends ArchivalObject {
         return Collections.unmodifiableList(this.xmls);
     }
 
-    public AipXml getXml( int i){
+    public AipXml getXml(int i) {
         return this.xmls.get(i);
     }
 
     public AipSip(String id) {
-        super(id,null,null);
+        super(id, null, null);
     }
-    public AipSip(String id, String name, String md5, AipState state){
-        super(id,name,md5);
+
+    public AipSip(String id, String name, String md5, AipState state) {
+        super(id, name, md5);
         this.state = state;
     }
 }

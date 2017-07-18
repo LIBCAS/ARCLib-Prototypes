@@ -10,8 +10,8 @@ public class NodeStateDto extends BasicStateInfo {
     String id;
     String ip;
 
-    public NodeStateDto(long capacity, long free, boolean running, String id, String ip){
-        super(capacity,free,running);
+    public NodeStateDto(long capacity, long free, boolean running, String id, String ip) {
+        super(capacity, free, running);
         this.setId(id);
         this.setIp(ip);
     }

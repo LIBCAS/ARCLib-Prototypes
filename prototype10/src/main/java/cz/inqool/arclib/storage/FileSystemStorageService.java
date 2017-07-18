@@ -2,6 +2,7 @@ package cz.inqool.arclib.storage;
 
 import cz.inqool.arclib.dto.StorageStateDto;
 import cz.inqool.uas.store.Transactional;
+import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -31,9 +32,17 @@ public class FileSystemStorageService implements StorageService {
     @Override
     public List<InputStream> getAip(String sipId, String... xmlIds) throws IOException {
         List<InputStream> refs = new ArrayList<>();
-        refs.add(new FileInputStream(getSipFilePath(sipId).toString()));
-        for (String xmlId : xmlIds) {
-            refs.add(new FileInputStream(getXmlFilePath(xmlId).toString()));
+        try {
+            refs.add(new FileInputStream(getSipFilePath(sipId).toString()));
+
+            for (String xmlId : xmlIds) {
+                refs.add(new FileInputStream(getXmlFilePath(xmlId).toString()));
+            }
+        } catch (Exception ex) {
+            for (InputStream stream : refs) {
+                IOUtils.closeQuietly(stream);
+            }
+            throw ex;
         }
         return refs;
     }
@@ -45,7 +54,14 @@ public class FileSystemStorageService implements StorageService {
 
     @Override
     public InputStream getXml(String xmlId) throws IOException {
-        return new FileInputStream(getXmlFilePath(xmlId).toString());
+        InputStream is = null;
+        try {
+            is = new FileInputStream(getXmlFilePath(xmlId).toString());
+        } catch (Exception ex) {
+            IOUtils.closeQuietly(is);
+            throw ex;
+        }
+        return is;
     }
 
     @Override
@@ -56,17 +72,17 @@ public class FileSystemStorageService implements StorageService {
     @Override
     public StorageStateDto getStorageState() {
         File anchor = new File(".");
-        return new StorageStateDto(anchor.getTotalSpace(),anchor.getFreeSpace(),true,StorageType.FILESYSTEM);
+        return new StorageStateDto(anchor.getTotalSpace(), anchor.getFreeSpace(), true, StorageType.FILESYSTEM);
     }
 
     private Path getXmlFilePath(String uuid) throws IOException {
-        Path dirPath = Paths.get("xml",uuid.substring(0, 2), uuid.substring(2, 4), uuid.substring(4, 6));
+        Path dirPath = Paths.get("xml", uuid.substring(0, 2), uuid.substring(2, 4), uuid.substring(4, 6));
         Files.createDirectories(dirPath);
         return Paths.get(dirPath.toString(), uuid);
     }
 
     private Path getSipFilePath(String uuid) throws IOException {
-        Path dirPath = Paths.get("sip",uuid.substring(0, 2), uuid.substring(2, 4), uuid.substring(4, 6));
+        Path dirPath = Paths.get("sip", uuid.substring(0, 2), uuid.substring(2, 4), uuid.substring(4, 6));
         Files.createDirectories(dirPath);
         return Paths.get(dirPath.toString(), uuid);
     }
