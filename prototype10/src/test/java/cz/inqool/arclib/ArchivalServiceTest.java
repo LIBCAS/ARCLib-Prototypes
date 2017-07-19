@@ -14,7 +14,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import java.io.ByteArrayInputStream;
@@ -27,8 +26,7 @@ import java.util.List;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class ArchivalServiceTest {
 
@@ -93,12 +91,12 @@ public class ArchivalServiceTest {
         List<StoredFileInfoDto> res = service.store(SIP_STREAM, SIP_ID, XML1_STREAM, XML1_ID, META1_STREAM);
 
         ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(dbService).registerAipCreation(argument.capture(), anyString(), eq(SIP_HASH), argument.capture(), anyString(), eq(XML1_HASH));
+        verify(dbService).registerAipCreation(argument.capture(), anyString(), eq(SIP_HASH), argument.capture(), anyString(), eq(XML1_HASH));
         String generatedSipId = argument.getAllValues().get(0);
         String generatedXmlId = argument.getAllValues().get(1);
-        Mockito.verify(storageService).storeAip(SIP_STREAM, generatedSipId, XML1_STREAM, generatedXmlId);
+        verify(storageService).storeAip(SIP_STREAM, generatedSipId, XML1_STREAM, generatedXmlId);
         assertThat(generatedSipId, not(equalTo(generatedXmlId)));
-        Mockito.verify(dbService).finishAipCreation(generatedSipId, generatedXmlId);
+        verify(dbService).finishAipCreation(generatedSipId, generatedXmlId);
         assertThat(res.get(0), equalTo(new StoredFileInfoDto(generatedSipId, SIP_ID, false)));
         assertThat(res.get(1), equalTo(new StoredFileInfoDto(generatedXmlId, XML1_ID, true)));
     }
@@ -111,10 +109,10 @@ public class ArchivalServiceTest {
         StoredFileInfoDto res = service.updateXml(SIP_ID, XML1_ID, XML1_STREAM, META2_STREAM);
 
         ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(dbService).registerXmlUpdate(eq(SIP_ID), argument.capture(), anyString(), eq(XML1_HASH));
+        verify(dbService).registerXmlUpdate(eq(SIP_ID), argument.capture(), anyString(), eq(XML1_HASH));
         String generatedXmlId = argument.getValue();
-        Mockito.verify(storageService).storeXml(XML1_STREAM, generatedXmlId);
-        Mockito.verify(dbService).finishXmlProcess(generatedXmlId);
+        verify(storageService).storeXml(XML1_STREAM, generatedXmlId);
+        verify(dbService).finishXmlProcess(generatedXmlId);
         assertThat(res, equalTo(new StoredFileInfoDto(generatedXmlId, XML1_ID, false)));
     }
 }

@@ -46,7 +46,7 @@ public class AipSip extends ArchivalObject {
     }
 
     public AipSip(String id, String name, String md5, AipState state, AipXml... xmls) {
-        this(id,name,md5,state);
+        this(id, name, md5, state);
         for (AipXml xml : xmls) {
             addXml(xml);
         }

@@ -23,12 +23,11 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 @RestController
-@RequestMapping("/api/storage/aip")
+@RequestMapping("/api/storage")
 public class AipApi {
 
     private ArchivalService archivalService;
     private ArchivalDbService archivalDbService;
-
 
     /**
      * Retrieves specified AIP as a ZIP package containing AipSip and all AipXmls.
@@ -40,15 +39,15 @@ public class AipApi {
         AipRef aip = archivalService.get(sipId);
         response.setContentType("application/zip");
         response.setStatus(200);
-        response.addHeader("Content-Disposition", "attachment; filename=aip" + aip.getSip().getId());
+        response.addHeader("Content-Disposition", "attachment; filename=aip_" + aip.getSip().getId());
 
         try (ZipOutputStream zipOut = new ZipOutputStream(new BufferedOutputStream(response.getOutputStream()))) {
-            zipOut.putNextEntry(new ZipEntry(aip.getSip().getName()));
+            zipOut.putNextEntry(new ZipEntry(aip.getSip().getId() + "_" + aip.getSip().getName()));
             IOUtils.copyLarge(new BufferedInputStream(aip.getSip().getStream()), zipOut);
             zipOut.closeEntry();
             IOUtils.closeQuietly(aip.getSip().getStream());
             for (FileRef xml : aip.getXmls()) {
-                zipOut.putNextEntry(new ZipEntry(xml.getName()));
+                zipOut.putNextEntry(new ZipEntry(xml.getId() + "_" + xml.getName()));
                 IOUtils.copyLarge(new BufferedInputStream(xml.getStream()), zipOut);
                 zipOut.closeEntry();
                 IOUtils.closeQuietly(xml.getStream());
@@ -139,8 +138,8 @@ public class AipApi {
      * @return
      */
     @RequestMapping(value = "/state", method = RequestMethod.GET)
-    public StorageStateDto getStorageState(@PathVariable("uuid") String uuid) {
-        throw new UnsupportedOperationException();
+    public StorageStateDto getStorageState() {
+        return archivalService.getStorageState();
     }
 
     @Inject

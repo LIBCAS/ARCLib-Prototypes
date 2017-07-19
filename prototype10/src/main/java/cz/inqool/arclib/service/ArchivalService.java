@@ -2,6 +2,7 @@ package cz.inqool.arclib.service;
 
 import cz.inqool.arclib.domain.AipSip;
 import cz.inqool.arclib.domain.AipXml;
+import cz.inqool.arclib.dto.StorageStateDto;
 import cz.inqool.arclib.dto.StoredFileInfoDto;
 import cz.inqool.arclib.fixity.FixityCounter;
 import cz.inqool.arclib.storage.StorageService;
@@ -110,6 +111,15 @@ public class ArchivalService {
         archivalDbService.registerSipDeletion(sipId);
         storageService.deleteSip(sipId);
         archivalDbService.finishSipDeletion(sipId);
+    }
+
+    /**
+     * Returns state of currently used storage.
+     *
+     * @return
+     */
+    public StorageStateDto getStorageState() {
+        return storageService.getStorageState();
     }
 
     @Inject
