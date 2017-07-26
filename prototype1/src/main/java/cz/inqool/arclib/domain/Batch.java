@@ -10,9 +10,6 @@ import javax.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Dávka
- */
 @Getter
 @Setter
 @BatchSize(size = 100)

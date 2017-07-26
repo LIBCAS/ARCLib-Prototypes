@@ -14,17 +14,16 @@ import org.camunda.bpm.engine.RuntimeService;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 
-import static cz.inqool.arclib.util.Utils.asMap;
-import static cz.inqool.arclib.util.Utils.in;
-import static cz.inqool.arclib.util.Utils.notNull;
+import static cz.inqool.arclib.util.Utils.*;
 
 @Slf4j
-@Component
+@Service
 public class WorkerService {
+
     private SipStore sipStore;
     private BatchStore batchStore;
     private JmsTemplate template;
@@ -36,13 +35,13 @@ public class WorkerService {
      * 1. retrieves the specified batch from database, if the batch has got more than 1/2 failures in processing of its SIPs,
      * method stops evaluation, otherwise continues with the next step
      * <p>
-     * 2. checks that the batch state is PROCESSING and then starts BPM process for the SIP
+     * 2. checks that the batch state is PROCESSING, updates the SIP with state PROCESSING and starts BPM process for the SIP
      *
      * @param dto object with the batch id and sip id
      * @throws InterruptedException
      */
-    @Transactional
     @Async
+    @Transactional
     @JmsListener(destination = "worker")
     public void processSip(CoordinatorDto dto) throws InterruptedException {
         String sipId = dto.getSipId();
@@ -56,11 +55,18 @@ public class WorkerService {
         in(sipId, batch.getIds(), () -> new ForbiddenObject(Batch.class, batchId));
 
         if (tooManyFailedSips(batch)) {
+            template.convertAndSend("cancel", batch.getId());
+
             log.info("Processing of batch " + batchId + " stopped because of too many SIP failures.");
+
             return;
         }
 
         if (batch.getState() == BatchState.PROCESSING) {
+            Sip sip = sipStore.find(sipId);
+            sip.setState(SipState.PROCESSING);
+            sipStore.save(sip);
+
             runtimeService.startProcessInstanceByKey("Ingest", asMap("sipId", sipId)).getProcessInstanceId();
         }
     }
@@ -83,12 +89,7 @@ public class WorkerService {
                 })
                 .count();
 
-        if (failedSipsCount > allSipsCount / 2) {
-            template.convertAndSend("cancelBatch", batch.getId());
-            return true;
-        } else {
-            return false;
-        }
+        return failedSipsCount > (allSipsCount / 2);
     }
 
     @Inject

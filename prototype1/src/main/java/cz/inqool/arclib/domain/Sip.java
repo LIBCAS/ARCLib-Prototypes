@@ -9,9 +9,6 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Table;
 
-/**
- * SIP balíček
- */
 @Getter
 @Setter
 @BatchSize(size = 100)

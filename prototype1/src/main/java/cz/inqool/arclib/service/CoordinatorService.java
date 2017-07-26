@@ -11,7 +11,6 @@ import cz.inqool.arclib.store.SipStore;
 import cz.inqool.arclib.store.Transactional;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
@@ -25,31 +24,34 @@ import static cz.inqool.arclib.util.Utils.notNull;
 @Service
 public class CoordinatorService {
 
-    private JmsTemplate template;
     private SipStore sipStore;
     private BatchStore batchStore;
+    private JmsTemplate template;
 
     /**
-     * Creates and runs new batch. For each file in the specified folder creates sip package and assigns it to the batch.
+     * Creates and starts new batch. For each file in the specified folder creates sip package and assigns it to the batch.
      * Then it sets the state of batch to PROCESSING and sends a JMS message to Worker for each sip package.
      *
      * @param path path to the folder with files to be processed
+     * @return id of the created batch
      */
-    @Transactional
-    public void run(String path) {
+    public String start(String path) {
         File folder = new File(path);
         if (!folder.exists()) {
             throw new GeneralException("The path specified does not exist!");
         }
 
+        Set<String> sipIds = processFolder(folder);
+
         Batch batch = new Batch();
+        batch.setIds(sipIds);
         batch.setState(BatchState.PROCESSING);
-        batch.setIds(processFolder(folder));
         batchStore.save(batch);
 
-        batch.getIds().forEach(id -> {
+        sipIds.forEach(id -> {
             template.convertAndSend("worker", new CoordinatorDto(id, batch.getId()));
         });
+        return batch.getId();
     }
 
     /**
@@ -63,7 +65,7 @@ public class CoordinatorService {
                 .stream(folder.listFiles())
                 .map(f -> {
                     Sip sip = new Sip();
-                    sip.setState(SipState.PROCESSING);
+                    sip.setState(SipState.NEW);
                     sip.setPath(f.getPath());
                     sipStore.save(sip);
 
@@ -77,9 +79,8 @@ public class CoordinatorService {
      *
      * @param batchId id of the batch
      */
-    @Async
-    @JmsListener(destination = "cancelBatch")
     @Transactional
+    @JmsListener(destination = "cancel")
     public void cancel(String batchId) {
         Batch batch = batchStore.find(batchId);
 
@@ -113,7 +114,6 @@ public class CoordinatorService {
      *
      * @param batchId id of the batch
      */
-    @Transactional
     public Boolean resume(String batchId) {
         Batch batch = batchStore.find(batchId);
 
@@ -121,12 +121,9 @@ public class CoordinatorService {
 
         Boolean hasProcessingSip = batch.getIds().stream().anyMatch(id -> {
             Sip sip = sipStore.find(id);
-
             notNull(sip, () -> new MissingObject(Sip.class, id));
-
             return (sip.getState() == SipState.PROCESSING);
         });
-
         if (hasProcessingSip) return false;
 
         batch.setState(BatchState.PROCESSING);
@@ -138,7 +135,6 @@ public class CoordinatorService {
                 template.convertAndSend("worker", new CoordinatorDto(id, batch.getId()));
             }
         });
-
         return true;
     }
 
