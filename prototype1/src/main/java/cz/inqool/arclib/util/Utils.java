@@ -84,4 +84,7 @@ public class Utils {
         return Collections.singletonMap(key, value);
     }
 
+    public static <T> List<T> asList(Collection<T> a) {
+        return a.stream().collect(Collectors.toList());
+    }
 }

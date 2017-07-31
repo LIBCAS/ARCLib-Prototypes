@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static cz.inqool.arclib.util.Utils.asList;
 import static cz.inqool.arclib.util.Utils.notNull;
 
 @Service
@@ -119,11 +120,8 @@ public class CoordinatorService {
 
         notNull(batch, () -> new MissingObject(Batch.class, batchId));
 
-        Boolean hasProcessingSip = batch.getIds().stream().anyMatch(id -> {
-            Sip sip = sipStore.find(id);
-            notNull(sip, () -> new MissingObject(Sip.class, id));
-            return (sip.getState() == SipState.PROCESSING);
-        });
+        boolean hasProcessingSip = sipStore.findAllInList(asList(batch.getIds())).stream()
+                .anyMatch(sip -> sip.getState() == SipState.PROCESSING);
         if (hasProcessingSip) return false;
 
         batch.setState(BatchState.PROCESSING);
