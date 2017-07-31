@@ -41,10 +41,11 @@ public class CoordinatorApi {
     /**
      * Resumes processing of the batch
      * @param batchId id of the batch to resume
+     * @return true, if the batch has succeeded to resume, false otherwise
      */
     @RequestMapping(value = "/{batchId}/resume", method = RequestMethod.POST)
-    public void resume(@PathVariable("batchId") String batchId) {
-        coordinatorService.resume(batchId);
+    public boolean resume(@PathVariable("batchId") String batchId) {
+        return coordinatorService.resume(batchId);
     }
 
     @Inject

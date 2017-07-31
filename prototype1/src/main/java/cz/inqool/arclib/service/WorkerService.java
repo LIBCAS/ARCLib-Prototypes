@@ -80,13 +80,9 @@ public class WorkerService {
      */
     private boolean tooManyFailedSips(Batch batch) {
         int allSipsCount = batch.getIds().size();
-        long failedSipsCount = batch.getIds()
-                .stream()
-                .filter(id -> {
-                    Sip sip = sipStore.find(id);
-                    notNull(sip, () -> new MissingObject(Sip.class, id));
-                    return (sip.getState() == SipState.FAILED);
-                })
+
+        long failedSipsCount = sipStore.findAllInList(asList(batch.getIds())).stream()
+                .filter(sip -> sip.getState() == SipState.FAILED)
                 .count();
 
         return failedSipsCount > (allSipsCount / 2);
