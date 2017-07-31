@@ -3,10 +3,12 @@ package cz.inqool.arclib.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Iterator;
 import java.util.Map;
 
+@Slf4j
 public class JsonHelper {
 
     /**
