@@ -127,12 +127,9 @@ public class CoordinatorService {
         batch.setState(BatchState.PROCESSING);
         batchStore.save(batch);
 
-        batch.getIds().forEach(id -> {
-            Sip sip = sipStore.find(id);
-            if (sip.getState() == SipState.NEW) {
-                template.convertAndSend("worker", new CoordinatorDto(id, batch.getId()));
-            }
-        });
+        sipStore.findAllInList(asList(batch.getIds())).stream()
+                .filter(sip -> sip.getState() == SipState.NEW)
+                .forEach(sip -> template.convertAndSend("worker", new CoordinatorDto(sip.getId(), batch.getId())));
         return true;
     }
 
