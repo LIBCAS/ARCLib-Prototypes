@@ -45,6 +45,7 @@ public class MailCenter {
      * @param created time when the notification was created
      */
     public void sendIngestResultNotification(String email, String sipId, String result, Instant created) {
+        log.info("Sending ingest result notification to " + email + ".");
         sendNotificationInternal(email, sipId, result, created, "templates/ingestResultNotification.vm");
     }
 
@@ -56,6 +57,7 @@ public class MailCenter {
      * @param created time when the notification was created
      */
     public void sendAipSavedNotification(String email, String sipId, String result, Instant created) {
+        log.info("Sending notification about saving of AIP to " + email + ".");
         sendNotificationInternal(email, sipId, result, created, "templates/aipSavedNotification.vm");
     }
 
@@ -97,6 +99,8 @@ public class MailCenter {
         helper.setText(text, true);
 
         MimeMessage message = helper.getMimeMessage();
+
+        log.info("Message: " + message.getContent());
 
         if (message.getAllRecipients() != null && message.getAllRecipients().length > 0) {
             sender.send(message);
