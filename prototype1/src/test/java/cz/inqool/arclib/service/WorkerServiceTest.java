@@ -82,25 +82,25 @@ public class WorkerServiceTest {
      */
     @Test
     public void processSipTestBatchStateSuspended() throws InterruptedException {
-        Sip sip1 = new Sip();
-        sip1.setState(SipState.NEW);
-        sipStore.save(sip1);
+        Sip sip = new Sip();
+        sip.setState(SipState.NEW);
+        sipStore.save(sip);
 
         Batch batch = new Batch();
         batch.setState(BatchState.SUSPENDED);
-        batch.setIds(asSet(sip1.getId()));
+        batch.setIds(asSet(sip.getId()));
         batchStore.save(batch);
 
-        service.processSip(new CoordinatorDto(sip1.getId(), batch.getId()));
+        service.processSip(new CoordinatorDto(sip.getId(), batch.getId()));
 
         /*
         wait until all the JMS communication is finished and the proper data is stored in DB
         */
         Thread.sleep(6000);
 
-        sip1 = sipStore.find(sip1.getId());
+        sip = sipStore.find(sip.getId());
 
-        assertThat(sip1.getState(), is(SipState.NEW));
+        assertThat(sip.getState(), is(SipState.NEW));
     }
 
     /**
@@ -114,25 +114,25 @@ public class WorkerServiceTest {
      */
     @Test
     public void processSipTestBatchStateCanceled() throws InterruptedException {
-        Sip sip1 = new Sip();
-        sip1.setState(SipState.NEW);
-        sipStore.save(sip1);
+        Sip sip = new Sip();
+        sip.setState(SipState.NEW);
+        sipStore.save(sip);
 
         Batch batch = new Batch();
         batch.setState(BatchState.CANCELED);
-        batch.setIds(asSet(sip1.getId()));
+        batch.setIds(asSet(sip.getId()));
         batchStore.save(batch);
 
-        service.processSip(new CoordinatorDto(sip1.getId(), batch.getId()));
+        service.processSip(new CoordinatorDto(sip.getId(), batch.getId()));
 
         /*
         wait until all the JMS communication is finished and the proper data is stored in DB
         */
         Thread.sleep(6000);
 
-        sip1 = sipStore.find(sip1.getId());
+        sip = sipStore.find(sip.getId());
 
-        assertThat(sip1.getState(), is(SipState.NEW));
+        assertThat(sip.getState(), is(SipState.NEW));
     }
 
     /**
@@ -141,9 +141,9 @@ public class WorkerServiceTest {
      */
     @Test
     public void stopAtMultipleFailuresTestHalfPackagesFailed() throws InterruptedException {
-        Sip sip1 = new Sip();
-        sip1.setState(SipState.FAILED);
-        sipStore.save(sip1);
+        Sip sip = new Sip();
+        sip.setState(SipState.FAILED);
+        sipStore.save(sip);
 
         Sip sip2 = new Sip();
         sip2.setState(SipState.NEW);
@@ -151,7 +151,7 @@ public class WorkerServiceTest {
 
         Batch batch = new Batch();
         batch.setState(BatchState.PROCESSING);
-        batch.setIds(asSet(sip1.getId(), sip2.getId()));
+        batch.setIds(asSet(sip.getId(), sip2.getId()));
         batchStore.save(batch);
 
         service.processSip(new CoordinatorDto(sip2.getId(), batch.getId()));
@@ -171,24 +171,24 @@ public class WorkerServiceTest {
      */
     @Test
     public void stopAtMultipleFailuresTestMoreThanHalfPackagesFailed() throws InterruptedException {
-        Sip sip4 = new Sip();
-        sip4.setState(SipState.PROCESSING);
-        sipStore.save(sip4);
+        Sip sip = new Sip();
+        sip.setState(SipState.PROCESSING);
+        sipStore.save(sip);
 
-        Sip sip5 = new Sip();
-        sip5.setState(SipState.FAILED);
-        sipStore.save(sip5);
+        Sip sip2 = new Sip();
+        sip2.setState(SipState.FAILED);
+        sipStore.save(sip2);
 
-        Sip sip6 = new Sip();
-        sip6.setState(SipState.FAILED);
-        sipStore.save(sip6);
+        Sip sip3 = new Sip();
+        sip3.setState(SipState.FAILED);
+        sipStore.save(sip3);
 
         Batch batch = new Batch();
         batch.setState(BatchState.PROCESSING);
-        batch.setIds(asSet(sip4.getId(), sip5.getId(), sip6.getId()));
+        batch.setIds(asSet(sip.getId(), sip2.getId(), sip3.getId()));
         batchStore.save(batch);
 
-        service.processSip(new CoordinatorDto(sip6.getId(), batch.getId()));
+        service.processSip(new CoordinatorDto(sip3.getId(), batch.getId()));
 
         /*
         wait until all the JMS communication is finished and the proper data is stored in DB

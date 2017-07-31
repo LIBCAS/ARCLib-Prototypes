@@ -41,7 +41,6 @@ public class WorkerService {
      * @throws InterruptedException
      */
     @Async
-    @Transactional
     @JmsListener(destination = "worker")
     public void processSip(CoordinatorDto dto) throws InterruptedException {
         String sipId = dto.getSipId();
@@ -66,6 +65,8 @@ public class WorkerService {
             Sip sip = sipStore.find(sipId);
             sip.setState(SipState.PROCESSING);
             sipStore.save(sip);
+
+            log.info("State of SIP " + sip.getId() + " changed to PROCESSING.");
 
             runtimeService.startProcessInstanceByKey("Ingest", asMap("sipId", sipId)).getProcessInstanceId();
         }
