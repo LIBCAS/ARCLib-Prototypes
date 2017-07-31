@@ -1,5 +1,7 @@
 package cz.inqool.arclib.fixity;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,6 +10,7 @@ import java.nio.file.Path;
 import static cz.inqool.arclib.utils.Utils.bytesToHexString;
 import static cz.inqool.arclib.utils.Utils.notNull;
 
+@Slf4j
 public abstract class FixityCounter {
 
     /**
@@ -44,14 +47,16 @@ public abstract class FixityCounter {
      * @throws IOException
      */
     public boolean verifyFixity(Path pathToFile, String expectedDigest) throws IOException {
+        log.info("verifying fixity of file with path: " + pathToFile);
         notNull(pathToFile, () -> {
             throw new IllegalArgumentException();
         });
         notNull(expectedDigest, () -> {
             throw new IllegalArgumentException();
         });
-        expectedDigest = expectedDigest.toLowerCase();
-        return expectedDigest.equals(bytesToHexString(computeDigest(pathToFile)));
+        String computedHash = bytesToHexString(computeDigest(pathToFile));
+        log.info("expected hash: "+expectedDigest+ " computed hash: " + computedHash);
+        return expectedDigest.equals(computedHash);
     }
 
     /**
@@ -69,7 +74,6 @@ public abstract class FixityCounter {
         notNull(expectedDigest, () -> {
             throw new IllegalArgumentException();
         });
-        expectedDigest = expectedDigest.toLowerCase();
         return expectedDigest.equals(bytesToHexString(computeDigest(fileStream)));
     }
 }
