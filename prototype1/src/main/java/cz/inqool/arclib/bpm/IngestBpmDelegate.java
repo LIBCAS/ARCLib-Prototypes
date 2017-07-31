@@ -33,7 +33,7 @@ public class IngestBpmDelegate implements JavaDelegate {
     /**
      * Executes the ingest process for the given SIP:
      * 1. copies SIP to workspace
-     * 2. processes SIP (...waits for 3 seconds)
+     * 2. processes SIP (...waits for a second)
      * 3. deletes SIP from workspace
      *
      * @param execution parameter containing the SIP id
@@ -48,19 +48,22 @@ public class IngestBpmDelegate implements JavaDelegate {
         Sip sip = store.find(sipId);
         notNull(sip, () -> new MissingObject(Sip.class, sipId));
 
-        InputStream stream = new FileInputStream(sip.getPath());
+        String path = sip.getPath();
+        if (path != null) {
+            InputStream stream = new FileInputStream(path);
 
-        copySipToWorkspace(sipId, stream);
+            copySipToWorkspace(sipId, stream);
 
-        log.info("Processing SIP " + sipId + ". Thread " + Thread.currentThread().getId() + " is putting itself to " +
-                "sleep.");
-        Thread.sleep(3000);
+            log.info("Processing SIP " + sipId + ". Thread " + Thread.currentThread().getId() + " is putting itself to " +
+                    "sleep.");
+
+            Thread.sleep(1000);
+            delSipFromWorkspace(sipId);
+        }
 
         sip.setState(SipState.PROCESSED);
         store.save(sip);
         log.info("SIP " + sipId + " has been processed.");
-
-        delSipFromWorkspace(sipId);
     }
 
     /**

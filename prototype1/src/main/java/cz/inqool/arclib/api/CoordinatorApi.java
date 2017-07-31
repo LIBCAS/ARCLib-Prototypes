@@ -17,7 +17,7 @@ public class CoordinatorApi {
      */
     @RequestMapping(value = "/start", method = RequestMethod.POST)
     public void start(@RequestBody String path) {
-        coordinatorService.run(path);
+        coordinatorService.start(path);
     }
 
     /**

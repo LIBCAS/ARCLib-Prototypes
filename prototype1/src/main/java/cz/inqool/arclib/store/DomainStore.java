@@ -51,6 +51,7 @@ import static java.util.Collections.emptyList;
  * @param <T> Type of entity to hold
  * @param <Q> Type of query object
  */
+@Transactional
 public abstract class DomainStore<T extends DomainObject, Q extends EntityPathBase<T>> {
     /**
      * Entity manager used for JPA
@@ -313,5 +314,13 @@ public abstract class DomainStore<T extends DomainObject, Q extends EntityPathBa
     @Inject
     public void setQueryFactory(JPAQueryFactory queryFactory) {
         this.queryFactory = queryFactory;
+    }
+
+    public EntityManager getEntityManager() {
+        return entityManager;
+    }
+
+    public JPAQueryFactory getQueryFactory() {
+        return queryFactory;
     }
 }

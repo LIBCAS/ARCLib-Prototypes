@@ -1,74 +1,153 @@
 package cz.inqool.arclib.service;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import cz.inqool.arclib.domain.Batch;
 import cz.inqool.arclib.domain.BatchState;
 import cz.inqool.arclib.domain.Sip;
 import cz.inqool.arclib.domain.SipState;
-import cz.inqool.arclib.exception.ForbiddenObject;
-import cz.inqool.arclib.exception.MissingObject;
-import cz.inqool.arclib.helper.DbTest;
 import cz.inqool.arclib.store.BatchStore;
 import cz.inqool.arclib.store.SipStore;
 import org.camunda.bpm.engine.RuntimeService;
-import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import static cz.inqool.arclib.helper.ThrowableAssertion.assertThrown;
+import javax.inject.Inject;
+import java.sql.SQLException;
+
 import static cz.inqool.arclib.util.Utils.asSet;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class WorkerServiceTest extends DbTest {
+public class WorkerServiceTest {
+
+    @Inject
     private BatchStore batchStore;
+
+    @Inject
     private WorkerService service;
+
+    @Inject
     private SipStore sipStore;
 
-    @Autowired
+    @Inject
     private JmsTemplate template;
 
-    @Autowired
+    @Inject
     private RuntimeService runtimeService;
 
-    @Before
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
+    /**
+     * Test of ({@link WorkerService#processSip(CoordinatorDto)}) method. First, there is a batch created that:
+     * 1. is in the state PROCESSING
+     * 2. has one SIP package in state NEW
+     * Then the processSip method is called on the given SIP.
+     * <p>
+     * The test asserts that in the end the SIP package is in the state PROCESSED.
+     */
+    @Test
+    public void processSipTest() throws InterruptedException {
+        Sip sip = new Sip();
+        sip.setState(SipState.NEW);
+        sipStore.save(sip);
 
-        batchStore = new BatchStore();
-        batchStore.setEntityManager(getEm());
-        batchStore.setQueryFactory(new JPAQueryFactory(getEm()));
+        Batch batch = new Batch();
+        batch.setState(BatchState.PROCESSING);
+        batch.setIds(asSet(sip.getId()));
+        batchStore.save(batch);
 
-        sipStore = new SipStore();
-        sipStore.setEntityManager(getEm());
-        sipStore.setQueryFactory(new JPAQueryFactory(getEm()));
+        service.processSip(new CoordinatorDto(sip.getId(), batch.getId()));
 
-        service = new WorkerService();
-        service.setBatchStore(batchStore);
-        service.setRuntimeService(runtimeService);
-        service.setSipStore(sipStore);
-        service.setTemplate(template);
+        /*
+        wait until all the JMS communication is finished and the proper data is stored in DB
+        */
+        Thread.sleep(6000);
+
+        sip = sipStore.find(sip.getId());
+
+        assertThat(sip.getState(), is(SipState.PROCESSED));
     }
 
+    /**
+     * Test of ({@link WorkerService#processSip(CoordinatorDto)}) method. First, there is a batch created that:
+     * 1. is in the state SUSPENDED
+     * 2. has one SIP package in state NEW
+     * Then the processSip method is called on the given SIP.
+     * <p>
+     * The test asserts that in the end the SIP package is still in the state NEW. The SIP remained unprocessed because the respective batch
+     * was in the state SUSPENDED.
+     */
+    @Test
+    public void processSipTestBatchStateSuspended() throws InterruptedException {
+        Sip sip1 = new Sip();
+        sip1.setState(SipState.NEW);
+        sipStore.save(sip1);
+
+        Batch batch = new Batch();
+        batch.setState(BatchState.SUSPENDED);
+        batch.setIds(asSet(sip1.getId()));
+        batchStore.save(batch);
+
+        service.processSip(new CoordinatorDto(sip1.getId(), batch.getId()));
+
+        /*
+        wait until all the JMS communication is finished and the proper data is stored in DB
+        */
+        Thread.sleep(6000);
+
+        sip1 = sipStore.find(sip1.getId());
+
+        assertThat(sip1.getState(), is(SipState.NEW));
+    }
+
+    /**
+     * Test of ({@link WorkerService#processSip(CoordinatorDto)}) method. First, there is a batch created that:
+     * 1. is in the state CANCELED
+     * 2. has one SIP package in state NEW
+     * Then the processSip method is called on the given SIP.
+     * <p>
+     * The test asserts that in the end the SIP package is still in the state NEW. The SIP remained unprocessed because the respective batch
+     * was in the state CANCELED.
+     */
+    @Test
+    public void processSipTestBatchStateCanceled() throws InterruptedException {
+        Sip sip1 = new Sip();
+        sip1.setState(SipState.NEW);
+        sipStore.save(sip1);
+
+        Batch batch = new Batch();
+        batch.setState(BatchState.CANCELED);
+        batch.setIds(asSet(sip1.getId()));
+        batchStore.save(batch);
+
+        service.processSip(new CoordinatorDto(sip1.getId(), batch.getId()));
+
+        /*
+        wait until all the JMS communication is finished and the proper data is stored in DB
+        */
+        Thread.sleep(6000);
+
+        sip1 = sipStore.find(sip1.getId());
+
+        assertThat(sip1.getState(), is(SipState.NEW));
+    }
+
+    /**
+     * Test of ({@link WorkerService#processSip(CoordinatorDto)} method. The test asserts that on the processing of SIP package the
+     * respective batch is not canceled when only half of the batch SIP packages have state FAILED.
+     */
     @Test
     public void stopAtMultipleFailuresTestHalfPackagesFailed() throws InterruptedException {
         Sip sip1 = new Sip();
-        sip1.setState(SipState.PROCESSING);
+        sip1.setState(SipState.FAILED);
         sipStore.save(sip1);
 
         Sip sip2 = new Sip();
-        sip2.setState(SipState.FAILED);
+        sip2.setState(SipState.NEW);
         sipStore.save(sip2);
-
-        flushCache();
 
         Batch batch = new Batch();
         batch.setState(BatchState.PROCESSING);
@@ -77,11 +156,19 @@ public class WorkerServiceTest extends DbTest {
 
         service.processSip(new CoordinatorDto(sip2.getId(), batch.getId()));
 
+        /*
+        wait until all the JMS communication is finished and the proper data is stored in DB
+        */
+        Thread.sleep(2000);
+
         batch = batchStore.find(batch.getId());
         assertThat(batch.getState(), is(BatchState.PROCESSING));
     }
 
-    @Ignore
+    /**
+     * Test of ({@link WorkerService#processSip(CoordinatorDto)} method. The test asserts that on the processing of SIP package the
+     * respective batch is canceled when more than half of the batch SIP packages have state FAILED.
+     */
     @Test
     public void stopAtMultipleFailuresTestMoreThanHalfPackagesFailed() throws InterruptedException {
         Sip sip4 = new Sip();
@@ -96,8 +183,6 @@ public class WorkerServiceTest extends DbTest {
         sip6.setState(SipState.FAILED);
         sipStore.save(sip6);
 
-        flushCache();
-
         Batch batch = new Batch();
         batch.setState(BatchState.PROCESSING);
         batch.setIds(asSet(sip4.getId(), sip5.getId(), sip6.getId()));
@@ -105,39 +190,23 @@ public class WorkerServiceTest extends DbTest {
 
         service.processSip(new CoordinatorDto(sip6.getId(), batch.getId()));
 
+        /*
+        wait until all the JMS communication is finished and the proper data is stored in DB
+        */
+        Thread.sleep(2000);
+
         batch = batchStore.find(batch.getId());
         assertThat(batch.getState(), is(BatchState.CANCELED));
     }
 
-    @Test
-    public void processSipTestNonExistentSip() {
-        String sipId = "%@#@^#$#";
+    @After
+    public void testTearDown() throws SQLException {
+        sipStore.findAll().forEach(sip -> {
+            sipStore.delete(sip);
+        });
 
-        Batch batch = new Batch();
-        batch.setIds(asSet(sipId));
-        batchStore.save(batch);
-
-        assertThrown(() -> service.processSip(new CoordinatorDto(sipId, batch.getId()))).isInstanceOf(MissingObject.class);
-    }
-
-    @Test
-    public void processSipTestNonExistentBatch() throws InterruptedException {
-        Sip sip1 = new Sip();
-        sip1.setState(SipState.PROCESSING);
-        sipStore.save(sip1);
-
-        assertThrown(() -> service.processSip(new CoordinatorDto(sip1.getId(), "%@#@^#$#"))).isInstanceOf(MissingObject.class);
-    }
-
-    @Test
-    public void processSipTestInvalidSip() {
-        Sip sip3 = new Sip();
-        sip3.setState(SipState.PROCESSING);
-        sipStore.save(sip3);
-
-        Batch batch3 = new Batch();
-        batchStore.save(batch3);
-
-        assertThrown(() -> service.processSip(new CoordinatorDto(sip3.getId(), batch3.getId()))).isInstanceOf(ForbiddenObject.class);
+        batchStore.findAll().forEach(batch -> {
+            batchStore.delete(batch);
+        });
     }
 }
