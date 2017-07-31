@@ -2,6 +2,7 @@ package cz.inqool.arclib.clamAV;
 
 import cz.inqool.arclib.SIPAntivirusScanner;
 import cz.inqool.arclib.SIPAntivirusScannerException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -16,6 +17,7 @@ import java.util.regex.Pattern;
 import static cz.inqool.arclib.Util.Utils.notNull;
 
 @Service
+@Slf4j
 public class ClamSIPAntivirusScanner implements SIPAntivirusScanner {
 
     private static final String CMD = "clamscan";
@@ -33,6 +35,7 @@ public class ClamSIPAntivirusScanner implements SIPAntivirusScanner {
      */
     @Override
     public List<Path> scan(String pathToSIP) throws IOException, InterruptedException, SIPAntivirusScannerException {
+        log.info("scanning file at path: " + pathToSIP);
         notNull(pathToSIP, () -> {
             throw new IllegalArgumentException("null path to SIP package");
         });
@@ -41,11 +44,13 @@ public class ClamSIPAntivirusScanner implements SIPAntivirusScanner {
         BufferedReader br;
         StringBuilder sb;
         String line;
+        log.info("running '"+ CMD+" -r "+ pathToSIP+"' process");
         ProcessBuilder pb = new ProcessBuilder(CMD, "-r", pathToSIP);
         Process p = pb.start();
         List<Path> corruptedFiles = new ArrayList<>();
         switch (p.waitFor()) {
             case 0:
+                log.info("o corrupted file found");
                 return corruptedFiles;
             case 1:
                 br = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -54,10 +59,13 @@ public class ClamSIPAntivirusScanner implements SIPAntivirusScanner {
                 Pattern pattern = Pattern.compile("(.+): .+ FOUND");
                 while (line != null) {
                     matcher = pattern.matcher(line);
-                    if (matcher.find())
+                    if (matcher.find()){
+                        log.info(Paths.get(matcher.group(1)) + " is corrupted");
                         corruptedFiles.add(Paths.get(matcher.group(1)));
+                    }
                     line = br.readLine();
                 }
+                log.info(corruptedFiles.size() + " corrupted files found");
                 return corruptedFiles;
             default:
                 br = new BufferedReader(new InputStreamReader(p.getErrorStream()));
@@ -78,9 +86,11 @@ public class ClamSIPAntivirusScanner implements SIPAntivirusScanner {
      */
     @Override
     public void moveToQuarantine(List<Path> infectedFiles) throws IOException {
+        log.info("moving "+infectedFiles.size()+ " corrupted files to quarantine at " + System.getenv("CLAMAV")+"/quarantine");
         infectedFiles.stream().forEach(
                 path -> {
                     try {
+                        log.info("moving "+path.getFileName()+" to quarantine");
                         Files.move(path, Paths.get(System.getenv("CLAMAV"), "quarantine").resolve(path.getFileName()));
                     } catch (IOException e) {
                         throw new RuntimeException(e);
