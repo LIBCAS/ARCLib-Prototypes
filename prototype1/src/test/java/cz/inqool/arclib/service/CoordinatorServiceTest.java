@@ -241,13 +241,13 @@ public class CoordinatorServiceTest {
                 getClass().getResource("/testFiles").getPath());
 
         service.suspend(batchId);
-        Thread.sleep(2000);
+        Thread.sleep(4000);
 
         service.resume(batchId);
         /*
         wait until all the JMS communication is finished and the proper data is stored in DB
          */
-        Thread.sleep(15000);
+        Thread.sleep(20000);
 
         Batch batch = batchStore.find(batchId);
         assertThat(batch.getState(), is(BatchState.PROCESSING));
