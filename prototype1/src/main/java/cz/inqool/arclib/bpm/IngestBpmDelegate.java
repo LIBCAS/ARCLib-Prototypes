@@ -45,6 +45,8 @@ public class IngestBpmDelegate implements JavaDelegate {
     public void execute(DelegateExecution execution) throws FileNotFoundException, InterruptedException {
         String sipId = (String) execution.getVariable("sipId");
 
+        log.info("BPM process for SIP " + sipId + " started.");
+
         Sip sip = store.find(sipId);
         notNull(sip, () -> new MissingObject(Sip.class, sipId));
 
@@ -53,17 +55,19 @@ public class IngestBpmDelegate implements JavaDelegate {
             InputStream stream = new FileInputStream(path);
 
             copySipToWorkspace(sipId, stream);
+            log.info("SIP " + sipId + " has been successfully copied to workspace.");
 
-            log.info("Processing SIP " + sipId + ". Thread " + Thread.currentThread().getId() + " is putting itself to " +
-                    "sleep.");
-
+            /*
+            Here will come the processing of SIP.
+            We use the thread sleep to simulate the time required to process the SIP.
+            */
             Thread.sleep(1000);
-            delSipFromWorkspace(sipId);
+//            delSipFromWorkspace(sipId);
         }
 
         sip.setState(SipState.PROCESSED);
         store.save(sip);
-        log.info("SIP " + sipId + " has been processed.");
+        log.info("SIP " + sipId + " has been processed. The SIP state changed to PROCESSED.");
     }
 
     /**

@@ -9,6 +9,7 @@ import cz.inqool.arclib.exception.MissingObject;
 import cz.inqool.arclib.store.BatchStore;
 import cz.inqool.arclib.store.SipStore;
 import cz.inqool.arclib.store.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 import static cz.inqool.arclib.util.Utils.asList;
 import static cz.inqool.arclib.util.Utils.notNull;
 
+@Slf4j
 @Service
 public class CoordinatorService {
 
@@ -39,7 +41,7 @@ public class CoordinatorService {
     public String start(String path) {
         File folder = new File(path);
         if (!folder.exists()) {
-            throw new GeneralException("The path specified does not exist!");
+            throw new GeneralException("There is no folder on the path " + path + ". Please specify a valid path.");
         }
 
         Set<String> sipIds = processFolder(folder);
@@ -48,6 +50,8 @@ public class CoordinatorService {
         batch.setIds(sipIds);
         batch.setState(BatchState.PROCESSING);
         batchStore.save(batch);
+        log.info("New Batch with id " + batch.getId() + " created. The batch state is set to PROCESSING.");
+
 
         sipIds.forEach(id -> {
             template.convertAndSend("worker", new CoordinatorDto(id, batch.getId()));
@@ -70,6 +74,8 @@ public class CoordinatorService {
                     sip.setPath(f.getPath());
                     sipStore.save(sip);
 
+                    log.info("New SIP with id " + sip.getId() + " and path " + f.getPath() + " created. The SIP state is set to NEW.");
+
                     return sip.getId();
                 })
                 .collect(Collectors.toSet());
@@ -89,6 +95,8 @@ public class CoordinatorService {
 
         batch.setState(BatchState.CANCELED);
         batchStore.save(batch);
+
+        log.info("Batch " + batch.getId() + " has been canceled. The batch state changed to CANCELED.");
     }
 
     /**
@@ -104,6 +112,8 @@ public class CoordinatorService {
 
         batch.setState(BatchState.SUSPENDED);
         batchStore.save(batch);
+
+        log.info("Batch " + batch.getId() + " has been suspended. The batch state changed to SUSPENDED.");
     }
 
     /**
@@ -122,10 +132,15 @@ public class CoordinatorService {
 
         boolean hasProcessingSip = sipStore.findAllInList(asList(batch.getIds())).stream()
                 .anyMatch(sip -> sip.getState() == SipState.PROCESSING);
-        if (hasProcessingSip) return false;
+        if (hasProcessingSip) {
+            log.info("Batch " + batch.getId() + " has still some sip packages in the state ({@link SipState.PROCESSING). Processing of " +
+                            "batch cannot be resumed.");
+            return false;
+        }
 
         batch.setState(BatchState.PROCESSING);
         batchStore.save(batch);
+        log.info("Processing of batch " + batch.getId() + " has successfully resumed. The batch state changed to PROCESSING.");
 
         sipStore.findAllInList(asList(batch.getIds())).stream()
                 .filter(sip -> sip.getState() == SipState.NEW)

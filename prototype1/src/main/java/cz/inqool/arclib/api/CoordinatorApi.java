@@ -16,8 +16,8 @@ public class CoordinatorApi {
      * @param path path to the folder containing SIPs
      */
     @RequestMapping(value = "/start", method = RequestMethod.POST)
-    public void start(@RequestBody String path) {
-        coordinatorService.start(path);
+    public String start(@RequestBody String path) {
+        return coordinatorService.start(path);
     }
 
     /**
