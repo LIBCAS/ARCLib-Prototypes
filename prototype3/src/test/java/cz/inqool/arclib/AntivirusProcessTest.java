@@ -56,6 +56,15 @@ public class AntivirusProcessTest {
                 .deploy();
     }
 
+    /**
+     * Called on single file. Tests that:
+     * <ul>
+     *     <li>AV scan process does not evaluate clean file as corrupted and therefore does not move it to quarantine folder</li>
+     *     <li>BPM process starts scan based on given process variable (path to file)</li>
+     *     <li>after scan BPM 'scan' tasks set process variable with path to corrupted files which is empty list</li>
+     *     <li>BPM 'quarantine' task does not move any files to quarantine because process variable with corrupted files is </li>
+     * </ul>
+     */
     @Test
     public void testOK() throws IOException {
         Map variables = new HashMap();
@@ -64,6 +73,15 @@ public class AntivirusProcessTest {
         assertThat(Files.list(QUARANTINE_FOLDER).count(), equalTo(0L));
     }
 
+    /**
+     * Called on folder. Tests that:
+     * <ul>
+     *     <li>AV scan process recognizes corrupted file inside folder and move it to quarantine folder</li>
+     *     <li>BPM process starts scan based on given process variable (path to file)</li>
+     *     <li>after scan BPM 'scan' tasks set process variable with paths to corrupted files</li>
+     *     <li>BPM 'quarantine' task moves corrupted files to quarantine based on the variable set by 'scan' task</li>
+     * </ul>
+     */
     @Test
     public void testCorrupted() throws IOException {
         Map variables = new HashMap();
