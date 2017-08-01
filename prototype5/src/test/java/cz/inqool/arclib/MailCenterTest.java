@@ -42,24 +42,24 @@ public class MailCenterTest {
 
     @Test
     public void sendAipSavedNotificationTest() {
-        mailCenter.sendAipSavedNotification("test@test.cz", "1", "test text", Instant.now());
+        mailCenter.sendAipSavedNotification("test@test.cz", "123", "AIP has been successfully saved.", Instant.now());
 
         Object content = mockMailSender.getJavaMailProperties().get("mailContent");
         mockMailSender.getJavaMailProperties().remove("mailContent");
 
-        assertThat(content,is(not(nullValue())));
-        assertThat(content.toString(), containsString("test text"));
+        assertThat(content, is(not(nullValue())));
+        assertThat(content.toString(), containsString("AIP has been successfully saved."));
     }
 
     @Test
     public void sendIngestResultNotificationTest() {
-        mailCenter.sendIngestResultNotification("test@test.cz", "1", "test text", Instant.now());
+        mailCenter.sendIngestResultNotification("test@test.cz", "456", "Ingest has been successfully performed.", Instant.now());
 
         Object content = mockMailSender.getJavaMailProperties().get("mailContent");
         mockMailSender.getJavaMailProperties().remove("mailContent");
 
-        assertThat(content,is(not(nullValue())));
-        assertThat(content.toString(), containsString("test text"));
+        assertThat(content, is(not(nullValue())));
+        assertThat(content.toString(), containsString("Ingest has been successfully performed."));
     }
 }
 
