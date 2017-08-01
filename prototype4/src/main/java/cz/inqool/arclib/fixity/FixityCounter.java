@@ -54,9 +54,7 @@ public abstract class FixityCounter {
         notNull(expectedDigest, () -> {
             throw new IllegalArgumentException();
         });
-        String computedHash = bytesToHexString(computeDigest(pathToFile));
-        log.info("expected hash: "+expectedDigest+ " computed hash: " + computedHash);
-        return expectedDigest.equals(computedHash);
+        return compare(expectedDigest,computeDigest(pathToFile));
     }
 
     /**
@@ -74,6 +72,16 @@ public abstract class FixityCounter {
         notNull(expectedDigest, () -> {
             throw new IllegalArgumentException();
         });
-        return expectedDigest.equals(bytesToHexString(computeDigest(fileStream)));
+        return compare(expectedDigest,computeDigest(fileStream));
+    }
+
+    private boolean compare(String expectedDigest,byte[] computedDigest){
+        String computedDigestStr = bytesToHexString(computedDigest);
+        log.info("expected digest: "+expectedDigest);
+        log.info("computed digest: " + computedDigestStr);
+        expectedDigest = expectedDigest.toLowerCase();
+        boolean matches = computedDigestStr.equals(expectedDigest);
+        log.info("digests matches: " + matches);
+        return matches;
     }
 }
