@@ -69,6 +69,8 @@ public class WorkerService {
             log.info("State of SIP " + sip.getId() + " changed to PROCESSING.");
 
             runtimeService.startProcessInstanceByKey("Ingest", asMap("sipId", sipId)).getProcessInstanceId();
+        } else {
+            log.info("Cannot proccess SIP " + sipId + " because the batch " + batchId + " is in the state " + batch.getState() + ".");
         }
     }
 
