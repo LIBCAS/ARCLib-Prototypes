@@ -34,7 +34,7 @@ public class FixityProcessTest {
     @Autowired
     private RepositoryService repositoryService;
 
-    private static final String DIGEST = "6f1ed002ab5595859014ebf0951522d9";
+    private static final String DIGEST = "6F1Ed002ab5595859014ebf0951522d9";
     private static final Path PATH_TO_FILE = Paths.get("src/test/resources/sample.txt");
     private String processInstanceId = null;
 
@@ -51,6 +51,14 @@ public class FixityProcessTest {
             historyService.deleteHistoricProcessInstance(processInstanceId);
     }
 
+    /**
+     * Tests that:
+     * <ul>
+     *     <li>computed digest matches the real digest of a file and that comparison is case-insensitive</li>
+     *     <li>BPM process starts verification based on given process variables</li>
+     *     <li>after comparison BPM process sets correct process variable based on verification result</li>
+     * </ul>
+     */
     @Test
     public void testOK() {
         Map variables = new HashMap();
@@ -60,6 +68,14 @@ public class FixityProcessTest {
         assertThat(historyService.createHistoricVariableInstanceQuery().variableName("ok").singleResult().getValue(), equalTo(true));
     }
 
+    /**
+     * Tests that:
+     * <ul>
+     *     <li>computed digest does not match the corrupted digest of a file</li>
+     *     <li>BPM process starts verification based on given process variables</li>
+     *     <li>after comparison BPM process sets correct process variable based on verification result</li>
+     * </ul>
+     */
     @Test
     public void testCorrupted() {
         String corruptedDigest = DIGEST.substring(1) + "1";
