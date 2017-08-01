@@ -29,12 +29,14 @@ public class SampleService {
         JsonNode ingestConfig;
         try (InputStream in = applicationIngestConfig.getInputStream()) {
             ingestConfig = mapper.readTree(in);
+            log.info("");
+            log.info("Application ingest config json: " + ingestConfig);
 
             if (batchIngestConfig != null) {
                 JsonNode batchIngestConfigJson = mapper.readTree(batchIngestConfig);
                 log.info("Batch ingest config json: " + batchIngestConfigJson);
 
-                ingestConfig = JsonHelper.merge(batchIngestConfigJson, ingestConfig);
+                ingestConfig = JsonHelper.merge(ingestConfig, batchIngestConfigJson);
             } else {
                 log.info("Batch ingest config json is empty.");
             }
