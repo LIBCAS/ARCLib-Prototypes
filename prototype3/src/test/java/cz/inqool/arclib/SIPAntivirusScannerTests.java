@@ -46,6 +46,9 @@ public class SIPAntivirusScannerTests {
         assertThrown(() -> scanner.scan("invalid path")).isInstanceOf(FileNotFoundException.class);
     }
 
+    /**
+     * Tests that AV scan process recognizes corrupted file inside folder and move it to quarantine folder. Called on folder.
+     */
     @Test()
     public void corruptedFolderTest() throws InterruptedException, SIPAntivirusScannerException, IOException {
         SIPAntivirusScanner scanner = new ClamSIPAntivirusScanner();
@@ -58,6 +61,9 @@ public class SIPAntivirusScannerTests {
         assertThat(Files.notExists(SIP.resolve(CORRUPTED_FILE_NAME)), equalTo(true));
     }
 
+    /**
+     * Tests that AV scan process does not evaluate clean file as corrupted and therefore does not move it to quarantine folder. Called on single file.
+     */
     @Test()
     public void okFileTest() throws InterruptedException, SIPAntivirusScannerException, IOException {
         SIPAntivirusScanner scanner = new ClamSIPAntivirusScanner();
