@@ -90,7 +90,6 @@ public class CoordinatorIntegrationTest implements ApiTest {
      *
      * The test asserts that:
      * 1. the state of the batch is CANCELED
-     * 2. there is at least one unprocessed SIP
      */
     @Test
     public void cancelTest() throws Exception {
@@ -119,7 +118,6 @@ public class CoordinatorIntegrationTest implements ApiTest {
      * 2. method ({@link CoordinatorService#suspend(String)}) that suspends the batch
      *
      * 1. the state of the batch is SUSPENDED
-     * 2. there is at least one unprocessed SIP
      */
     @Test
     public void suspendTest() throws Exception {
@@ -146,7 +144,7 @@ public class CoordinatorIntegrationTest implements ApiTest {
     /**
      * Test of ({@link CoordinatorService#resume(String}) method. There are three methods called in a sequence:
      * 1. method ({@link CoordinatorService#start(String}) passed a path to the test folder containing three empty files
-     * 2. method ({@link CoordinatorService#suspend(String}) that suspends the batch and than waits for 2 seconds
+     * 2. method ({@link CoordinatorService#suspend(String}) that suspends the batch
      * 3. method ({@link CoordinatorService#resume(String}) that resumes the batch
      *
      * The test asserts that:
@@ -164,8 +162,6 @@ public class CoordinatorIntegrationTest implements ApiTest {
                 .andDo(r -> result[0] = r.getResponse().getContentAsString());
 
         String batchId = result[0];
-
-        Thread.sleep(1000);
 
         mvc(api).perform(post("/api/coordinator/" + batchId + "/suspend"))
                 .andExpect(status().is2xxSuccessful());
