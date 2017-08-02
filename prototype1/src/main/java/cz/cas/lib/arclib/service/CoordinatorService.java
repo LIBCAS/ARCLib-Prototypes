@@ -127,13 +127,12 @@ public class CoordinatorService {
      */
     public Boolean resume(String batchId) {
         Batch batch = batchStore.find(batchId);
-
         notNull(batch, () -> new MissingObject(Batch.class, batchId));
 
         boolean hasProcessingSip = sipStore.findAllInList(asList(batch.getIds())).stream()
                 .anyMatch(sip -> sip.getState() == SipState.PROCESSING);
         if (hasProcessingSip) {
-            log.info("Batch " + batch.getId() + " has still some sip packages in the state ({@link SipState.PROCESSING). Processing of " +
+            log.info("Batch " + batch.getId() + " has still some sip packages in the state PROCESSING. Processing of " +
                             "batch cannot be resumed.");
             return false;
         }

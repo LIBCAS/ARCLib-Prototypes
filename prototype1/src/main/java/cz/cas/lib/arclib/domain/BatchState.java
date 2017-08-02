@@ -6,5 +6,6 @@ import lombok.Getter;
 public enum BatchState {
     PROCESSING,
     SUSPENDED,
-    CANCELED
+    CANCELED,
+    PROCESSED
 }

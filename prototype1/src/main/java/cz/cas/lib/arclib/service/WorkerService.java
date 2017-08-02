@@ -7,8 +7,8 @@ import cz.cas.lib.arclib.exception.ForbiddenObject;
 import cz.cas.lib.arclib.exception.MissingObject;
 import cz.cas.lib.arclib.store.BatchStore;
 import cz.cas.lib.arclib.store.SipStore;
-import cz.cas.lib.arclib.util.Utils;
 import cz.cas.lib.arclib.domain.Sip;
+import cz.cas.lib.arclib.util.Utils;
 import lombok.extern.slf4j.Slf4j;
 import org.camunda.bpm.engine.RuntimeService;
 import org.springframework.jms.annotation.JmsListener;
@@ -17,6 +17,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
+
+import static cz.cas.lib.arclib.util.Utils.asMap;
 
 @Slf4j
 @Service
@@ -66,7 +68,8 @@ public class WorkerService {
 
             log.info("State of SIP " + sip.getId() + " changed to PROCESSING.");
 
-            runtimeService.startProcessInstanceByKey("Ingest", Utils.asMap("sipId", sipId)).getProcessInstanceId();
+            runtimeService.startProcessInstanceByKey("Ingest", asMap("sipId", sipId, "batchId", batchId))
+                    .getProcessInstanceId();
         } else {
             log.info("Cannot proccess SIP " + sipId + " because the batch " + batchId + " is in the state " + batch.getState() + ".");
         }

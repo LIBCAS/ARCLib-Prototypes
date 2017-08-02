@@ -3,6 +3,7 @@ package cz.cas.lib.arclib.bpm;
 import cz.cas.lib.arclib.domain.SipState;
 import cz.cas.lib.arclib.exception.MissingObject;
 import cz.cas.lib.arclib.store.SipStore;
+import cz.cas.lib.arclib.store.BatchStore;
 import cz.cas.lib.arclib.domain.Sip;
 import cz.cas.lib.arclib.exception.ForbiddenObject;
 import cz.cas.lib.arclib.store.Transactional;
@@ -27,7 +28,8 @@ import static java.nio.file.Files.*;
 @Component
 public class IngestBpmDelegate implements JavaDelegate {
 
-    protected SipStore store;
+    protected SipStore sipStore;
+    protected BatchStore batchStore;
     protected String workspace;
 
     /**
@@ -44,30 +46,47 @@ public class IngestBpmDelegate implements JavaDelegate {
     @Override
     public void execute(DelegateExecution execution) throws FileNotFoundException, InterruptedException {
         String sipId = (String) execution.getVariable("sipId");
+        String batchId = (String) execution.getVariable("batchId");
 
         log.info("BPM process for SIP " + sipId + " started.");
 
-        Sip sip = store.find(sipId);
-        notNull(sip, () -> new MissingObject(Sip.class, sipId));
+        try {
+            Sip sip = sipStore.find(sipId);
+            notNull(sip, () -> new MissingObject(Sip.class, sipId));
 
-        String path = sip.getPath();
-        if (path != null) {
-            InputStream stream = new FileInputStream(path);
+            String path = sip.getPath();
+            if (path != null) {
+                InputStream stream = new FileInputStream(path);
 
-            copySipToWorkspace(sipId, stream);
-            log.info("SIP " + sipId + " has been successfully copied to workspace.");
+                copySipToWorkspace(sipId, stream);
+                log.info("SIP " + sipId + " has been successfully copied to workspace.");
 
-            /*
-            Here will come the processing of SIP.
-            We use the thread sleep to simulate the time required to process the SIP.
-            */
-            Thread.sleep(1000);
-//            delSipFromWorkspace(sipId);
-        }
+                /*
+                Here will come the processing of SIP.
+                We use the thread sleep to simulate the time required to process the SIP.
+                */
+                Thread.sleep(1000);
+    //            delSipFromWorkspace(sipId);
+            }
 
         sip.setState(SipState.PROCESSED);
-        store.save(sip);
+        sipStore.save(sip);
         log.info("SIP " + sipId + " has been processed. The SIP state changed to PROCESSED.");
+
+        } finally {
+            Batch batch = batchStore.find(batchId);
+            notNull(batch, () -> new MissingObject(Batch.class, batchId));
+
+            boolean allSipsProcessed = sipStore.findAllInList(asList(batch.getIds())).stream()
+                    .allMatch(s -> s.getState() == SipState.PROCESSED ||
+                                    s.getState() == SipState.FAILED);
+
+            if (allSipsProcessed && batch.getState() == BatchState.PROCESSING) {
+                batch.setState(BatchState.PROCESSED);
+                batchStore.save(batch);
+                log.info("Batch " + batchId + " has been processed. The batch state changed to PROCESSED.");
+            }
+        }
     }
 
     /**
@@ -108,7 +127,12 @@ public class IngestBpmDelegate implements JavaDelegate {
 
     @Inject
     public void setSipStore(SipStore sipStore) {
-        this.store = sipStore;
+        this.sipStore = sipStore;
+    }
+
+    @Inject
+    public void setBatchStore(BatchStore batchStore) {
+        this.batchStore = batchStore;
     }
 
     @Inject

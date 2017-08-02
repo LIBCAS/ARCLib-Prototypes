@@ -84,6 +84,13 @@ public class Utils {
         return Collections.singletonMap(key, value);
     }
 
+    public static <T, U> Map<T, U> asMap(T key1, U value1, T key2, U value2) {
+        Map<T, U> map = new LinkedHashMap<>();
+        map.put(key1, value1);
+        map.put(key2, value2);
+        return map;
+    }
+
     public static <T> List<T> asList(Collection<T> a) {
         return a.stream().collect(Collectors.toList());
     }

@@ -162,7 +162,7 @@ public class WorkerServiceTest {
         Thread.sleep(2000);
 
         batch = batchStore.find(batch.getId());
-        assertThat(batch.getState(), is(BatchState.PROCESSING));
+        assertThat(batch.getState(), is(BatchState.PROCESSED));
     }
 
     /**

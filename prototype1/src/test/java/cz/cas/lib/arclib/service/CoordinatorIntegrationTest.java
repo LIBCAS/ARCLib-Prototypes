@@ -69,7 +69,7 @@ public class CoordinatorIntegrationTest implements ApiTest {
         Thread.sleep(6000);
 
         Batch batch = batchStore.find(batchId);
-        assertThat(batch.getState(), is(BatchState.PROCESSING));
+        assertThat(batch.getState(), is(BatchState.PROCESSED));
 
         Collection<Sip> allSips = sipStore.findAll();
         assertThat(allSips, hasSize(3));
@@ -178,7 +178,7 @@ public class CoordinatorIntegrationTest implements ApiTest {
         Thread.sleep(6000);
 
         Batch batch = batchStore.find(batchId);
-        assertThat(batch.getState(), is(BatchState.PROCESSING));
+        assertThat(batch.getState(), is(BatchState.PROCESSED));
 
         Collection<Sip> allSips = sipStore.findAll();
         assertThat(allSips, hasSize(3));
@@ -264,7 +264,7 @@ public class CoordinatorIntegrationTest implements ApiTest {
 
         assertThat(hasResumed, is(true));
         batch = batchStore.find(batch.getId());
-        assertThat(batch.getState(), is(BatchState.PROCESSING));
+        assertThat(batch.getState(), is(BatchState.PROCESSED));
 
         sip = sipStore.find(sip.getId());
         assertThat(sip.getState(), is(SipState.PROCESSED));
