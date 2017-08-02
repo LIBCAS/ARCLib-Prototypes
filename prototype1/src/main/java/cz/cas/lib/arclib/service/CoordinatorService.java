@@ -14,11 +14,13 @@ import org.springframework.jms.annotation.JmsListener;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static cz.cas.lib.arclib.util.Utils.asList;
 import static cz.cas.lib.arclib.util.Utils.notNull;
@@ -122,7 +124,7 @@ public class CoordinatorService {
      * b) Otherwise, updates state of the batch to PROCESSING
      * and for each sip package of the batch with the state NEW sends a JMS message to Worker.
      * In this case method returns true.
-     *
+     * If there are only si ppackages with the state PROCESSED or FAILED, the batch state changes to PROCESSED.
      * @param batchId id of the batch
      */
     public Boolean resume(String batchId) {
@@ -141,9 +143,14 @@ public class CoordinatorService {
         batchStore.save(batch);
         log.info("Processing of batch " + batch.getId() + " has successfully resumed. The batch state changed to PROCESSING.");
 
-        sipStore.findAllInList(asList(batch.getIds())).stream()
-                .filter(sip -> sip.getState() == SipState.NEW)
-                .forEach(sip -> template.convertAndSend("worker", new CoordinatorDto(sip.getId(), batch.getId())));
+        List<Sip> unprocessedSips = sipStore.findAllInList(asList(batch.getIds())).stream()
+                .filter(sip -> sip.getState() == SipState.NEW).collect(Collectors.toList());
+        if (unprocessedSips.isEmpty()) {
+            batch.setState(BatchState.PROCESSED);
+            batchStore.save(batch);
+            log.info("Batch " + batchId + " has been processed. The batch state changed to PROCESSED.");
+        }
+        unprocessedSips.forEach(sip -> template.convertAndSend("worker", new CoordinatorDto(sip.getId(), batch.getId())));
         return true;
     }
 
