@@ -12,7 +12,8 @@
         <module>prototype3</module>
         <module>prototype4</module>
         <module>prototype5</module>
-	</modules>
+        <module>prototype7</module>
+    </modules>
 	<packaging>pom</packaging>
 
 	<name>arclib</name>
