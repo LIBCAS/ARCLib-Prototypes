@@ -1,8 +1,8 @@
 <profile xmlns="http://www.cas.lib.arclib">
     <rule>
-        <validationSchemeCheck>
+        <validationSchemaCheck>
             <filePath>/info.xml</filePath>
-            <scheme><![CDATA[
+            <schema><![CDATA[
             <xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://www.ee.cz/schemas/NDK/info.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema">
               <xs:element name="info">
                 <xs:complexType>
@@ -44,22 +44,22 @@
               </xs:element>
             </xs:schema>
             ]]>
-            </scheme>
-        </validationSchemeCheck>
+            </schema>
+        </validationSchemaCheck>
     </rule>
     <rule>
-        <attributeCheck>
+        <nodeCheck>
             <filePath>/info.xml</filePath>
             <xPath>/info/creator</xPath>
             <value>ZLG001</value>
-        </attributeCheck>
+        </nodeCheck>
     </rule>
     <rule>
-        <attributeCheck>
+        <nodeCheck>
             <filePath>/info.xml</filePath>
             <xPath>/info/creator</xPath>
             <regex>ZLG001</regex>
-        </attributeCheck>
+        </nodeCheck>
     </rule>
     <rule>
         <fileExistenceCheck>

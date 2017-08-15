@@ -1,6 +1,7 @@
 package cas.lib.arclib;
 
 import cas.lib.arclib.domain.ValidationProfile;
+import cas.lib.arclib.exception.*;
 import cas.lib.arclib.service.ValidationService;
 import cas.lib.arclib.store.ValidationProfileStore;
 import cas.lib.arclib.test.DbTest;
@@ -19,10 +20,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static cas.lib.arclib.test.helper.ThrowableAssertion.assertThrown;
 
-public class ValidationServiceTest extends DbTest{
+public class ValidationServiceTest extends DbTest {
 
     private ValidationService service;
     private ValidationProfileStore store;
@@ -48,10 +48,8 @@ public class ValidationServiceTest extends DbTest{
     }
 
     @Test
-    public void validateSipTest() throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
-        Class<ValidationServiceTest> clazz = ValidationServiceTest.class;
-
-        InputStream inputStream = clazz.getResourceAsStream("/testValidationProfile.xml");
+    public void validateSipMixedChecksSuccess() throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
+        InputStream inputStream = getClass().getResourceAsStream("/validationProfileMixedChecks.xml");
         String xml = readFromInputStream(inputStream);
 
         ValidationProfile validationProfile = new ValidationProfile();
@@ -61,15 +59,130 @@ public class ValidationServiceTest extends DbTest{
         flushCache();
 
         String sipPath = getClass().getResource("/KPW01169310").getPath();
-        boolean success = service.validateSip(sipPath, validationProfile.getId());
-        assertThat(success, is(true));
+        service.validateSip(sipPath, validationProfile.getId());
     }
 
-    private String readFromInputStream(InputStream inputStream)
-            throws IOException {
+    @Test
+    public void validateSipProfileMissing() throws ParserConfigurationException, SAXException, XPathExpressionException,
+            IOException {
+        String sipPath = getClass().getResource("/KPW01169310").getPath();
+        assertThrown(() -> service.validateSip(sipPath, "nonExistentId")).isInstanceOf(MissingObject.class);
+    }
+
+    @Test
+    public void validateSipFileExistenceChecksSuccess() throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
+        InputStream inputStream = getClass().getResourceAsStream("/validationProfileFileExistenceChecks.xml");
+        String xml = readFromInputStream(inputStream);
+
+        ValidationProfile validationProfile = new ValidationProfile();
+        validationProfile.setXml(xml);
+
+        store.save(validationProfile);
+        flushCache();
+
+        String sipPath = getClass().getResource("/KPW01169310").getPath();
+        service.validateSip(sipPath, validationProfile.getId());
+    }
+
+    @Test
+    public void validateSipFileExistenceCheckMissingFile() throws ParserConfigurationException, SAXException, XPathExpressionException,
+            IOException {
+        InputStream inputStream = getClass().getResourceAsStream("/validationProfileMissingFile.xml");
+        String xml = readFromInputStream(inputStream);
+
+        ValidationProfile validationProfile = new ValidationProfile();
+        validationProfile.setXml(xml);
+
+        store.save(validationProfile);
+        flushCache();
+
+        String sipPath = getClass().getResource("/KPW01169310").getPath();
+        assertThrown(() -> service.validateSip(sipPath, validationProfile.getId())).isInstanceOf(MissingFile.class);
+    }
+
+    @Test
+    public void validateSipValidationSchemaChecksSuccess() throws ParserConfigurationException, SAXException, XPathExpressionException,
+            IOException {
+        InputStream inputStream = getClass().getResourceAsStream("/validationProfileValidationSchemaChecks.xml");
+        String xml = readFromInputStream(inputStream);
+
+        ValidationProfile validationProfile = new ValidationProfile();
+        validationProfile.setXml(xml);
+
+        store.save(validationProfile);
+        flushCache();
+
+        String sipPath = getClass().getResource("/KPW01169310").getPath();
+        service.validateSip(sipPath, validationProfile.getId());
+    }
+
+    @Test
+    public void validateSipValidationSchemaCheckFailure() throws ParserConfigurationException, SAXException, XPathExpressionException,
+            IOException {
+        InputStream inputStream = getClass().getResourceAsStream("/validationProfileInvalidScheme.xml");
+        String xml = readFromInputStream(inputStream);
+
+        ValidationProfile validationProfile = new ValidationProfile();
+        validationProfile.setXml(xml);
+
+        store.save(validationProfile);
+        flushCache();
+
+        String sipPath = getClass().getResource("/KPW01169310").getPath();
+        assertThrown(() -> service.validateSip(sipPath, validationProfile.getId())).isInstanceOf(SchemaValidationError.class);
+    }
+
+    @Test
+    public void validateSipNodeValueChecksSuccess() throws ParserConfigurationException, SAXException, XPathExpressionException,
+            IOException {
+        InputStream inputStream = getClass().getResourceAsStream("/validationProfileNodeValueChecks.xml");
+        String xml = readFromInputStream(inputStream);
+
+        ValidationProfile validationProfile = new ValidationProfile();
+        validationProfile.setXml(xml);
+
+        store.save(validationProfile);
+        flushCache();
+
+        String sipPath = getClass().getResource("/KPW01169310").getPath();
+        service.validateSip(sipPath, validationProfile.getId());
+    }
+
+    @Test
+    public void validateSipWrongNodeValue() throws ParserConfigurationException, SAXException, XPathExpressionException,
+            IOException {
+        InputStream inputStream = getClass().getResourceAsStream("/validationProfileWrongNodeValue.xml");
+        String xml = readFromInputStream(inputStream);
+
+        ValidationProfile validationProfile = new ValidationProfile();
+        validationProfile.setXml(xml);
+
+        store.save(validationProfile);
+        flushCache();
+
+        String sipPath = getClass().getResource("/KPW01169310").getPath();
+        assertThrown(() -> service.validateSip(sipPath, validationProfile.getId())).isInstanceOf(WrongNodeValue.class);
+    }
+
+    @Test
+    public void validateSipInvalidNodeValue() throws ParserConfigurationException, SAXException, XPathExpressionException,
+            IOException {
+        InputStream inputStream = getClass().getResourceAsStream("/validationProfileInvalidNodeValue.xml");
+        String xml = readFromInputStream(inputStream);
+
+        ValidationProfile validationProfile = new ValidationProfile();
+        validationProfile.setXml(xml);
+
+        store.save(validationProfile);
+        flushCache();
+
+        String sipPath = getClass().getResource("/KPW01169310").getPath();
+        assertThrown(() -> service.validateSip(sipPath, validationProfile.getId())).isInstanceOf(InvalidNodeValue.class);
+    }
+
+    private String readFromInputStream(InputStream inputStream) throws IOException {
         StringBuilder resultStringBuilder = new StringBuilder();
-        try (BufferedReader br
-                     = new BufferedReader(new InputStreamReader(inputStream))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
             String line;
             while ((line = br.readLine()) != null) {
                 resultStringBuilder.append(line).append("\n");

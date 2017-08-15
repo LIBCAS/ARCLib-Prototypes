@@ -2,8 +2,9 @@ package cas.lib.arclib.service;
 
 import cas.lib.arclib.ValidationChecker;
 import cas.lib.arclib.domain.ValidationProfile;
-import cas.lib.arclib.exception.MissingObject;
+import cas.lib.arclib.exception.*;
 import cas.lib.arclib.store.ValidationProfileStore;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -21,106 +22,163 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static cas.lib.arclib.util.Utils.notNull;
 
+@Slf4j
 @Service
 public class ValidationService {
+
     private ValidationProfileStore validationProfileStore;
     private ValidationChecker validationChecker;
 
-    public boolean validateSip(String sipPath, String validationProfileId)
+    /**
+     * Validates SIP using the given validation profile. If the validation has failed, specific exception is thrown describing the reason
+     * of the validation failure. There are three types of checks in a validation profile:
+     *
+     * 1. checks for existence of specified files
+     * 2. validation against respective XSD schemas of specified XML files
+     * 3. checks of the values of some nodes specified by the XPath in XML files on the specified filePath
+     *
+     * @param sipPath file path to the sip package to validate
+     * @param validationProfileId id of the validation profile
+     * @throws IOException if some of the files addressed from the validation profile is not found
+     * @throws SAXException if the validation profile cannot be parsed
+     * @throws XPathExpressionException if there is an error in the XPath expression
+     * @throws ParserConfigurationException
+     */
+    public void validateSip(String sipPath, String validationProfileId)
             throws ParserConfigurationException, IOException, SAXException, XPathExpressionException {
-        ValidationProfile validationProfile = validationProfileStore.find(validationProfileId);
-        notNull(validationProfile, () -> new MissingObject(ValidationProfile.class, validationProfileId));
-
-        String validationProfileXml = validationProfile.getXml();
+        ValidationProfile profile = validationProfileStore.find(validationProfileId);
+        notNull(profile, () -> new MissingObject(ValidationProfile.class, validationProfileId));
 
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder dBuilder;
-
         dBuilder = dbFactory.newDocumentBuilder();
 
+        String validationProfileXml = profile.getXml();
         Document validationProfileDoc = dBuilder.parse(new ByteArrayInputStream(validationProfileXml.getBytes()));
         validationProfileDoc.getDocumentElement().normalize();
 
-        return fileExistenceCheck(sipPath, validationProfileDoc) && validationSchemeCheck(sipPath, validationProfileDoc) &&
-                attributeCheck(sipPath, validationProfileDoc);
+        performFileExistenceChecks(sipPath, validationProfileDoc, validationProfileId);
+        performValidationSchemaChecks(sipPath, validationProfileDoc, validationProfileId);
+        performNodeValueChecks(sipPath, validationProfileDoc, validationProfileId);
+
+        log.info("Validation of SIP with profile " + validationProfileId + " succeeded.");
     }
 
-    private boolean fileExistenceCheck(String sipPath, Document validationProfile) throws XPathExpressionException {
+    /**
+     * Performs all file existence checks contained in the validation profile. If the validation has failed (some of the files specified
+     * in the validation profile do not exist), {@link MissingFile} exception is thrown.
+     *
+     * @param sipPath path to the SIP
+     * @param validationProfileDoc document with the validation profile
+     * @param validationProfileId id of the validation profile
+     * @throws XPathExpressionException if there is an error in the XPath expression
+     */
+    private void performFileExistenceChecks(String sipPath, Document validationProfileDoc, String validationProfileId) throws
+            XPathExpressionException {
         XPath xPath =  XPathFactory.newInstance().newXPath();
 
-        NodeList fileExistenceCheckNodes = (NodeList) xPath.compile("/profile/rule/fileExistenceCheck")
-                .evaluate(validationProfile, XPathConstants.NODESET);
-        for (int i = 0; i< fileExistenceCheckNodes.getLength(); i++) {
+        NodeList nodes = (NodeList) xPath.compile("/profile/rule/fileExistenceCheck")
+                .evaluate(validationProfileDoc, XPathConstants.NODESET);
+        for (int i = 0; i< nodes.getLength(); i++) {
 
-            Element element = (Element) fileExistenceCheckNodes.item(i);
-            String filePath = element.getElementsByTagName("filePath").item(0).getTextContent();
-
-            if (!validationChecker.fileExistenceCheck(sipPath + filePath)) {
-                return false;
+            Element element = (Element) nodes.item(i);
+            String relativePath = element.getElementsByTagName("filePath").item(0).getTextContent();
+            String absolutePath = sipPath + relativePath;
+            if (!validationChecker.fileExists(absolutePath)) {
+                log.info("Validation of SIP with profile " + validationProfileId + " failed. File at " + absolutePath + " is missing.");
+                throw new MissingFile(absolutePath, validationProfileId);
             }
         }
-        return true;
     }
 
-    private boolean validationSchemeCheck(String sipPath, Document validationProfile) throws XPathExpressionException {
+    /**
+     * Performs all validation schema checks contained in the validation profile. If the validation has failed (some of the XMLs
+     * specified in the validation profile do not match their respective validation schemas) {@link SchemaValidationError} is thrown.
+     *
+     * @param sipPath path to the SIP
+     * @param validationProfileDoc document with the validation profile
+     * @param validationProfileId id of the validation profile
+     * @throws IOException if some of the XMLs address from the validation profile does not exist
+     * @throws XPathExpressionException if there is an error in the XPath expression
+     */
+    private void performValidationSchemaChecks(String sipPath, Document validationProfileDoc, String validationProfileId) throws
+            XPathExpressionException, IOException {
         XPath xPath =  XPathFactory.newInstance().newXPath();
 
-        NodeList validationSchemeCheckNodes = (NodeList) xPath.compile("/profile/rule/validationSchemeCheck")
-                .evaluate(validationProfile,
+        NodeList nodes = (NodeList) xPath.compile("/profile/rule/validationSchemaCheck")
+                .evaluate(validationProfileDoc,
                         XPathConstants.NODESET);
-        for (int i = 0; i< validationSchemeCheckNodes.getLength(); i++) {
-            Element validationSchemeCheckElement = (Element) validationSchemeCheckNodes.item(i);
-            String filePath = validationSchemeCheckElement.getElementsByTagName("filePath").item(0).getTextContent();
-            String scheme = validationSchemeCheckElement.getElementsByTagName("scheme").item(0).getTextContent();
+        for (int i = 0; i< nodes.getLength(); i++) {
+            Element element = (Element) nodes.item(i);
+            String relativePath = element.getElementsByTagName("filePath").item(0).getTextContent();
+            String schema = element.getElementsByTagName("schema").item(0).getTextContent();
 
-            if(!ValidationChecker.validateWithXMLSchema(sipPath + filePath, scheme)) {
-                return false;
+            String absolutePath = sipPath + relativePath;
+
+            try {
+                ValidationChecker.validateWithXMLSchema(absolutePath, schema);
+            } catch (SAXException e) {
+                log.info("Validation of SIP with profile " + validationProfileId + " failed. File at " + absolutePath + " is not valid " +
+                        "against its corresponding schema.");
+                throw new SchemaValidationError(absolutePath, schema, e.getMessage());
             }
         }
-        return true;
     }
 
-    private boolean attributeCheck(String sipPath, Document doc)
+    /**
+     * Performs all attribute value checks contained in the validation profile. If the validation has failed (some of the attributes
+     * specified in the validation profile do not match their specified values or regex) {@link WrongNodeValue} or
+     * {@link InvalidNodeValue} is thrown.
+     *
+     * @param sipPath path to the SIP
+     * @param validationProfileDoc document with the validation profile
+     * @param validationProfileId id of the validation profile
+     * @throws IOException if some of the files addressed from the validation profile is not found
+     * @throws XPathExpressionException if there is an error in the XPath expression
+     * @throws SAXException if the validationProfileDoc cannot be parsed
+     * @throws ParserConfigurationException
+     */
+    private void performNodeValueChecks(String sipPath, Document validationProfileDoc, String validationProfileId)
             throws IOException, ParserConfigurationException, XPathExpressionException, SAXException {
         XPath xPath =  XPathFactory.newInstance().newXPath();
 
-        NodeList attributeCheckNodes = (NodeList) xPath.compile("/profile/rule/attributeCheck")
-                .evaluate(doc, XPathConstants.NODESET);
-        for (int i = 0; i< attributeCheckNodes.getLength(); i++) {
-            Element attributeCheckElement = (Element) attributeCheckNodes.item(i);
-            String filePath = attributeCheckElement.getElementsByTagName("filePath").item(0).getTextContent();
-            String expression = attributeCheckElement.getElementsByTagName("xPath").item(0).getTextContent();
-            Path path = Paths.get((sipPath + filePath).substring(1));
-            String xml = new String(Files.readAllBytes(path));
+        NodeList nodes = (NodeList) xPath.compile("/profile/rule/nodeCheck")
+                .evaluate(validationProfileDoc, XPathConstants.NODESET);
+        for (int i = 0; i< nodes.getLength(); i++) {
+            Element element = (Element) nodes.item(i);
 
-            String content =  ValidationChecker.findWithXPath(sipPath + filePath, expression).item(0).getTextContent();
+            String filePath = element.getElementsByTagName("filePath").item(0).getTextContent();
+            String absolutePath = sipPath + filePath;
 
-            // compare with value
-            Node valueElement = attributeCheckElement.getElementsByTagName("value").item(0);
+            String expression = element.getElementsByTagName("xPath").item(0).getTextContent();
+
+            String actualValue =  ValidationChecker.findWithXPath(absolutePath, expression).item(0).getTextContent();
+
+            Node valueElement = element.getElementsByTagName("value").item(0);
             if (valueElement != null) {
-                if (!valueElement.getTextContent().equals(content)) {
-                    return false;
-                }
-            }
-            //compare with regex
-            Node regexElement = attributeCheckElement.getElementsByTagName("regex").item(0);
-            if (regexElement != null) {
-                Pattern p = Pattern.compile(regexElement.getTextContent());
-                Matcher m = p.matcher(content);
+                String expectedValue = valueElement.getTextContent();
+                // compare with value
+                if (!expectedValue.equals(actualValue)) {
+                    log.info("Validation of SIP with profile " + validationProfileId + " failed. Expected value of node at path " +
+                            expression + " is " + expectedValue + ". Actual value is " + actualValue + ".");
+                    throw new WrongNodeValue(expectedValue, actualValue, absolutePath, expression);                }
+            } else {
+                //compare with regex
+                Node regexElement = element.getElementsByTagName("regex").item(0);
+                String regex = regexElement.getTextContent();
+                Pattern pattern = Pattern.compile(regex);
+                Matcher m = pattern.matcher(actualValue);
                 if (!m.matches()) {
-                    return false;
-                }
+                    log.info("Validation of SIP with profile " + validationProfileId + " failed. Value " + actualValue + " of node at " +
+                            "path " + expression + " does not match regex " + regex + ".");
+                    throw new InvalidNodeValue(regex, actualValue, absolutePath, expression);                }
             }
         }
-        return true;
     }
 
     @Inject
