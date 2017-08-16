@@ -11,8 +11,8 @@
         <class>com.github.marschall.threeten.jpa.LocalDateTimeConverter</class>
         <class>com.github.marschall.threeten.jpa.InstantConverter</class>
         <class>cas.lib.arclib.domain.ValidationProfile</class>
+        <class>cas.lib.arclib.domain.Sip</class>
         <exclude-unlisted-classes>false</exclude-unlisted-classes>
-
 
         <properties>
             <property name="hibernate.dialect" value="org.hibernate.dialect.HSQLDialect"/>

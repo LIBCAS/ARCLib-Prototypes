@@ -80,7 +80,7 @@ public class ValidationChecker {
      * @param path path to the file
      * @return true if the file exists, false otherwise
      */
-    public boolean fileExists(String path) {
+    public static boolean fileExists(String path) {
         File file = new File(path);
         return file.exists();
     }
