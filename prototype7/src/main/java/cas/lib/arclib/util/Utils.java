@@ -85,6 +85,13 @@ public class Utils {
         return Collections.singletonMap(key, value);
     }
 
+    public static <T, U> Map<T, U> asMap(T key1, U value1, T key2, U value2) {
+        Map<T, U> map = new LinkedHashMap<>();
+        map.put(key1, value1);
+        map.put(key2, value2);
+        return map;
+    }
+
     public static <U, T extends RuntimeException> void eq(U o1,  U o2, Supplier<T> supplier) {
         if (!Objects.equals(o1, o2)) {
             throw supplier.get();
