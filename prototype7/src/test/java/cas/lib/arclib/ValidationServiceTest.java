@@ -26,7 +26,6 @@ public class ValidationServiceTest extends DbTest {
 
     private ValidationService service;
     private ValidationProfileStore store;
-    private ValidationChecker validationChecker;
 
     @Mock
     private ElasticsearchTemplate template;
@@ -40,11 +39,8 @@ public class ValidationServiceTest extends DbTest {
         store.setQueryFactory(new JPAQueryFactory(getEm()));
         store.setTemplate(template);
 
-        validationChecker = new ValidationChecker();
-
         service = new ValidationService();
         service.setValidationProfileStore(store);
-        service.setValidationChecker(validationChecker);
     }
 
     @Test
