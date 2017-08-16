@@ -1,4 +1,4 @@
-package cas.lib.arclib.rest;
+package cas.lib.arclib.api;
 
 import cas.lib.arclib.domain.DomainObject;
 import cas.lib.arclib.domain.ValidationProfile;

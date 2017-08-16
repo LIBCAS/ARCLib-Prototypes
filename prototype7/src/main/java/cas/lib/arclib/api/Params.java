@@ -1,4 +1,4 @@
-package cas.lib.arclib.rest;
+package cas.lib.arclib.api;
 
 import lombok.Getter;
 import lombok.Setter;
