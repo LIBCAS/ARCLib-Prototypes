@@ -4,10 +4,10 @@ import cas.lib.arclib.domain.DomainObject;
 import cas.lib.arclib.domain.IndexedDomainObject;
 import cas.lib.arclib.exception.BadArgument;
 import cas.lib.arclib.exception.GeneralException;
-import cas.lib.arclib.rest.Filter;
-import cas.lib.arclib.rest.FilterOperation;
-import cas.lib.arclib.rest.Params;
-import cas.lib.arclib.rest.Result;
+import cas.lib.arclib.api.Filter;
+import cas.lib.arclib.api.FilterOperation;
+import cas.lib.arclib.api.Params;
+import cas.lib.arclib.api.Result;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -39,7 +39,7 @@ import static cas.lib.arclib.util.Utils.*;
  *     JPA entity and sending it into Elasticsearch.
  * </p>
  * <p>
- *     Second purpose is retrieval of instances based on complex {@link cas.lib.arclib.rest.Params} which encompass filtering, sorting and
+ *     Second purpose is retrieval of instances based on complex {@link cas.lib.arclib.api.Params} which encompass filtering, sorting and
  *     paging.
  * </p>
  * <p>
@@ -91,11 +91,11 @@ public interface IndexedStore<T extends DomainObject, U extends IndexedDomainObj
     }
 
     /**
-     * Finds all instances that respect the selected {@link cas.lib.arclib.rest.Params}.
+     * Finds all instances that respect the selected {@link cas.lib.arclib.api.Params}.
      *
      * <p>
-     *     Though {@link cas.lib.arclib.rest.Params} one could specify filtering, sorting and paging. For further explanation
-     *     see {@link cas.lib.arclib.rest.Params}.
+     *     Though {@link cas.lib.arclib.api.Params} one could specify filtering, sorting and paging. For further explanation
+     *     see {@link cas.lib.arclib.api.Params}.
      * </p>
      * <p>
      *     Returning also the total number of instances passed through the filtering phase.

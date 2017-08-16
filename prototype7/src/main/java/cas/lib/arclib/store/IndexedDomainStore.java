@@ -2,9 +2,9 @@ package cas.lib.arclib.store;
 
 import cas.lib.arclib.domain.DomainObject;
 import cas.lib.arclib.domain.IndexedDomainObject;
-import cas.lib.arclib.rest.DataAdapter;
-import cas.lib.arclib.rest.Params;
-import cas.lib.arclib.rest.Result;
+import cas.lib.arclib.api.DataAdapter;
+import cas.lib.arclib.api.Params;
+import cas.lib.arclib.api.Result;
 import com.querydsl.core.types.dsl.EntityPathBase;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import java.util.Collection;
 
 @Getter
+@Transactional
 public class IndexedDomainStore<T extends DomainObject, Q extends EntityPathBase<T>, U extends IndexedDomainObject>
         extends DomainStore<T, Q> implements IndexedStore<T, U>, DataAdapter<T> {
     private ElasticsearchTemplate template;

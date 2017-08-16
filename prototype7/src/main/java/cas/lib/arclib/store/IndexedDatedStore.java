@@ -2,10 +2,10 @@ package cas.lib.arclib.store;
 
 import cas.lib.arclib.domain.DatedObject;
 import cas.lib.arclib.domain.IndexedDatedObject;
-import cas.lib.arclib.rest.DataAdapter;
+import cas.lib.arclib.api.DataAdapter;
 import com.querydsl.core.types.dsl.EntityPathBase;
-import cas.lib.arclib.rest.Params;
-import cas.lib.arclib.rest.Result;
+import cas.lib.arclib.api.Params;
+import cas.lib.arclib.api.Result;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import java.util.Collection;
 
 @Getter
+@Transactional
 public class IndexedDatedStore<T extends DatedObject, Q extends EntityPathBase<T>, U extends IndexedDatedObject>
         extends DatedStore<T, Q> implements IndexedStore<T, U>, DataAdapter<T> {
     protected ElasticsearchTemplate template;

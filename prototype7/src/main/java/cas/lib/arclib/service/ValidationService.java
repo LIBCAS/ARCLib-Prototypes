@@ -32,7 +32,6 @@ import static cas.lib.arclib.util.Utils.notNull;
 public class ValidationService {
 
     private ValidationProfileStore validationProfileStore;
-    private ValidationChecker validationChecker;
 
     /**
      * Validates SIP using the given validation profile. If the validation has failed, specific exception is thrown describing the reason
@@ -89,7 +88,7 @@ public class ValidationService {
             Element element = (Element) nodes.item(i);
             String relativePath = element.getElementsByTagName("filePath").item(0).getTextContent();
             String absolutePath = sipPath + relativePath;
-            if (!validationChecker.fileExists(absolutePath)) {
+            if (!ValidationChecker.fileExists(absolutePath)) {
                 log.info("Validation of SIP with profile " + validationProfileId + " failed. File at " + absolutePath + " is missing.");
                 throw new MissingFile(absolutePath, validationProfileId);
             }
@@ -184,10 +183,5 @@ public class ValidationService {
     @Inject
     public void setValidationProfileStore(ValidationProfileStore validationProfileStore) {
         this.validationProfileStore = validationProfileStore;
-    }
-
-    @Inject
-    public void setValidationChecker(ValidationChecker validationChecker) {
-        this.validationChecker = validationChecker;
     }
 }
