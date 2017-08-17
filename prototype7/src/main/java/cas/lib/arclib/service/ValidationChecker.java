@@ -1,6 +1,6 @@
-package cas.lib.arclib;
+package cas.lib.arclib.service;
 
-import cas.lib.arclib.exception.GeneralException;
+import cz.inqool.uas.exception.GeneralException;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;

@@ -1,5 +1,7 @@
 package cas.lib.arclib.exception;
 
+import cz.inqool.uas.exception.GeneralException;
+
 public class WrongNodeValue extends GeneralException {
     private String expectedValue;
     private String actualValue;

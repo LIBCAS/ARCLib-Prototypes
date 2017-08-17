@@ -1,5 +1,7 @@
 package cas.lib.arclib.exception;
 
+import cz.inqool.uas.exception.GeneralException;
+
 public class SchemaValidationError extends GeneralException {
     private String xmlPath;
     private String xsdSchema;

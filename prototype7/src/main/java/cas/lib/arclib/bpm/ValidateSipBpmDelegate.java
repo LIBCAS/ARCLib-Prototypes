@@ -2,10 +2,10 @@ package cas.lib.arclib.bpm;
 
 import cas.lib.arclib.domain.Sip;
 import cas.lib.arclib.domain.SipState;
-import cas.lib.arclib.exception.MissingObject;
 import cas.lib.arclib.service.ValidationService;
 import cas.lib.arclib.store.SipStore;
-import cas.lib.arclib.store.Transactional;
+import cz.inqool.uas.exception.MissingObject;
+import cz.inqool.uas.store.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
@@ -23,10 +23,10 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static cas.lib.arclib.util.Utils.checked;
-import static cas.lib.arclib.util.Utils.notNull;
+import static cz.inqool.uas.util.Utils.checked;
+import static cz.inqool.uas.util.Utils.notNull;
 import static java.nio.file.Files.createDirectories;
-import static org.elasticsearch.common.io.FileSystemUtils.exists;
+import static java.nio.file.Files.exists;
 
 @Slf4j
 @Component
@@ -39,7 +39,7 @@ public class ValidateSipBpmDelegate implements JavaDelegate {
     /**
      * Executes the ingest process for the given SIP:
      * 1. copies SIP to workspace
-     * 2. processes SIP (...waits for a second)
+     * 2. validates SIP
      * 3. deletes SIP from workspace
      *
      * @param execution parameter containing the SIP id
@@ -58,14 +58,14 @@ public class ValidateSipBpmDelegate implements JavaDelegate {
         Sip sip = sipStore.find(sipId);
         notNull(sip, () -> new MissingObject(Sip.class, sipId));
 
-        String path = sip.getPath();
-        if (path != null) {
-            copySipToWorkspace(path, sipId);
+        String sipPath = sip.getPath();
+        if (sipPath != null) {
+            copySipToWorkspace(sipPath, sipId);
 
             log.info("SIP " + sipId + " has been successfully copied to workspace.");
 
-            Path workspacePath = Paths.get(workspace, sipId);
-            service.validateSip(workspacePath.toString(), validationProfileId);
+            String workspaceSipPath = workspace + "/" + sipId;
+            service.validateSip(workspaceSipPath, validationProfileId);
 
             delSipFromWorkspace(sipId);
         }

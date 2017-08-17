@@ -1,16 +1,18 @@
 package cas.lib.arclib;
 
 import cas.lib.arclib.domain.ValidationProfile;
-import cas.lib.arclib.exception.*;
+import cas.lib.arclib.exception.InvalidNodeValue;
+import cas.lib.arclib.exception.MissingFile;
+import cas.lib.arclib.exception.SchemaValidationError;
+import cas.lib.arclib.exception.WrongNodeValue;
 import cas.lib.arclib.service.ValidationService;
 import cas.lib.arclib.store.ValidationProfileStore;
 import cas.lib.arclib.test.DbTest;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import cz.inqool.uas.exception.MissingObject;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -27,9 +29,6 @@ public class ValidationServiceTest extends DbTest {
     private ValidationService service;
     private ValidationProfileStore store;
 
-    @Mock
-    private ElasticsearchTemplate template;
-
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
@@ -37,7 +36,6 @@ public class ValidationServiceTest extends DbTest {
         store = new ValidationProfileStore();
         store.setEntityManager(getEm());
         store.setQueryFactory(new JPAQueryFactory(getEm()));
-        store.setTemplate(template);
 
         service = new ValidationService();
         service.setValidationProfileStore(store);

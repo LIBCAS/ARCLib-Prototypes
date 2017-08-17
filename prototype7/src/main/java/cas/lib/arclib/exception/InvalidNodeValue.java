@@ -1,6 +1,8 @@
 package cas.lib.arclib.exception;
 
-public class InvalidNodeValue extends GeneralException{
+import cz.inqool.uas.exception.GeneralException;
+
+public class InvalidNodeValue extends GeneralException {
     private String regex;
     private String actualValue;
     private String filePath;

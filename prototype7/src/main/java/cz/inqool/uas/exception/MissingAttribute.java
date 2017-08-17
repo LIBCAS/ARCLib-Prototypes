@@ -1,16 +1,20 @@
-package cas.lib.arclib.exception;
+package cz.inqool.uas.exception;
 
-import cas.lib.arclib.domain.DomainObject;
 
-public class ForbiddenOperation extends GeneralException {
+import cz.inqool.uas.domain.DomainObject;
+
+public class MissingAttribute extends GeneralException {
     private Object object;
 
-    public ForbiddenOperation(Object object) {
+    private String attribute;
+
+    public MissingAttribute(Object object, String attribute) {
         super();
         this.object = object;
+        this.attribute = attribute;
     }
 
-    public ForbiddenOperation(Class<?> clazz, String objectId) {
+    public MissingAttribute(Class<?> clazz, String objectId, String attribute) {
         super();
         try {
             this.object = clazz.newInstance();
@@ -22,16 +26,24 @@ public class ForbiddenOperation extends GeneralException {
         } catch (Exception e) {
             // ignore
         }
+
+
+        this.attribute = attribute;
     }
 
     @Override
     public String toString() {
-        return "ForbiddenOperation{" +
+        return "MissingAttribute{" +
                 "object=" + object +
+                ", attribute='" + attribute + '\'' +
                 '}';
     }
 
     public Object getObject() {
         return object;
+    }
+
+    public String getAttribute() {
+        return attribute;
     }
 }

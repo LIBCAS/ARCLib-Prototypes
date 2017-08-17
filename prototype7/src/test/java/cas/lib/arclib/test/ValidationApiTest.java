@@ -48,8 +48,6 @@ public class ValidationApiTest implements ApiTest {
         mvc(api).perform(put("/api/validation_api/validate/" + sip.getId())
                 .param("validationProfileId", validationProfile.getId()))
                 .andExpect(status().is2xxSuccessful());
-
-        Thread.sleep(2000);
     }
 
     private String readFromInputStream(InputStream inputStream) throws IOException {

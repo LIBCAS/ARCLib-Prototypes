@@ -1,9 +1,9 @@
 package cas.lib.arclib.service;
 
-import cas.lib.arclib.ValidationChecker;
 import cas.lib.arclib.domain.ValidationProfile;
 import cas.lib.arclib.exception.*;
 import cas.lib.arclib.store.ValidationProfileStore;
+import cz.inqool.uas.exception.MissingObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static cas.lib.arclib.util.Utils.notNull;
+import static cz.inqool.uas.util.Utils.notNull;
 
 @Slf4j
 @Service

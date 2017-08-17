@@ -1,5 +1,6 @@
 package cas.lib.arclib.domain;
 
+import cz.inqool.uas.domain.DatedObject;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
@@ -14,7 +15,7 @@ import javax.persistence.Table;
 @BatchSize(size = 100)
 @Entity
 @Table(name = "arclib_sip")
-public class Sip extends DomainObject {
+public class Sip extends DatedObject {
     /**
     * Cesta k súboru
     */

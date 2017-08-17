@@ -1,5 +1,7 @@
 package cas.lib.arclib.exception;
 
+import cz.inqool.uas.exception.GeneralException;
+
 public class MissingFile extends GeneralException {
     private String filePath;
     private String validationProfileId;

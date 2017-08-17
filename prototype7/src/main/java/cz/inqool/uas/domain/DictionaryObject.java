@@ -1,4 +1,5 @@
-package cas.lib.arclib.domain;
+package cz.inqool.uas.domain;
+import cz.inqool.uas.store.DomainStore;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,7 +20,7 @@ import javax.persistence.MappedSuperclass;
  *     {@link DictionaryObject#order}, which defines the sorting and {@link DictionaryObject#active}, which allows
  *     the instance to be temporally hidden from further usage without deleting it. Difference between setting
  *     {@link DictionaryObject#active} to false and deleting the inherited {@link DatedObject} is that deactivated
- *     instance is accessible though standard {@link cas.lib.arclib.store.DomainStore#find(String)} API.
+ *     instance is accessible though standard {@link DomainStore#find(String)} API.
  *     It is responsibility of the developer to not show the deactivated instances to user.
  * </p>
  */

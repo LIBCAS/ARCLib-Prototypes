@@ -1,10 +1,10 @@
 package cas.lib.arclib;
 
-import cas.lib.arclib.exception.GeneralException;
+import cas.lib.arclib.service.ValidationChecker;
+import cz.inqool.uas.exception.GeneralException;
 import cas.lib.arclib.test.helper.ThrowableAssertion;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
-import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;

@@ -22,19 +22,11 @@
             <column name="id" type="varchar(255)">
                 <constraints primaryKey="true" primaryKeyName="arclib_sip_pkey" nullable="false"/>
             </column>
+            <column name="created" type="datetime"/>
+            <column name="updated" type="datetime"/>
+            <column name="deleted" type="datetime"/>
             <column name="path" type= "nvarchar(2000)"/>
             <column name="state" type="varchar(2000)"/>
-        </createTable>
-
-        <createTable tableName="arclib_batch_i">
-            <column name="batch_id" type="varchar(255)">
-                <constraints nullable="false" primaryKey="true" foreignKeyName="arclib_batch_i_b_fk"
-                             referencedTableName="arclib_batch" referencedColumnNames="id"/>
-            </column>
-
-            <column name="id" type="nvarchar(255)">
-                <constraints nullable="false" primaryKey="true"/>
-            </column>
         </createTable>
 
         <createTable tableName="arclib_validation_profile">
