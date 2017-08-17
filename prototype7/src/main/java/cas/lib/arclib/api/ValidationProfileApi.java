@@ -1,15 +1,16 @@
 package cas.lib.arclib.api;
 
-import cz.inqool.uas.domain.DomainObject;
 import cas.lib.arclib.domain.ValidationProfile;
+import cas.lib.arclib.store.ValidationProfileStore;
+import cz.inqool.uas.domain.DomainObject;
 import cz.inqool.uas.exception.BadArgument;
 import cz.inqool.uas.exception.MissingObject;
 import cz.inqool.uas.store.Transactional;
-import cas.lib.arclib.store.ValidationProfileStore;
 import lombok.Getter;
 import org.springframework.web.bind.annotation.*;
 
 import javax.inject.Inject;
+import java.util.Collection;
 
 import static cz.inqool.uas.util.Utils.eq;
 import static cz.inqool.uas.util.Utils.notNull;
@@ -45,6 +46,7 @@ public class ValidationProfileApi {
      * @param id Id of the instance
      * @throws MissingObject if specified instance is not found
      */
+    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     @Transactional
     void delete(@PathVariable("id") String id) {
         ValidationProfile entity = store.find(id);
@@ -68,6 +70,17 @@ public class ValidationProfileApi {
         notNull(entity, () -> new MissingObject(store.getType(), id));
 
         return entity;
+    }
+
+    /**
+     * Gets all instances
+     *
+     * @return All instances
+     */
+    @RequestMapping(method = RequestMethod.GET)
+    @Transactional
+    Collection<ValidationProfile> list() {
+        return store.findAll();
     }
 
     @Inject

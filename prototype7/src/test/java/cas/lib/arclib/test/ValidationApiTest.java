@@ -43,7 +43,7 @@ public class ValidationApiTest implements ApiTest {
         validationProfile.setXml(xml);
         validationProfileStore.save(validationProfile);
 
-        Thread.sleep(10000);
+        Thread.sleep(12000);
 
         mvc(api).perform(put("/api/validation_api/validate/" + sip.getId())
                 .param("validationProfileId", validationProfile.getId()))

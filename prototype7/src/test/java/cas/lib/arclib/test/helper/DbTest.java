@@ -1,4 +1,4 @@
-package cas.lib.arclib.test;
+package cas.lib.arclib.test.helper;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;

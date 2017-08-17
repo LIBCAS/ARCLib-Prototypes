@@ -30,7 +30,7 @@ public class ValidationChecker {
      * @param pathToXml path to the XML in which the element is being searched
      * @param xsdSchema XSD against which the XML is validated
      *
-     * @throws SAXException if the XSD validation failed
+     * @throws SAXException if the XSD schema is invalid
      * @throws IOException if the XML at the specified path is missing
      */
     public static void validateWithXMLSchema(String pathToXml, String xsdSchema) throws IOException, SAXException {
@@ -38,14 +38,15 @@ public class ValidationChecker {
                 SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 
         InputStream stream = new ByteArrayInputStream(xsdSchema.getBytes(StandardCharsets.UTF_8));
-        Schema schema;
-        try {
-            schema = factory.newSchema(new StreamSource(stream));
-        } catch (SAXException e) {
-            throw new GeneralException("XSD schema is not valid: " + xsdSchema + ".", e);
-        }
+
+        Schema schema = factory.newSchema(new StreamSource(stream));
         Validator validator = schema.newValidator();
-        validator.validate(new StreamSource(new File(pathToXml)));
+
+        try {
+            validator.validate(new StreamSource(new File(pathToXml)));
+        } catch (SAXException e) {
+            throw new GeneralException(e);
+        }
     }
 
     /**

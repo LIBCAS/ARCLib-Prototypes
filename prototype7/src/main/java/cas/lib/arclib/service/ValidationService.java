@@ -3,6 +3,7 @@ package cas.lib.arclib.service;
 import cas.lib.arclib.domain.ValidationProfile;
 import cas.lib.arclib.exception.*;
 import cas.lib.arclib.store.ValidationProfileStore;
+import cz.inqool.uas.exception.GeneralException;
 import cz.inqool.uas.exception.MissingObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -104,9 +105,10 @@ public class ValidationService {
      * @param validationProfileId id of the validation profile
      * @throws IOException if some of the XMLs address from the validation profile does not exist
      * @throws XPathExpressionException if there is an error in the XPath expression
+     * @throws SAXException if the XSD schema is invalid
      */
     private void performValidationSchemaChecks(String sipPath, Document validationProfileDoc, String validationProfileId) throws
-            XPathExpressionException, IOException {
+            XPathExpressionException, IOException, SAXException {
         XPath xPath =  XPathFactory.newInstance().newXPath();
 
         NodeList nodes = (NodeList) xPath.compile("/profile/rule/validationSchemaCheck")
@@ -121,7 +123,7 @@ public class ValidationService {
 
             try {
                 ValidationChecker.validateWithXMLSchema(absolutePath, schema);
-            } catch (SAXException e) {
+            } catch (GeneralException e) {
                 log.info("Validation of SIP with profile " + validationProfileId + " failed. File at " + absolutePath + " is not valid " +
                         "against its corresponding schema.");
                 throw new SchemaValidationError(absolutePath, schema, e.getMessage());

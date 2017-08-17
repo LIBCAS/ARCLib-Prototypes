@@ -1,4 +1,4 @@
-package cas.lib.arclib;
+package cas.lib.arclib.test;
 
 import cas.lib.arclib.domain.ValidationProfile;
 import cas.lib.arclib.exception.InvalidNodeValue;
@@ -7,7 +7,7 @@ import cas.lib.arclib.exception.SchemaValidationError;
 import cas.lib.arclib.exception.WrongNodeValue;
 import cas.lib.arclib.service.ValidationService;
 import cas.lib.arclib.store.ValidationProfileStore;
-import cas.lib.arclib.test.DbTest;
+import cas.lib.arclib.test.helper.DbTest;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import cz.inqool.uas.exception.MissingObject;
 import org.junit.Before;

@@ -1,4 +1,4 @@
-package cas.lib.arclib;
+package cas.lib.arclib.test;
 
 import cas.lib.arclib.service.ValidationChecker;
 import cz.inqool.uas.exception.GeneralException;
@@ -33,7 +33,7 @@ public class ValidationCheckerTest {
         URL url = getClass().getResource("/validationProfileSchema");
         String xsd = Resources.toString(url, Charsets.UTF_8);
         ThrowableAssertion.assertThrown(() -> ValidationChecker.validateWithXMLSchema(getClass().getResource
-                ("/validationProfileInvalidProfile.xml").getPath(), xsd)).isInstanceOf(SAXException.class);
+                ("/validationProfileInvalidProfile.xml").getPath(), xsd)).isInstanceOf(GeneralException.class);
     }
 
     @Test
@@ -41,7 +41,7 @@ public class ValidationCheckerTest {
         URL url = getClass().getResource("/schemaInvalid.xml");
         String xsd = Resources.toString(url, Charsets.UTF_8);
         ThrowableAssertion.assertThrown(() -> ValidationChecker.validateWithXMLSchema(getClass().getResource
-                ("/validationProfileMixedChecks.xml").getPath(), xsd)).isInstanceOf(GeneralException.class);
+                ("/validationProfileMixedChecks.xml").getPath(), xsd)).isInstanceOf(SAXException.class);
     }
 
     @Test
