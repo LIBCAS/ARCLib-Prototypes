@@ -1,14 +1,15 @@
-package cz.inqool.arclib.store;
+package cas.lib.arclib.store;
 
 
+import cas.lib.arclib.util.Utils;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.EntityPathBase;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import cz.inqool.arclib.domain.DomainObject;
-import cz.inqool.arclib.exception.GeneralException;
+import cas.lib.arclib.domain.DomainObject;
+import cas.lib.arclib.exception.GeneralException;
 import lombok.Getter;
 
 import javax.inject.Inject;
@@ -18,8 +19,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.List;
 
-import static cz.inqool.arclib.util.Utils.notNull;
-import static cz.inqool.arclib.util.Utils.sortByIdList;
 import static java.util.Collections.emptyList;
 
 /**
@@ -147,7 +146,7 @@ public abstract class DomainStore<T extends DomainObject, Q extends EntityPathBa
 
         detachAll();
 
-        return sortByIdList(ids, list);
+        return Utils.sortByIdList(ids, list);
     }
 
     /**
@@ -184,7 +183,7 @@ public abstract class DomainStore<T extends DomainObject, Q extends EntityPathBa
      * @throws IllegalArgumentException If entity is NULL
      */
     public T save(T entity) {
-        notNull(entity, () -> new IllegalArgumentException("entity"));
+        Utils.notNull(entity, () -> new IllegalArgumentException("entity"));
 
         T obj = entityManager.merge(entity);
 
@@ -201,7 +200,7 @@ public abstract class DomainStore<T extends DomainObject, Q extends EntityPathBa
      * @throws IllegalArgumentException If entity is NULL
      */
     public void save(Collection<? extends T> entities) {
-        notNull(entities, () -> new IllegalArgumentException("entities"));
+        Utils.notNull(entities, () -> new IllegalArgumentException("entities"));
 
         entities.forEach(entityManager::merge);
 

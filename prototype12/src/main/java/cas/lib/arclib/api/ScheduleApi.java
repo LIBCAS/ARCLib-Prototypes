@@ -1,8 +1,9 @@
-package cz.inqool.arclib;
+package cas.lib.arclib.api;
 
-import cz.inqool.arclib.domain.Job;
-import cz.inqool.arclib.store.JobStore;
-import cz.inqool.arclib.store.Transactional;
+import cas.lib.arclib.domain.Job;
+import cas.lib.arclib.store.JobStore;
+import cas.lib.arclib.store.Transactional;
+import cas.lib.arclib.JobRunner;
 import io.swagger.annotations.*;
 import lombok.Getter;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,9 +19,9 @@ import javax.inject.Inject;
  */
 @RolesAllowed("ROLE_JOB")
 @RestController
-@Api(value = "job", description = "Api for managing jobs")
-@RequestMapping("/api/jobs")
-public class JobApi {
+@Api(value = "job", description = "Api for scheduling jobs")
+@RequestMapping("/api/schedule")
+public class ScheduleApi {
     private JobRunner runner;
 
     @Getter
@@ -45,6 +46,7 @@ public class JobApi {
 
     /**
      * Unschedules the job.
+     *
      * @param id Id of the {@link Job}
      */
     @Transactional

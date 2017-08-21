@@ -1,4 +1,4 @@
-package cz.inqool.arclib.domain;
+package cas.lib.arclib.domain;
 
 import lombok.Getter;
 import lombok.Setter;

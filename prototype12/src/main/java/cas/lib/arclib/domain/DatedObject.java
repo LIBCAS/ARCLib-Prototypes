@@ -1,6 +1,7 @@
-package cz.inqool.arclib.domain;
+package cas.lib.arclib.domain;
 
-import cz.inqool.arclib.store.InstantGenerator;
+import cas.lib.arclib.store.DatedStore;
+import cas.lib.arclib.store.InstantGenerator;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.GenerationTime;
@@ -9,7 +10,6 @@ import org.hibernate.annotations.GeneratorType;
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 import java.time.Instant;
-import cz.inqool.arclib.store.DatedStore;
 
 /**
  * Building block for JPA entities, which want to track creation, update and delete times.

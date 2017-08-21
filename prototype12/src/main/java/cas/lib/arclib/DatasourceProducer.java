@@ -1,4 +1,4 @@
-package cz.inqool.arclib;
+package cas.lib.arclib;
 
 import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
 import org.springframework.boot.context.properties.ConfigurationProperties;

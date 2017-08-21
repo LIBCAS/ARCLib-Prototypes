@@ -1,9 +1,10 @@
-package cz.inqool.arclib;
+package cas.lib.arclib;
 
-import cz.inqool.arclib.domain.Job;
-import cz.inqool.arclib.exception.BadArgument;
-import cz.inqool.arclib.exception.GeneralException;
-import cz.inqool.arclib.store.JobStore;
+import cas.lib.arclib.domain.Job;
+import cas.lib.arclib.exception.BadArgument;
+import cas.lib.arclib.store.JobStore;
+import cas.lib.arclib.util.Utils;
+import cas.lib.arclib.exception.GeneralException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
@@ -18,8 +19,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 
-import static cz.inqool.arclib.util.Utils.notNull;
-
 @Slf4j
 @Service
 public class JobRunner {
@@ -33,11 +32,16 @@ public class JobRunner {
      * @param job job to schedule
      */
     public void schedule(Job job) {
+        Utils.notNull(job, () -> new BadArgument("job"));
+
         CronTrigger trigger = new CronTrigger(job.getTiming());
 
         scheduler = scheduler();
         ScheduledFuture<?> future = scheduler.schedule(() -> run(job), trigger);
         jobIdToScheduleFuture.put(job.getId(), future);
+
+        job.setActive(true);
+        jobStore.save(job);
     }
 
     /**
@@ -46,7 +50,7 @@ public class JobRunner {
      * @param job to unschedule
      */
     public void unschedule(Job job) {
-        notNull(job, () -> new BadArgument("job"));
+        Utils.notNull(job, () -> new BadArgument("job"));
 
         ScheduledFuture scheduledFuture = jobIdToScheduleFuture.get(job.getId());
         if (scheduledFuture != null) {
@@ -73,7 +77,7 @@ public class JobRunner {
     }
 
     private void run(Job job) {
-        notNull(job, () -> new BadArgument("job"));
+        Utils.notNull(job, () -> new BadArgument("job"));
 
         int exitCode = runShell(job.getScript());
         job.setLastReturnCode(exitCode);
@@ -82,7 +86,7 @@ public class JobRunner {
     }
 
     public int runShell(String script) {
-        notNull(script, () -> {
+        Utils.notNull(script, () -> {
             throw new IllegalArgumentException("cannot run provided script, the script is null");
         });
         ProcessBuilder pb = new ProcessBuilder(script, "-r");

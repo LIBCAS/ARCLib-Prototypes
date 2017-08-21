@@ -1,7 +1,7 @@
-package cz.inqool.arclib.store;
+package cas.lib.arclib.store;
 
-import cz.inqool.arclib.domain.Job;
-import cz.inqool.arclib.domain.QJob;
+import cas.lib.arclib.domain.Job;
+import cas.lib.arclib.domain.QJob;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
