@@ -3,17 +3,12 @@ package cz.inqool.arclib.util;
 import cz.inqool.arclib.domain.DomainObject;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
-import cz.inqool.arclib.index.Labeled;
-import cz.inqool.arclib.index.LabeledReference;
-import cz.inqool.arclib.domain.DictionaryObject;
-import cz.inqool.arclib.index.IndexedDictionaryObject;
 
+import java.text.Normalizer;
 import java.util.*;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-import java.text.Normalizer;
 
 public class Utils {
 
@@ -76,46 +71,6 @@ public class Utils {
         }
     }
 
-    public static <T extends DomainObject> LabeledReference toLabeledReference(T obj, Function<T, String> nameMapper) {
-        if (obj != null) {
-            return new LabeledReference(obj.getId(), nameMapper.apply(obj));
-        } else {
-            return null;
-        }
-    }
-
-    public static <T extends DictionaryObject> LabeledReference toLabeledReference(T obj) {
-        if (obj != null) {
-            return new LabeledReference(obj.getId(), obj.getName());
-        } else {
-            return null;
-        }
-    }
-
-    public static <T extends Labeled> LabeledReference toLabeledReference(T obj) {
-        if (obj != null) {
-            return new LabeledReference(obj.name(), obj.getLabel());
-        } else {
-            return null;
-        }
-    }
-
-    public static <T extends Enum> LabeledReference toLabeledReference(T obj, Function<T, String> nameMapper) {
-        if (obj != null) {
-            return new LabeledReference(obj.toString(), nameMapper.apply(obj));
-        } else {
-            return null;
-        }
-    }
-
-    public static LabeledReference toLabeledReference(IndexedDictionaryObject obj) {
-        if (obj != null) {
-            return new LabeledReference(obj.getId(), obj.getName());
-        } else {
-            return null;
-        }
-    }
-
     public static <T> Set<T> asSet(T... a) {
         return new HashSet<>(Arrays.asList(a));
     }
@@ -128,7 +83,7 @@ public class Utils {
         return list;
     }
 
-    public static <U, T extends RuntimeException> void eq(U o1,  U o2, Supplier<T> supplier) {
+    public static <U, T extends RuntimeException> void eq(U o1, U o2, Supplier<T> supplier) {
         if (!Objects.equals(o1, o2)) {
             throw supplier.get();
         }

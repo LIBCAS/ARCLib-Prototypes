@@ -10,7 +10,10 @@ import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
@@ -24,19 +27,9 @@ public class JobRunner {
     private ThreadPoolTaskScheduler scheduler;
     private JobStore jobStore;
 
-    private void run(Job job) {
-        notNull(job, () -> new BadArgument("job"));
-
-        switch (job.getScriptType()) {
-            default:
-            case SHELL:
-                runShell(job.getScript());
-                break;
-        }
-    }
-
     /**
      * Schedules the job.
+     *
      * @param job job to schedule
      */
     public void schedule(Job job) {
@@ -49,6 +42,7 @@ public class JobRunner {
 
     /**
      * Cancels scheduling of the job.
+     *
      * @param job to unschedule
      */
     public void unschedule(Job job) {
@@ -64,18 +58,9 @@ public class JobRunner {
         }
     }
 
-    private void runShell(String script) {
-        try {
-            ProcessBuilder pb = new ProcessBuilder(script);
-
-            pb.start();
-        } catch (IOException e) {
-            throw new GeneralException(e);
-        }
-    }
-
     /**
      * Returns instance of the scheduler.
+     *
      * @return instance of the scheduler
      */
     public ThreadPoolTaskScheduler scheduler() {
@@ -85,6 +70,57 @@ public class JobRunner {
             scheduler.afterPropertiesSet();
         }
         return scheduler;
+    }
+
+    private void run(Job job) {
+        notNull(job, () -> new BadArgument("job"));
+
+        int exitCode = runShell(job.getScript());
+        job.setLastReturnCode(exitCode);
+        job.setLastExecutionTime(Instant.now());
+        jobStore.save(job);
+    }
+
+    public int runShell(String script) {
+        notNull(script, () -> {
+            throw new IllegalArgumentException("cannot run provided script, the script is null");
+        });
+        ProcessBuilder pb = new ProcessBuilder(script, "-r");
+
+        Process p;
+        try {
+            p = pb.start();
+        } catch (IOException e) {
+            throw new GeneralException(e.toString());
+        }
+
+        final int[] value = new int[1];
+        Thread commandLineThread = new Thread(() -> {
+            try {
+                switch (p.waitFor()) {
+                    case 0:
+                        log.info("script has finished successfully");
+                        value[0] = 0;
+                    default:
+                        BufferedReader br = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+                        StringBuilder sb = new StringBuilder();
+                        String line = br.readLine();
+                        while (line != null) {
+                            sb.append(line);
+                            line = br.readLine();
+                        }
+                        throw new GeneralException(sb.toString());
+                }
+            } catch (InterruptedException e) {
+                throw new GeneralException(e);
+            } catch (IOException e) {
+                throw new GeneralException(e);
+            }
+        });
+        commandLineThread.setDaemon(true);
+        commandLineThread.start();
+
+        return value[0];
     }
 
     @Inject
