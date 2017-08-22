@@ -1,6 +1,6 @@
-package cas.lib.arclib.store;
+package cz.inqool.uas.store;
 
-import cas.lib.arclib.exception.GeneralException;
+import cz.inqool.uas.exception.GeneralException;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

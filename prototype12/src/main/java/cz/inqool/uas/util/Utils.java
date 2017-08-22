@@ -1,6 +1,6 @@
-package cas.lib.arclib.util;
+package cz.inqool.uas.util;
 
-import cas.lib.arclib.domain.DomainObject;
+import cz.inqool.uas.domain.DomainObject;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 

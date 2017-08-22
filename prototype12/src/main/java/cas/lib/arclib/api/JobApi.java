@@ -1,12 +1,12 @@
 package cas.lib.arclib.api;
 
-import cas.lib.arclib.domain.DomainObject;
+import cz.inqool.uas.domain.DomainObject;
 import cas.lib.arclib.domain.Job;
-import cas.lib.arclib.exception.BadArgument;
-import cas.lib.arclib.exception.MissingObject;
+import cz.inqool.uas.exception.BadArgument;
+import cz.inqool.uas.exception.MissingObject;
 import cas.lib.arclib.store.JobStore;
-import cas.lib.arclib.store.Transactional;
-import cas.lib.arclib.util.Utils;
+import cz.inqool.uas.store.Transactional;
+import cz.inqool.uas.util.Utils;
 import lombok.Getter;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,6 +45,7 @@ public class JobApi {
      * @param id Id of the instance
      * @throws MissingObject if specified instance is not found
      */
+    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     @Transactional
     void delete(@PathVariable("id") String id) {
         Job entity = store.find(id);

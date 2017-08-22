@@ -1,7 +1,7 @@
 spring.application.name: arclib
 spring:
     datasource:
-      url: jdbc:postgresql://localhost:5432/arclib12
+      url: jdbc:postgresql://localhost:5432/arclib-12
       username: arclib
       password: vuji61oilo
       driver-class-name: org.postgresql.Driver
@@ -15,6 +15,6 @@ spring:
         use-new-id-generator-mappings: true
 liquibase:
   changeLog: classpath:/dbchangelog.arclib.xml
-  url: jdbc:postgresql://localhost:5432/arclib12
+  url: jdbc:postgresql://localhost:5432/arclib-12
   user: arclib
   password: vuji61oilo

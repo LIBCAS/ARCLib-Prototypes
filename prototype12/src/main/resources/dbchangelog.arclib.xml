@@ -7,7 +7,7 @@
     <property name="now" value="now()" dbms="mysql"/>
     <property name="now" value="now()" dbms="postgresql"/>
 
-    <changeSet id="1" author="zamborsky">
+    <changeSet id="1" author="hochla">
         <createTable tableName="arclib_job">
             <column name="id" type="varchar(255)">
                 <constraints primaryKey="true" primaryKeyName="arclib_job_pkey" nullable="false"/>
@@ -16,12 +16,11 @@
             <column name="updated" type="datetime"/>
             <column name="deleted" type="datetime"/>
 
+            <column name="last_execution_time" type="datetime"/>
+            <column name="last_return_code" type="int"/>
             <column name="name" type="nvarchar(255)"/>
-
             <column name="timing" type="nvarchar(255)"/>
             <column name="script" type="nclob"/>
-            <column name="script_type" type="varchar(255)"/>
-
             <column name="active" type="boolean"/>
         </createTable>
     </changeSet>

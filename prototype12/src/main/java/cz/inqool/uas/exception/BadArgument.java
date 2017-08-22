@@ -1,6 +1,6 @@
-package cas.lib.arclib.exception;
+package cz.inqool.uas.exception;
 
-import cas.lib.arclib.domain.DomainObject;
+import cz.inqool.uas.domain.DomainObject;
 
 public class BadArgument extends GeneralException {
     private Object argument;

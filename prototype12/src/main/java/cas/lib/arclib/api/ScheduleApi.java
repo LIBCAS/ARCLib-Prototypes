@@ -1,9 +1,9 @@
 package cas.lib.arclib.api;
 
+import cas.lib.arclib.JobScheduler;
 import cas.lib.arclib.domain.Job;
 import cas.lib.arclib.store.JobStore;
-import cas.lib.arclib.store.Transactional;
-import cas.lib.arclib.JobRunner;
+import cz.inqool.uas.store.Transactional;
 import io.swagger.annotations.*;
 import lombok.Getter;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,7 +22,7 @@ import javax.inject.Inject;
 @Api(value = "job", description = "Api for scheduling jobs")
 @RequestMapping("/api/schedule")
 public class ScheduleApi {
-    private JobRunner runner;
+    private JobScheduler scheduler;
 
     @Getter
     private JobStore adapter;
@@ -41,11 +41,12 @@ public class ScheduleApi {
     public void schedule(@ApiParam(value = "Id of the sequence", required = true)
                          @PathVariable("id") String id) {
         Job job = adapter.find(id);
-        runner.schedule(job);
+        scheduler.schedule(job);
     }
 
     /**
      * Unschedules the job.
+     * |
      *
      * @param id Id of the {@link Job}
      */
@@ -56,9 +57,9 @@ public class ScheduleApi {
             @ApiResponse(code = 404, message = "Job not found")})
     @RequestMapping(value = "/{id}/unschedule", method = RequestMethod.POST)
     public void unschedule(@ApiParam(value = "Id of the sequence", required = true)
-                    @PathVariable("id") String id) {
+                           @PathVariable("id") String id) {
         Job job = adapter.find(id);
-        runner.unschedule(job);
+        scheduler.unschedule(job);
     }
 
     @Inject
@@ -67,7 +68,7 @@ public class ScheduleApi {
     }
 
     @Inject
-    public void setRunner(JobRunner runner) {
-        this.runner = runner;
+    public void setScheduler(JobScheduler scheduler) {
+        this.scheduler = scheduler;
     }
 }

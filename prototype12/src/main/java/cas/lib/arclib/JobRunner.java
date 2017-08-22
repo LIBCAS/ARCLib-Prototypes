@@ -1,13 +1,11 @@
 package cas.lib.arclib;
 
 import cas.lib.arclib.domain.Job;
-import cas.lib.arclib.exception.BadArgument;
+import cz.inqool.uas.exception.BadArgument;
+import cz.inqool.uas.exception.GeneralException;
 import cas.lib.arclib.store.JobStore;
-import cas.lib.arclib.util.Utils;
-import cas.lib.arclib.exception.GeneralException;
+import cz.inqool.uas.util.Utils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
@@ -15,81 +13,46 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ScheduledFuture;
 
 @Slf4j
 @Service
 public class JobRunner {
-    private Map<String, ScheduledFuture> jobIdToScheduleFuture = new HashMap<>();
-    private ThreadPoolTaskScheduler scheduler;
     private JobStore jobStore;
 
     /**
-     * Schedules the job.
+     * Run the job and store the return value and time of the execution to database.
      *
-     * @param job job to schedule
+     * @param job job to run
      */
-    public void schedule(Job job) {
+    public void run(Job job) {
         Utils.notNull(job, () -> new BadArgument("job"));
 
-        CronTrigger trigger = new CronTrigger(job.getTiming());
-
-        scheduler = scheduler();
-        ScheduledFuture<?> future = scheduler.schedule(() -> run(job), trigger);
-        jobIdToScheduleFuture.put(job.getId(), future);
-
-        job.setActive(true);
-        jobStore.save(job);
-    }
-
-    /**
-     * Cancels scheduling of the job.
-     *
-     * @param job to unschedule
-     */
-    public void unschedule(Job job) {
-        Utils.notNull(job, () -> new BadArgument("job"));
-
-        ScheduledFuture scheduledFuture = jobIdToScheduleFuture.get(job.getId());
-        if (scheduledFuture != null) {
-            scheduledFuture.cancel(true);
-            jobIdToScheduleFuture.remove(job.getId());
-
-            job.setActive(false);
-            jobStore.save(job);
-        }
-    }
-
-    /**
-     * Returns instance of the scheduler.
-     *
-     * @return instance of the scheduler
-     */
-    public ThreadPoolTaskScheduler scheduler() {
-        if (scheduler == null) {
-            scheduler = new ThreadPoolTaskScheduler();
-            scheduler.setPoolSize(10);
-            scheduler.afterPropertiesSet();
-        }
-        return scheduler;
-    }
-
-    private void run(Job job) {
-        Utils.notNull(job, () -> new BadArgument("job"));
+        log.info("Starting script of job " + job.getId() + ".");
 
         int exitCode = runShell(job.getScript());
+
+        if (exitCode == 0) {
+            log.info("Script execution of job " + job.getId() + " has finished successfully.");
+        } else {
+            log.error("Script execution of job " + job.getId() + " has failed.");
+        }
+
         job.setLastReturnCode(exitCode);
         job.setLastExecutionTime(Instant.now());
+
         jobStore.save(job);
     }
 
-    public int runShell(String script) {
+    /**
+     * Run the shell script and return its return code
+     * @param script to run
+     * @return return code of the script execution
+     */
+    private int runShell(String script) {
         Utils.notNull(script, () -> {
             throw new IllegalArgumentException("cannot run provided script, the script is null");
         });
-        ProcessBuilder pb = new ProcessBuilder(script, "-r");
+        ProcessBuilder pb = new ProcessBuilder(script);
 
         Process p;
         try {
@@ -98,33 +61,26 @@ public class JobRunner {
             throw new GeneralException(e.toString());
         }
 
-        final int[] value = new int[1];
-        Thread commandLineThread = new Thread(() -> {
-            try {
-                switch (p.waitFor()) {
-                    case 0:
-                        log.info("script has finished successfully");
-                        value[0] = 0;
-                    default:
-                        BufferedReader br = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-                        StringBuilder sb = new StringBuilder();
-                        String line = br.readLine();
-                        while (line != null) {
-                            sb.append(line);
-                            line = br.readLine();
-                        }
-                        throw new GeneralException(sb.toString());
-                }
-            } catch (InterruptedException e) {
-                throw new GeneralException(e);
-            } catch (IOException e) {
-                throw new GeneralException(e);
-            }
-        });
-        commandLineThread.setDaemon(true);
-        commandLineThread.start();
 
-        return value[0];
+        try {
+            switch (p.waitFor()) {
+                case 0:
+                    return 0;
+                default:
+                    BufferedReader br = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+                    StringBuilder sb = new StringBuilder();
+                    String line = br.readLine();
+                    while (line != null) {
+                        sb.append(line);
+                        line = br.readLine();
+                    }
+                    throw new GeneralException(sb.toString());
+            }
+        } catch (InterruptedException e) {
+            throw new GeneralException(e);
+        } catch (IOException e) {
+            throw new GeneralException(e);
+        }
     }
 
     @Inject

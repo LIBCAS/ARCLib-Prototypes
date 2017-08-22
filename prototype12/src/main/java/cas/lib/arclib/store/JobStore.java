@@ -2,10 +2,13 @@ package cas.lib.arclib.store;
 
 import cas.lib.arclib.domain.Job;
 import cas.lib.arclib.domain.QJob;
+import cz.inqool.uas.store.DatedStore;
+import cz.inqool.uas.store.Transactional;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+@Transactional
 @Repository
 public class JobStore extends DatedStore<Job, QJob> {
 

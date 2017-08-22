@@ -1,7 +1,7 @@
-package cas.lib.arclib.domain;
+package cz.inqool.uas.domain;
 
-import cas.lib.arclib.store.DatedStore;
-import cas.lib.arclib.store.InstantGenerator;
+import cz.inqool.uas.store.DatedStore;
+import cz.inqool.uas.store.InstantGenerator;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.GenerationTime;

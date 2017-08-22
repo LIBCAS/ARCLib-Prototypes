@@ -1,5 +1,6 @@
 package cas.lib.arclib.domain;
 
+import cz.inqool.uas.domain.DatedObject;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
@@ -22,7 +23,7 @@ public class Job extends DatedObject {
 
     private Boolean active;
 
-    private int lastReturnCode;
+    private int lastReturnCode = -1;
 
     private Instant lastExecutionTime;
 }

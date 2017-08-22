@@ -1,9 +1,9 @@
-package cas.lib.arclib.store;
+package cz.inqool.uas.store;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.EntityPathBase;
 import com.querydsl.core.types.dsl.StringPath;
-import cas.lib.arclib.domain.DatedObject;
+import cz.inqool.uas.domain.DatedObject;
 
 import java.time.Instant;
 
@@ -14,6 +14,7 @@ import java.time.Instant;
  * @param <T> Type of entity to hold
  * @param <Q> Type of query object
  */
+@Transactional
 public abstract class DatedStore<T extends DatedObject, Q extends EntityPathBase<T>> extends DomainStore<T, Q> {
     public DatedStore(Class<T> type, Class<Q> qType) {
         super(type, qType);

@@ -1,15 +1,15 @@
-package cas.lib.arclib.store;
+package cz.inqool.uas.store;
 
 
-import cas.lib.arclib.util.Utils;
+import cz.inqool.uas.util.Utils;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.EntityPathBase;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import cas.lib.arclib.domain.DomainObject;
-import cas.lib.arclib.exception.GeneralException;
+import cz.inqool.uas.domain.DomainObject;
+import cz.inqool.uas.exception.GeneralException;
 import lombok.Getter;
 
 import javax.inject.Inject;
@@ -50,6 +50,7 @@ import static java.util.Collections.emptyList;
  * @param <T> Type of entity to hold
  * @param <Q> Type of query object
  */
+@Transactional
 public abstract class DomainStore<T extends DomainObject, Q extends EntityPathBase<T>> {
     /**
      * Entity manager used for JPA

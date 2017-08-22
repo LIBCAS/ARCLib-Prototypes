@@ -1,6 +1,6 @@
-package cas.lib.arclib;
+package cas.lib.arclib.config;
 
-import cas.lib.arclib.store.DomainStore;
+import cz.inqool.uas.store.DomainStore;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
