@@ -3,6 +3,7 @@ package cas.lib.arclib;
 import cas.lib.arclib.domain.Job;
 import cz.inqool.uas.exception.BadArgument;
 import cas.lib.arclib.store.JobStore;
+import cz.inqool.uas.store.Transactional;
 import cz.inqool.uas.util.Utils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -28,6 +29,7 @@ public class JobScheduler {
      *
      * @param job job to schedule
      */
+    @Transactional
     public void schedule(Job job) {
         Utils.notNull(job, () -> new BadArgument("job"));
 
@@ -48,17 +50,19 @@ public class JobScheduler {
      *
      * @param job to unschedule
      */
+    @Transactional
     public void unschedule(Job job) {
         Utils.notNull(job, () -> new BadArgument("job"));
 
         ScheduledFuture scheduledFuture = jobIdToScheduleFuture.get(job.getId());
         if (scheduledFuture != null) {
-            job.setActive(false);
-            jobStore.save(job);
-
             scheduledFuture.cancel(true);
             jobIdToScheduleFuture.remove(job.getId());
         }
+
+        job.setActive(false);
+        jobStore.save(job);
+
         log.info("Job " + job.getId() + " has been unscheduled.");
     }
 
