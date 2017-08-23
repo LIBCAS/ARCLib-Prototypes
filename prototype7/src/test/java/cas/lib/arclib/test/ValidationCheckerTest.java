@@ -68,7 +68,7 @@ public class ValidationCheckerTest {
 
     @Test
     public void filePresenceCheckExistentFileTest() {
-        boolean success = ValidationChecker.fileExists(getClass().getResource("/KPW01169310/METS_KPW01169310.xml").getPath());
+        boolean success = ValidationChecker.fileExists("../KPW01169310/METS_KPW01169310.xml");
         assertThat(success, is(true));
     }
 

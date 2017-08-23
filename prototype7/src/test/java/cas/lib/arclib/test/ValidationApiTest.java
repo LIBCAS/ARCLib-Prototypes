@@ -33,7 +33,7 @@ public class ValidationApiTest implements ApiTest {
     @Test
     public void validationApiTest() throws Exception {
         Sip sip = new Sip();
-        sip.setPath(getClass().getResource("/KPW01169310").getPath());
+        sip.setPath("../KPW01169310");
         sipStore.save(sip);
 
         ValidationProfile validationProfile = new ValidationProfile();
