@@ -176,7 +176,10 @@ public class AipApiTest extends DbTest implements ApiTest {
         mvc(api)
                 .perform(get(BASE + "/{sipId}/state", SIP_ID))
                 .andExpect(status().isOk())
-                .andExpect(content().string("\"" + AipState.ARCHIVED.toString() + "\""));
+                .andExpect(jsonPath("$.name").value("sip"))
+                .andExpect(jsonPath("$.consistent").value(true))
+                .andExpect(jsonPath("$.state").value("ARCHIVED"))
+                .andExpect(jsonPath("$.xmls[0].version", not(equalTo(jsonPath("$.xmls[1].version")))));
     }
 
     @Test

@@ -111,6 +111,22 @@ public class ArchivalService {
     }
 
     /**
+     * Retrieves information about AIP.
+     *
+     * @param uuid id of AIP
+     * @throws IOException
+     */
+    public AipSip getAipInfo(String uuid) throws IOException {
+        AipSip aip = archivalDbService.getAip(uuid);
+        final Map<String, String> checksums = storageService.getMD5(uuid, aip.getXmls().stream().map(aipXml -> aipXml.getId()).collect(Collectors.toList()));
+        aip.setConsistent(checksums.get(uuid).equalsIgnoreCase(aip.getMd5()));
+        aip.getXmls().stream().forEach(xml -> {
+            xml.setConsistent(checksums.get(xml.getId()).equalsIgnoreCase(xml.getMd5()));
+        });
+        return aip;
+    }
+
+    /**
      * Returns state of currently used storage.
      *
      * @return

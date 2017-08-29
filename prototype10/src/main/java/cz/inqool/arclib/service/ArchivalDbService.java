@@ -3,11 +3,11 @@ package cz.inqool.arclib.service;
 import cz.inqool.arclib.domain.AipSip;
 import cz.inqool.arclib.domain.AipState;
 import cz.inqool.arclib.domain.AipXml;
-import cz.inqool.arclib.store.AipSipStore;
-import cz.inqool.arclib.store.AipXmlStore;
 import cz.inqool.arclib.exception.BadArgument;
 import cz.inqool.arclib.exception.ConflictObject;
 import cz.inqool.arclib.exception.MissingObject;
+import cz.inqool.arclib.store.AipSipStore;
+import cz.inqool.arclib.store.AipXmlStore;
 import cz.inqool.arclib.store.Transactional;
 import org.springframework.stereotype.Service;
 

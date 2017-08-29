@@ -11,7 +11,6 @@ import cz.inqool.arclib.service.FileRef;
 import cz.inqool.arclib.storage.StorageService;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.AdditionalAnswers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -65,8 +64,8 @@ public class ArchivalServiceTest {
         service.setArchivalDbService(dbService);
         service.setStorageService(storageService);
 
-        sip = new AipSip(SIP_ID, SIP_ID, SIP_ID, AipState.ARCHIVED);
-        xml1 = new AipXml(XML1_ID, XML1_ID, XML1_ID, sip, 1, false);
+        sip = new AipSip(SIP_ID, SIP_ID, SIP_HASH, AipState.ARCHIVED);
+        xml1 = new AipXml(XML1_ID, XML1_ID, XML1_HASH, sip, 1, false);
         xml2 = new AipXml(XML2_ID, XML2_ID, XML2_ID, sip, 2, false);
         sip.addXml(xml1);
         sip.addXml(xml2);
@@ -85,12 +84,12 @@ public class ArchivalServiceTest {
 
     @Test
     public void store() throws IOException {
-        when(storageService.storeAip(eq(SIP_STREAM),anyString(),eq(XML1_STREAM),anyString())).thenAnswer(
+        when(storageService.storeAip(eq(SIP_STREAM), anyString(), eq(XML1_STREAM), anyString())).thenAnswer(
                 new Answer<Object>() {
                     public Object answer(InvocationOnMock invocation) {
-                        Map<String,String> checksums = new HashMap<>();
-                        checksums.put((String)invocation.getArguments()[1],"wrongMD5");
-                        checksums.put((String)invocation.getArguments()[3],XML1_HASH);
+                        Map<String, String> checksums = new HashMap<>();
+                        checksums.put((String) invocation.getArguments()[1], "wrongMD5");
+                        checksums.put((String) invocation.getArguments()[3], XML1_HASH);
                         return checksums;
                     }
                 }
@@ -112,7 +111,7 @@ public class ArchivalServiceTest {
 
     @Test
     public void updateXml() throws IOException {
-        when(storageService.storeXml(eq(XML1_STREAM),anyString())).thenReturn("wrongmd5");
+        when(storageService.storeXml(eq(XML1_STREAM), anyString())).thenReturn("wrongmd5");
 
         StoredFileInfoDto res = service.updateXml(SIP_ID, XML1_ID, XML1_STREAM, META2_STREAM);
 
@@ -123,4 +122,23 @@ public class ArchivalServiceTest {
         verify(dbService).finishXmlProcess(generatedXmlId);
         assertThat(res, equalTo(new StoredFileInfoDto(generatedXmlId, XML1_ID, false)));
     }
+
+    @Test
+    public void getAipInfo() throws IOException {
+        Map<String, String> checksums = new HashMap<>();
+        checksums.put(SIP_ID, SIP_HASH);
+        checksums.put(XML1_ID, XML1_HASH);
+        checksums.put(XML2_ID, "wronghash");
+
+        when(dbService.getAip(SIP_ID)).thenReturn(sip);
+        when(storageService.getMD5(SIP_ID, Arrays.asList(XML1_ID, XML2_ID))).thenReturn(checksums);
+
+        AipSip res = service.getAipInfo(SIP_ID);
+
+        assertThat(res.isConsistent(), is(true));
+        assertThat(res.getState(), is(AipState.ARCHIVED));
+        assertThat(res.getXml(0).isConsistent(), not(equalTo(res.getXml(1).isConsistent())));
+    }
+
+
 }

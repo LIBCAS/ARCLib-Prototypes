@@ -1,13 +1,13 @@
 package cz.inqool.arclib.api;
 
-import cz.inqool.arclib.domain.AipState;
+import cz.inqool.arclib.domain.AipSip;
 import cz.inqool.arclib.dto.StorageStateDto;
 import cz.inqool.arclib.dto.StoredFileInfoDto;
+import cz.inqool.arclib.exception.BadArgument;
 import cz.inqool.arclib.service.AipRef;
 import cz.inqool.arclib.service.ArchivalDbService;
 import cz.inqool.arclib.service.ArchivalService;
 import cz.inqool.arclib.service.FileRef;
-import cz.inqool.arclib.exception.BadArgument;
 import org.apache.commons.io.IOUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -121,14 +121,14 @@ public class AipApi {
     }
 
     /**
-     * Retrieves state of AIP.
+     * Retrieves information about AIP.
      *
      * @param uuid
      * @return
      */
     @RequestMapping(value = "/{uuid}/state", method = RequestMethod.GET)
-    public AipState getAipState(@PathVariable("uuid") String uuid) {
-        return archivalDbService.getAip(uuid).getState();
+    public AipSip getAipInfo(@PathVariable("uuid") String uuid) throws IOException {
+        return archivalService.getAipInfo(uuid);
     }
 
 

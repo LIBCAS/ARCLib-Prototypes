@@ -66,7 +66,7 @@ public interface StorageService {
      * @return Map with ids of Aip SIP and XML files as keys and MD5 strings with fixity information as values.
      * @throws IOException
      */
-    Map<String, String> getMD5(String sipId, String... xmlIds) throws IOException;
+    Map<String, String> getMD5(String sipId, List<String> xmlIds) throws IOException;
 
     /**
      * Returns state of currently used storage.

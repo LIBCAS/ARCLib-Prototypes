@@ -5,7 +5,7 @@ import cz.inqool.arclib.domain.QAipSip;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class AipSipStore extends DatedStore<AipSip, QAipSip> {
+public class AipSipStore extends DomainStore<AipSip, QAipSip> {
     public AipSipStore() {
         super(AipSip.class, QAipSip.class);
     }

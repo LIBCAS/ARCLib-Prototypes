@@ -76,11 +76,11 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
-    public Map<String, String> getMD5(String sipId, String... xmlIds) throws IOException {
+    public Map<String, String> getMD5(String sipId, List<String> xmlIds) throws IOException {
         Map<String, String> checksums = new HashMap<>();
         checksums.put(sipId, computeMD5(getSipFilePath(sipId)));
         for (String xmlId : xmlIds) {
-            checksums.put(sipId, computeMD5(getXmlFilePath(xmlId)));
+            checksums.put(xmlId, computeMD5(getXmlFilePath(xmlId)));
         }
         return checksums;
     }

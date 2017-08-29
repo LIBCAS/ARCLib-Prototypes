@@ -1,5 +1,6 @@
 package cz.inqool.arclib.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
@@ -18,6 +19,7 @@ public class AipXml extends ArchivalObject {
 
     @ManyToOne
     @JoinColumn(name = "arclib_aip_sip_id")
+    @JsonIgnore
     private AipSip sip;
     private int version;
     private boolean processing;
