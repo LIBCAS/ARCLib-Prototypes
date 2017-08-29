@@ -10,12 +10,12 @@ import java.util.UUID;
 
 /**
  * Basic building block for every JPA entity.
- *
+ * <p>
  * <p>
  * Defines attribute {@link DomainObject#id} of type {@link String}, which is initialized to a
  * random {@link UUID} upon creation.
  * </p>
- *
+ * <p>
  * <p>
  * Also implements {@link DomainObject#equals} and {@link DomainObject#hashCode()} based on {@link DomainObject#id}
  * equivalence and {@link DomainObject#toString()} method returning concrete class name with {@link DomainObject#id}

@@ -4,7 +4,6 @@ import cz.inqool.arclib.domain.AipSip;
 import cz.inqool.arclib.domain.AipXml;
 import cz.inqool.arclib.dto.StorageStateDto;
 import cz.inqool.arclib.dto.StoredFileInfoDto;
-import cz.inqool.arclib.fixity.FixityCounter;
 import cz.inqool.arclib.storage.StorageService;
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Service;
@@ -16,6 +15,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 public class ArchivalService {
 
     private StorageService storageService;
-    private FixityCounter fixityCounter;
     private ArchivalDbService archivalDbService;
 
     /**
@@ -67,14 +66,12 @@ public class ArchivalService {
         String xmlId = UUID.randomUUID().toString();
 
         archivalDbService.registerAipCreation(sipId, sipName, sipHash, xmlId, xmlName, xmlHash);
-        storageService.storeAip(sip, sipId, aipXml, xmlId);
+        Map<String, String> storageMD5 = storageService.storeAip(sip, sipId, aipXml, xmlId);
         archivalDbService.finishAipCreation(sipId, xmlId);
-        List<InputStream> refs = storageService.getAip(sipId, xmlId);
+
         List<StoredFileInfoDto> fileInfos = new ArrayList<>();
-        fileInfos.add(new StoredFileInfoDto(sipId, sipName, fixityCounter.verifyFixity(refs.get(0), sipHash)));
-        fileInfos.add(new StoredFileInfoDto(xmlId, xmlName, fixityCounter.verifyFixity(refs.get(1), xmlHash)));
-        IOUtils.closeQuietly(refs.get(0));
-        IOUtils.closeQuietly(refs.get(1));
+        fileInfos.add(new StoredFileInfoDto(sipId, sipName, sipHash.equalsIgnoreCase(storageMD5.get(sipId))));
+        fileInfos.add(new StoredFileInfoDto(xmlId, xmlName, xmlHash.equalsIgnoreCase(storageMD5.get(xmlId))));
         return fileInfos;
     }
 
@@ -93,10 +90,10 @@ public class ArchivalService {
         String xmlHash = br.readLine();
         String xmlId = UUID.randomUUID().toString();
         archivalDbService.registerXmlUpdate(sipId, xmlId, xmlName, xmlHash);
-        storageService.storeXml(xml, xmlId);
+        String storageMD5 = storageService.storeXml(xml, xmlId);
         archivalDbService.finishXmlProcess(xmlId);
         InputStream xmlRef = storageService.getXml(xmlId);
-        StoredFileInfoDto fileInfo = new StoredFileInfoDto(xmlId, xmlName, fixityCounter.verifyFixity(xmlRef, xmlHash));
+        StoredFileInfoDto fileInfo = new StoredFileInfoDto(xmlId, xmlName, xmlHash.equalsIgnoreCase(storageMD5));
         IOUtils.closeQuietly(xmlRef);
         return fileInfo;
     }
@@ -125,11 +122,6 @@ public class ArchivalService {
     @Inject
     public void setStorageService(StorageService storageService) {
         this.storageService = storageService;
-    }
-
-    @Inject
-    public void setFixityCounter(FixityCounter fixityCounter) {
-        this.fixityCounter = fixityCounter;
     }
 
     @Inject

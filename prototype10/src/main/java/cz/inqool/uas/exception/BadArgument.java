@@ -20,7 +20,7 @@ public class BadArgument extends GeneralException {
             this.argument = clazz.newInstance();
 
             if (DomainObject.class.isAssignableFrom(clazz)) {
-                ((DomainObject)this.argument).setId(objectId);
+                ((DomainObject) this.argument).setId(objectId);
             }
 
         } catch (Exception e) {

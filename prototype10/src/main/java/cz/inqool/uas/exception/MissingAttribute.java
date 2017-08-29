@@ -19,7 +19,7 @@ public class MissingAttribute extends GeneralException {
             this.object = clazz.newInstance();
 
             if (DomainObject.class.isAssignableFrom(clazz)) {
-                ((DomainObject)this.object).setId(objectId);
+                ((DomainObject) this.object).setId(objectId);
             }
 
         } catch (Exception e) {

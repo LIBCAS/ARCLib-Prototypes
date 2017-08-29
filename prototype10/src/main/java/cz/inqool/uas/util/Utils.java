@@ -29,8 +29,8 @@ public class Utils {
     public static <T, U> List<U> map(List<T> objects, Function<T, U> func) {
         if (objects != null) {
             return objects.stream()
-                          .map(func)
-                          .collect(Collectors.toList());
+                    .map(func)
+                    .collect(Collectors.toList());
         } else {
             return null;
         }
@@ -39,8 +39,8 @@ public class Utils {
     public static <T, U> Set<U> map(Set<T> objects, Function<T, U> func) {
         if (objects != null) {
             return objects.stream()
-                          .map(func)
-                          .collect(Collectors.toSet());
+                    .map(func)
+                    .collect(Collectors.toSet());
         } else {
             return null;
         }
@@ -94,7 +94,7 @@ public class Utils {
         if (o == null) {
             throw supplier.get();
         } else if (o instanceof Optional) {
-            if(!((Optional)o).isPresent()) {
+            if (!((Optional) o).isPresent()) {
                 throw supplier.get();
             }
         } else if (isProxy(o)) {
@@ -106,7 +106,7 @@ public class Utils {
 
     public static <T extends RuntimeException> void isNull(Object o, Supplier<T> supplier) {
         if (o instanceof Optional) {
-            if(((Optional)o).isPresent()) {
+            if (((Optional) o).isPresent()) {
                 throw supplier.get();
             }
         } else if (isProxy(o)) {
@@ -128,25 +128,25 @@ public class Utils {
         return LocalDateTime.ofInstant(time, ZoneOffset.UTC).plus(value, unit).toInstant(ZoneOffset.UTC);
     }
 
-    public static <U, T extends RuntimeException> void eq(U o1,  U o2, Supplier<T> supplier) {
+    public static <U, T extends RuntimeException> void eq(U o1, U o2, Supplier<T> supplier) {
         if (!Objects.equals(o1, o2)) {
             throw supplier.get();
         }
     }
 
-    public static <U, T extends RuntimeException> void in(U o1,  Set<U> os2, Supplier<T> supplier) {
+    public static <U, T extends RuntimeException> void in(U o1, Set<U> os2, Supplier<T> supplier) {
         if (!os2.contains(o1)) {
             throw supplier.get();
         }
     }
 
-    public static <U, T extends RuntimeException> void ne(U o1,  U o2, Supplier<T> supplier) {
+    public static <U, T extends RuntimeException> void ne(U o1, U o2, Supplier<T> supplier) {
         if (Objects.equals(o1, o2)) {
             throw supplier.get();
         }
     }
 
-    public static <U, T extends RuntimeException> void nin(U o1,  Set<U> os2, Supplier<T> supplier) {
+    public static <U, T extends RuntimeException> void nin(U o1, Set<U> os2, Supplier<T> supplier) {
         if (os2.contains(o1)) {
             throw supplier.get();
         }
@@ -186,7 +186,7 @@ public class Utils {
             method.checked();
         } catch (Exception ex) {
             if (ex instanceof GeneralException) {
-                throw (GeneralException)ex;
+                throw (GeneralException) ex;
             } else {
                 throw new GeneralException(ex);
             }
@@ -194,7 +194,7 @@ public class Utils {
         }
     }
 
-    public static <T extends RuntimeException> void checked(Checked method, Supplier<T> supplier ) {
+    public static <T extends RuntimeException> void checked(Checked method, Supplier<T> supplier) {
         try {
             method.checked();
         } catch (Exception ex) {
@@ -264,9 +264,9 @@ public class Utils {
     }
 
     public static <T> T unwrap(T a) {
-        if(isProxy(a)) {
+        if (isProxy(a)) {
             try {
-                return (T) ((Advised)a).getTargetSource().getTarget();
+                return (T) ((Advised) a).getTargetSource().getTarget();
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -333,7 +333,7 @@ public class Utils {
         }
 
         return data.stream()
-                   .collect(Collectors.joining(", "));
+                .collect(Collectors.joining(", "));
     }
 
     public static <T> String join(Collection<T> data, Function<T, String> nameMapper) {
@@ -342,8 +342,8 @@ public class Utils {
         }
 
         return data.stream()
-                   .map(nameMapper)
-                   .collect(Collectors.joining(", "));
+                .map(nameMapper)
+                .collect(Collectors.joining(", "));
     }
 
     @SuppressWarnings("unchecked")
@@ -358,7 +358,8 @@ public class Utils {
 
     /**
      * Returns supplier for specified value
-     * @param v value to return
+     *
+     * @param v   value to return
      * @param <T> type of the value
      * @return supplier
      */
@@ -417,11 +418,13 @@ public class Utils {
         }
     }
 
-    public static String bytesToHexString(byte[] bytes){
+    public static String bytesToHexString(byte[] bytes) {
         final StringBuilder builder = new StringBuilder();
-        for(byte b : bytes) {
+        for (byte b : bytes) {
             builder.append(String.format("%02x", b));
         }
         return builder.toString();
-    };
+    }
+
+    ;
 }

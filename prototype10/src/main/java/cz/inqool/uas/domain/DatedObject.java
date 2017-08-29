@@ -12,12 +12,12 @@ import java.time.Instant;
 
 /**
  * Building block for JPA entities, which want to track creation, update and delete times.
- *
+ * <p>
  * <p>
  * Provides attributes {@link DatedObject#created}, {@link DatedObject#updated}, {@link DatedObject#deleted},
  * which are filled accordingly in {@link cz.inqool.uas.store.DatedStore}.
  * </p>
- *
+ * <p>
  * <p>
  * If used with {@link cz.inqool.uas.store.DatedStore} upon deleting an instance, the instance will not be deleted
  * from database, instead only marked as deleted by setting the {@link DatedObject#deleted} to non null value.
@@ -28,10 +28,10 @@ import java.time.Instant;
 @MappedSuperclass
 public abstract class DatedObject extends DomainObject {
     @Column(updatable = false)
-    @GeneratorType( type = InstantGenerator.class, when = GenerationTime.INSERT)
+    @GeneratorType(type = InstantGenerator.class, when = GenerationTime.INSERT)
     protected Instant created;
 
-    @GeneratorType( type = InstantGenerator.class, when = GenerationTime.ALWAYS)
+    @GeneratorType(type = InstantGenerator.class, when = GenerationTime.ALWAYS)
     protected Instant updated;
 
     protected Instant deleted;

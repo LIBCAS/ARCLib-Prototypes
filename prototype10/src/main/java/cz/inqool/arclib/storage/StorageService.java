@@ -5,6 +5,7 @@ import cz.inqool.arclib.dto.StorageStateDto;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 
 
 public interface StorageService {
@@ -15,9 +16,10 @@ public interface StorageService {
      * @param sipId
      * @param xml
      * @param xmlId
+     * @return Map with SIP and XML files ids as keys and their MD5 checksums as values.
      * @throws IOException
      */
-    void storeAip(InputStream sip, String sipId, InputStream xml, String xmlId) throws IOException;
+    Map<String, String> storeAip(InputStream sip, String sipId, InputStream xml, String xmlId) throws IOException;
 
     /**
      * Retrieves references to Aip files. Caller is responsible for closing retrieved streams.
@@ -34,9 +36,10 @@ public interface StorageService {
      *
      * @param xml   opened input stream to xml file
      * @param xmlId
+     * @return MD5 hash of stored file
      * @throws IOException
      */
-    void storeXml(InputStream xml, String xmlId) throws IOException;
+    String storeXml(InputStream xml, String xmlId) throws IOException;
 
     /**
      * Retrieves reference to AipXml file. Caller is responsible for closing retrieved stream.
@@ -54,6 +57,16 @@ public interface StorageService {
      * @throws IOException
      */
     void deleteSip(String sipId) throws IOException;
+
+    /**
+     * Computes and retrieves MD5 checksums of Aip SIP and XML files.
+     *
+     * @param sipId
+     * @param xmlIds
+     * @return Map with ids of Aip SIP and XML files as keys and MD5 strings with fixity information as values.
+     * @throws IOException
+     */
+    Map<String, String> getMD5(String sipId, String... xmlIds) throws IOException;
 
     /**
      * Returns state of currently used storage.

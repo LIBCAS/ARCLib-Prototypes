@@ -5,15 +5,19 @@ import cz.inqool.uas.store.Transactional;
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import static cz.inqool.uas.util.Utils.bytesToHexString;
+import static cz.inqool.uas.util.Utils.notNull;
 
 @Service
 @Transactional
@@ -24,9 +28,11 @@ import java.util.List;
 public class FileSystemStorageService implements StorageService {
 
     @Override
-    public void storeAip(InputStream sip, String sipId, InputStream xml, String xmlId) throws IOException {
-        storeSipFile(sip, sipId);
-        storeXmlFile(xml, xmlId);
+    public Map<String, String> storeAip(InputStream sip, String sipId, InputStream xml, String xmlId) throws IOException {
+        Map<String, String> checksums = new HashMap<>();
+        checksums.put(sipId, storeSipFile(sip, sipId));
+        checksums.put(xmlId, storeXmlFile(xml, xmlId));
+        return checksums;
     }
 
     @Override
@@ -48,8 +54,8 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
-    public void storeXml(InputStream xml, String xmlId) throws IOException {
-        storeXmlFile(xml, xmlId);
+    public String storeXml(InputStream xml, String xmlId) throws IOException {
+        return storeXmlFile(xml, xmlId);
     }
 
     @Override
@@ -70,6 +76,16 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
+    public Map<String, String> getMD5(String sipId, String... xmlIds) throws IOException {
+        Map<String, String> checksums = new HashMap<>();
+        checksums.put(sipId, computeMD5(getSipFilePath(sipId)));
+        for (String xmlId : xmlIds) {
+            checksums.put(sipId, computeMD5(getXmlFilePath(xmlId)));
+        }
+        return checksums;
+    }
+
+    @Override
     public StorageStateDto getStorageState() {
         File anchor = new File(".");
         return new StorageStateDto(anchor.getTotalSpace(), anchor.getFreeSpace(), true, StorageType.FILESYSTEM);
@@ -87,11 +103,33 @@ public class FileSystemStorageService implements StorageService {
         return Paths.get(dirPath.toString(), uuid);
     }
 
-    private void storeSipFile(InputStream file, String id) throws IOException {
+    private String storeSipFile(InputStream file, String id) throws IOException {
         Files.copy(file, getSipFilePath(id));
+        return computeMD5(getSipFilePath(id));
     }
 
-    private void storeXmlFile(InputStream file, String id) throws IOException {
+    private String storeXmlFile(InputStream file, String id) throws IOException {
         Files.copy(file, getXmlFilePath(id));
+        return computeMD5(getXmlFilePath(id));
+    }
+
+    private String computeMD5(Path pathToFile) throws IOException {
+        notNull(pathToFile, () -> {
+            throw new IllegalArgumentException();
+        });
+        try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(pathToFile.toAbsolutePath().toString()))) {
+            byte[] buffer = new byte[1024];
+            MessageDigest complete = MessageDigest.getInstance("MD5");
+            int numRead;
+            do {
+                numRead = bis.read(buffer);
+                if (numRead > 0) {
+                    complete.update(buffer, 0, numRead);
+                }
+            } while (numRead != -1);
+            return bytesToHexString(complete.digest());
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
