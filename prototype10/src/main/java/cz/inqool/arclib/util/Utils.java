@@ -1,10 +1,10 @@
-package cz.inqool.uas.util;
+package cz.inqool.arclib.util;
 
 import com.google.common.io.ByteSource;
 import com.google.common.io.Resources;
-import cz.inqool.uas.domain.DomainObject;
-import cz.inqool.uas.exception.GeneralException;
-import cz.inqool.uas.exception.MissingObject;
+import cz.inqool.arclib.domain.DomainObject;
+import cz.inqool.arclib.exception.GeneralException;
+import cz.inqool.arclib.exception.MissingObject;
 import lombok.AllArgsConstructor;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;

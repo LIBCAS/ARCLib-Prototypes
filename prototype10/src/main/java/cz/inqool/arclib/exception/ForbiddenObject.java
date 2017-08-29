@@ -1,19 +1,16 @@
-package cz.inqool.uas.exception;
+package cz.inqool.arclib.exception;
 
-import cz.inqool.uas.domain.DomainObject;
+import cz.inqool.arclib.domain.DomainObject;
 
-public class MissingAttribute extends GeneralException {
+public class ForbiddenObject extends GeneralException {
     private Object object;
 
-    private String attribute;
-
-    public MissingAttribute(Object object, String attribute) {
+    public ForbiddenObject(Object object) {
         super();
         this.object = object;
-        this.attribute = attribute;
     }
 
-    public MissingAttribute(Class<?> clazz, String objectId, String attribute) {
+    public ForbiddenObject(Class<?> clazz, String objectId) {
         super();
         try {
             this.object = clazz.newInstance();
@@ -25,24 +22,16 @@ public class MissingAttribute extends GeneralException {
         } catch (Exception e) {
             // ignore
         }
-
-
-        this.attribute = attribute;
     }
 
     @Override
     public String toString() {
-        return "MissingAttribute{" +
+        return "ForbiddenObject{" +
                 "object=" + object +
-                ", attribute='" + attribute + '\'' +
                 '}';
     }
 
     public Object getObject() {
         return object;
-    }
-
-    public String getAttribute() {
-        return attribute;
     }
 }

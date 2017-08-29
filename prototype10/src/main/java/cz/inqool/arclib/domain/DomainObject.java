@@ -1,4 +1,4 @@
-package cz.inqool.uas.domain;
+package cz.inqool.arclib.domain;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

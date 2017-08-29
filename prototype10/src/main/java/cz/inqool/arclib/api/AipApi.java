@@ -7,7 +7,7 @@ import cz.inqool.arclib.service.AipRef;
 import cz.inqool.arclib.service.ArchivalDbService;
 import cz.inqool.arclib.service.ArchivalService;
 import cz.inqool.arclib.service.FileRef;
-import cz.inqool.uas.exception.BadArgument;
+import cz.inqool.arclib.exception.BadArgument;
 import org.apache.commons.io.IOUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;

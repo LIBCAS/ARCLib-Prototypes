@@ -1,4 +1,4 @@
-package cz.inqool.uas.store;
+package cz.inqool.arclib.store;
 
 import org.hibernate.Session;
 import org.hibernate.tuple.ValueGenerator;

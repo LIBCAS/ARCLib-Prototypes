@@ -1,4 +1,4 @@
-package cz.inqool.uas.store;
+package cz.inqool.arclib.store;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.EntityPathBase;
@@ -6,8 +6,8 @@ import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import cz.inqool.uas.domain.DomainObject;
-import cz.inqool.uas.exception.GeneralException;
+import cz.inqool.arclib.domain.DomainObject;
+import cz.inqool.arclib.exception.GeneralException;
 import lombok.Getter;
 
 import javax.inject.Inject;
@@ -17,8 +17,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.List;
 
-import static cz.inqool.uas.util.Utils.notNull;
-import static cz.inqool.uas.util.Utils.sortByIdList;
+import static cz.inqool.arclib.util.Utils.notNull;
+import static cz.inqool.arclib.util.Utils.sortByIdList;
 import static java.util.Collections.emptyList;
 
 /**

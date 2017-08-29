@@ -2,7 +2,7 @@ package cz.inqool.arclib.helper;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cz.inqool.uas.rest.config.ResourceExceptionHandler;
+import cz.inqool.arclib.config.ResourceExceptionHandler;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;

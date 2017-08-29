@@ -1,6 +1,6 @@
 package cz.inqool.arclib.domain;
 
-import cz.inqool.uas.domain.DatedObject;
+import cz.inqool.arclib.domain.DatedObject;
 import lombok.Getter;
 import lombok.Setter;
 

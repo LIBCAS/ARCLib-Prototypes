@@ -4,7 +4,6 @@ import cz.inqool.arclib.domain.AipSip;
 import cz.inqool.arclib.domain.AipState;
 import cz.inqool.arclib.domain.AipXml;
 import cz.inqool.arclib.dto.StoredFileInfoDto;
-import cz.inqool.arclib.fixity.FixityCounter;
 import cz.inqool.arclib.service.AipRef;
 import cz.inqool.arclib.service.ArchivalDbService;
 import cz.inqool.arclib.service.ArchivalService;
@@ -12,16 +11,21 @@ import cz.inqool.arclib.service.FileRef;
 import cz.inqool.arclib.storage.StorageService;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.AdditionalAnswers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
@@ -36,8 +40,6 @@ public class ArchivalServiceTest {
     private ArchivalDbService dbService;
     @Mock
     private StorageService storageService;
-    @Mock
-    private FixityCounter fixityCounter;
 
     private static final String SIP_ID = "SIPtestID";
     private static final String XML1_ID = "XML1testID";
@@ -62,7 +64,6 @@ public class ArchivalServiceTest {
 
         service.setArchivalDbService(dbService);
         service.setStorageService(storageService);
-        service.setFixityCounter(fixityCounter);
 
         sip = new AipSip(SIP_ID, SIP_ID, SIP_ID, AipState.ARCHIVED);
         xml1 = new AipXml(XML1_ID, XML1_ID, XML1_ID, sip, 1, false);
@@ -84,9 +85,16 @@ public class ArchivalServiceTest {
 
     @Test
     public void store() throws IOException {
-        when(fixityCounter.verifyFixity(eq(SIP_STREAM), anyString())).thenReturn(false);
-        when(fixityCounter.verifyFixity(eq(XML1_STREAM), anyString())).thenReturn(true);
-        when(storageService.getAip(anyString(), anyString())).thenReturn(Arrays.asList(SIP_STREAM, XML1_STREAM));
+        when(storageService.storeAip(eq(SIP_STREAM),anyString(),eq(XML1_STREAM),anyString())).thenAnswer(
+                new Answer<Object>() {
+                    public Object answer(InvocationOnMock invocation) {
+                        Map<String,String> checksums = new HashMap<>();
+                        checksums.put((String)invocation.getArguments()[1],"wrongMD5");
+                        checksums.put((String)invocation.getArguments()[3],XML1_HASH);
+                        return checksums;
+                    }
+                }
+        );
 
         List<StoredFileInfoDto> res = service.store(SIP_STREAM, SIP_ID, XML1_STREAM, XML1_ID, META1_STREAM);
 
@@ -94,6 +102,7 @@ public class ArchivalServiceTest {
         verify(dbService).registerAipCreation(argument.capture(), anyString(), eq(SIP_HASH), argument.capture(), anyString(), eq(XML1_HASH));
         String generatedSipId = argument.getAllValues().get(0);
         String generatedXmlId = argument.getAllValues().get(1);
+
         verify(storageService).storeAip(SIP_STREAM, generatedSipId, XML1_STREAM, generatedXmlId);
         assertThat(generatedSipId, not(equalTo(generatedXmlId)));
         verify(dbService).finishAipCreation(generatedSipId, generatedXmlId);
@@ -103,8 +112,7 @@ public class ArchivalServiceTest {
 
     @Test
     public void updateXml() throws IOException {
-        when(fixityCounter.verifyFixity(eq(XML1_STREAM), anyString())).thenReturn(false);
-        when(storageService.getXml(anyString())).thenReturn(XML1_STREAM);
+        when(storageService.storeXml(eq(XML1_STREAM),anyString())).thenReturn("wrongmd5");
 
         StoredFileInfoDto res = service.updateXml(SIP_ID, XML1_ID, XML1_STREAM, META2_STREAM);
 

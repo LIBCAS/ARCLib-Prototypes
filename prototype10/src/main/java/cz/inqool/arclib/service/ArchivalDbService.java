@@ -5,15 +5,15 @@ import cz.inqool.arclib.domain.AipState;
 import cz.inqool.arclib.domain.AipXml;
 import cz.inqool.arclib.store.AipSipStore;
 import cz.inqool.arclib.store.AipXmlStore;
-import cz.inqool.uas.exception.BadArgument;
-import cz.inqool.uas.exception.ConflictObject;
-import cz.inqool.uas.exception.MissingObject;
-import cz.inqool.uas.store.Transactional;
+import cz.inqool.arclib.exception.BadArgument;
+import cz.inqool.arclib.exception.ConflictObject;
+import cz.inqool.arclib.exception.MissingObject;
+import cz.inqool.arclib.store.Transactional;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 
-import static cz.inqool.uas.util.Utils.notNull;
+import static cz.inqool.arclib.util.Utils.notNull;
 
 
 /**

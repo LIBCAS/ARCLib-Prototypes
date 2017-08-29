@@ -1,6 +1,6 @@
-package cz.inqool.uas.domain;
+package cz.inqool.arclib.domain;
 
-import cz.inqool.uas.store.InstantGenerator;
+import cz.inqool.arclib.store.InstantGenerator;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.GenerationTime;
@@ -15,11 +15,11 @@ import java.time.Instant;
  * <p>
  * <p>
  * Provides attributes {@link DatedObject#created}, {@link DatedObject#updated}, {@link DatedObject#deleted},
- * which are filled accordingly in {@link cz.inqool.uas.store.DatedStore}.
+ * which are filled accordingly in {@link cz.inqool.arclib.store.DatedStore}.
  * </p>
  * <p>
  * <p>
- * If used with {@link cz.inqool.uas.store.DatedStore} upon deleting an instance, the instance will not be deleted
+ * If used with {@link cz.inqool.arclib.store.DatedStore} upon deleting an instance, the instance will not be deleted
  * from database, instead only marked as deleted by setting the {@link DatedObject#deleted} to non null value.
  * </p>
  */

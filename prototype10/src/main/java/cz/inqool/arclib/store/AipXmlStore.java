@@ -3,8 +3,7 @@ package cz.inqool.arclib.store;
 import cz.inqool.arclib.domain.AipSip;
 import cz.inqool.arclib.domain.AipXml;
 import cz.inqool.arclib.domain.QAipXml;
-import cz.inqool.uas.exception.MissingObject;
-import cz.inqool.uas.store.DomainStore;
+import cz.inqool.arclib.exception.MissingObject;
 import org.springframework.stereotype.Repository;
 
 @Repository

@@ -1,9 +1,9 @@
-package cz.inqool.uas.store;
+package cz.inqool.arclib.store;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.EntityPathBase;
 import com.querydsl.core.types.dsl.StringPath;
-import cz.inqool.uas.domain.DatedObject;
+import cz.inqool.arclib.domain.DatedObject;
 
 import java.time.Instant;
 

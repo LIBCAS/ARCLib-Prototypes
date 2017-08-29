@@ -1,7 +1,7 @@
 package cz.inqool.arclib.storage;
 
 import cz.inqool.arclib.dto.StorageStateDto;
-import cz.inqool.uas.store.Transactional;
+import cz.inqool.arclib.store.Transactional;
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Service;
 
@@ -16,8 +16,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static cz.inqool.uas.util.Utils.bytesToHexString;
-import static cz.inqool.uas.util.Utils.notNull;
+import static cz.inqool.arclib.util.Utils.bytesToHexString;
+import static cz.inqool.arclib.util.Utils.notNull;
 
 @Service
 @Transactional
