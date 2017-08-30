@@ -51,8 +51,8 @@ public class AipApiTest extends DbTest implements ApiTest {
     private AipXmlStore xmlStore;
 
     private static final String SIP_ID = "SIPtestID";
-    private static final String SIP_FILE_NAME = "sip";
-    private static final String SIP_HASH = "101B295A91F771D96E1987FF501B034C";
+    private static final String SIP_FILE_NAME = "KPW01169310.ZIP";
+    private static final String SIP_HASH = "CB30ACE944A440F77D6F99040D2DE1F2";
     private static final Path SIP_PATH = Paths.get("sip", SIP_ID.substring(0, 2), SIP_ID.substring(2, 4), SIP_ID.substring(4, 6));
 
 
@@ -68,13 +68,14 @@ public class AipApiTest extends DbTest implements ApiTest {
     private static final Path XML2_PATH = Paths.get("xml", XML2_ID.substring(0, 2), XML2_ID.substring(2, 4), XML2_ID.substring(4, 6));
 
     private static final String BASE = "/api/storage";
+    private static final Path SIP_SOURCE_PATH = Paths.get("..", SIP_FILE_NAME);
 
     @BeforeClass
     public static void setUp() throws IOException {
         Files.createDirectories(SIP_PATH);
         Files.createDirectories(XML1_PATH);
         Files.createDirectories(XML2_PATH);
-        Files.copy(Paths.get("./src/test/resources/aip/" + SIP_FILE_NAME), SIP_PATH.resolve(SIP_ID));
+        Files.copy(Paths.get(SIP_SOURCE_PATH.toString()), SIP_PATH.resolve(SIP_ID));
         Files.copy(Paths.get("./src/test/resources/aip/" + XML1_FILE_NAME), XML1_PATH.resolve(XML1_ID));
         Files.copy(Paths.get("./src/test/resources/aip/" + XML2_FILE_NAME), XML2_PATH.resolve(XML2_ID));
     }
@@ -127,7 +128,7 @@ public class AipApiTest extends DbTest implements ApiTest {
     @Test
     public void saveTest() throws Exception {
         MockMultipartFile sipFile = new MockMultipartFile(
-                "sip", "sip", "text/plain", SIP_ID.getBytes());
+                "sip", "sip", "text/plain", Files.readAllBytes(SIP_SOURCE_PATH));
         MockMultipartFile xmlFile = new MockMultipartFile(
                 "xml", "xml", "text/plain", XML1_ID.getBytes());
         MockMultipartFile metaFile = new MockMultipartFile(
@@ -176,7 +177,7 @@ public class AipApiTest extends DbTest implements ApiTest {
         mvc(api)
                 .perform(get(BASE + "/{sipId}/state", SIP_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("sip"))
+                .andExpect(jsonPath("$.name").value(SIP_FILE_NAME))
                 .andExpect(jsonPath("$.consistent").value(true))
                 .andExpect(jsonPath("$.state").value("ARCHIVED"))
                 .andExpect(jsonPath("$.xmls[0].version", not(equalTo(jsonPath("$.xmls[1].version")))));
