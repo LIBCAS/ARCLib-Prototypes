@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-	<groupId>cz.cas.lib.arclib</groupId>
+	<groupId>cz.inqool.arclib</groupId>
 	<artifactId>arclib</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<modules>
@@ -16,6 +16,7 @@
         <module>prototype10</module>
         <module>prototype7</module>
 		<module>prototype12</module>
+		<module>prototype9</module>
 	</modules>
 	<packaging>pom</packaging>
 
