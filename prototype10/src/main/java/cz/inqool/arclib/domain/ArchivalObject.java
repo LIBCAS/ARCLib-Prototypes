@@ -1,7 +1,7 @@
 package cz.inqool.arclib.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import cz.inqool.arclib.store.LocalDateTimeGenerator;
+import cz.inqool.arclib.store.InstantGenerator;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.GenerationTime;
@@ -10,7 +10,7 @@ import org.hibernate.annotations.GeneratorType;
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.Transient;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Abstract class for core files of archival storage i.e. AipSip data and AipSip XML.
@@ -25,8 +25,8 @@ public abstract class ArchivalObject extends DomainObject {
     @Column(updatable = false, nullable = false)
     protected String name;
     @Column(updatable = false)
-    @GeneratorType(type = LocalDateTimeGenerator.class, when = GenerationTime.INSERT)
-    protected LocalDateTime created;
+    @GeneratorType(type = InstantGenerator.class, when = GenerationTime.INSERT)
+    protected Instant created;
     @Transient
     boolean consistent;
 

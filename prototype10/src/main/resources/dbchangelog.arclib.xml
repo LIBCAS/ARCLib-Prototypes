@@ -13,8 +13,6 @@
                 <constraints primaryKey="true" primaryKeyName="arclib_aip_sip_pkey" nullable="false"/>
             </column>
             <column name="created" type="datetime"/>
-            <column name="updated" type="datetime"/>
-            <column name="deleted" type="datetime"/>
             <column name="md5" type="varchar(32)">
                 <constraints nullable="false"/>
             </column>
@@ -35,8 +33,6 @@
                              referencedTableName="arclib_aip_sip" referencedColumnNames="id"/>
             </column>
             <column name="created" type="datetime"/>
-            <column name="updated" type="datetime"/>
-            <column name="deleted" type="datetime"/>
             <column name="md5" type="varchar(32)">
                 <constraints nullable="false"/>
             </column>

@@ -17,6 +17,9 @@ spring:
     multipart:
       maxFileSize: -1
       maxRequestSize: -1
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
 
 
 liquibase:
