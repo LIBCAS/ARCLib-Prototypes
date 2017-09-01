@@ -1,6 +1,7 @@
 package cz.cas.lib.arclib.api;
 
 
+import cz.cas.lib.arclib.exception.ExporterException;
 import cz.cas.lib.arclib.service.ExportFormat;
 import cz.cas.lib.arclib.service.ReportService;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/report")
@@ -18,13 +20,8 @@ public class ReportApi {
 
     private ReportService service;
 
-    @RequestMapping(value = "/{reportId}", method = RequestMethod.GET)
-    public void getReport(@PathVariable("reportId") String reportId, @RequestParam("format") ExportFormat format, HttpServletResponse response) throws IOException {
-//        DateTimeFormatter timeFormatter = DateTimeFormatter.ISO_DATE_TIME;
-//        Instant.from(timeFormatter.parse(dateFrom));
-//        Instant.from(timeFormatter.parse(dateTo));
-        //@RequestParam("dateFrom") String dateFrom, @RequestParam("dateTo") String dateTo,
-
+    @RequestMapping(value = "/{reportId}/{format}", method = RequestMethod.GET)
+    public void getReport(@PathVariable("reportId") String reportId, @PathVariable("format") ExportFormat format, @RequestParam Map<String, String> params, HttpServletResponse response) throws IOException, ExporterException {
         response.setStatus(200);
         switch (format) {
             case PDF:
@@ -42,7 +39,8 @@ public class ReportApi {
             default:
                 throw new IllegalArgumentException("Unsupported export format");
         }
-        response.addHeader("Content-Disposition", "attachment; filename=" + service.report(reportId, format, response.getOutputStream()) + "_" + LocalDate.now().toString());
+        String reportName = service.report(reportId, format, params, response.getOutputStream());
+        response.addHeader("Content-Disposition", "attachment; filename=" + reportName + "_" + LocalDate.now().toString());
     }
 
     @RequestMapping(method = RequestMethod.POST)

@@ -22,25 +22,5 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-
-        <createTable tableName="arclib_report_source_1">
-            <column name="id" type="varchar(255)">
-                <constraints primaryKey="true" primaryKeyName="arclib_report_source_1_pkey" nullable="false"/>
-            </column>
-            <column name="source1data" type="varchar(255)"/>
-            <column name="created" type="datetime"/>
-            <column name="updated" type="datetime"/>
-            <column name="deleted" type="datetime"/>
-        </createTable>
-
-        <createTable tableName="arclib_report_source_2">
-            <column name="id" type="varchar(255)">
-                <constraints primaryKey="true" primaryKeyName="arclib_report_source_2_pkey" nullable="false"/>
-            </column>
-            <column name="source2data" type="bigint"/>
-            <column name="created" type="datetime"/>
-            <column name="updated" type="datetime"/>
-            <column name="deleted" type="datetime"/>
-        </createTable>
     </changeSet>
 </databaseChangeLog>

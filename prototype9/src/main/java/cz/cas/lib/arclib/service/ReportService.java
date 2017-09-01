@@ -1,6 +1,7 @@
 package cz.cas.lib.arclib.service;
 
 import cz.cas.lib.arclib.domain.Report;
+import cz.cas.lib.arclib.exception.ExporterException;
 import cz.cas.lib.arclib.exception.GeneralException;
 import cz.cas.lib.arclib.store.ReportStore;
 import cz.cas.lib.arclib.store.Transactional;
@@ -17,6 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -40,9 +42,9 @@ public class ReportService {
     }
 
     @Transactional
-    public String report(String templateId, ExportFormat format, OutputStream os) throws IOException {
+    public String report(String templateId, ExportFormat format, Map<String, String> customParams, OutputStream os) throws IOException, ExporterException {
         Report report = store.find(templateId);
-        exporter.export((JasperReport) report.getCompiledObject(), format, os);
+        exporter.export(report, format, customParams, os);
         return report.getName();
     }
 
