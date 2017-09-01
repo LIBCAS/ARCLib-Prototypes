@@ -12,6 +12,6 @@ import javax.persistence.Table;
 @Setter
 @Getter
 @AllArgsConstructor
-public class ReportSource2 extends DatedObject{
+public class ReportSource2 extends DatedObject {
     Long source2data;
 }

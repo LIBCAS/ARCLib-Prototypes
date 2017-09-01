@@ -18,6 +18,9 @@
             <column name="template" type="text">
                 <constraints nullable="false"/>
             </column>
+            <column name="compiled" type="bytea">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
 
         <createTable tableName="arclib_report_source_1">

@@ -6,10 +6,7 @@ import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-
 import cz.cas.lib.arclib.domain.DomainObject;
-import static cz.cas.lib.arclib.util.Utils.*;
-
 import cz.cas.lib.arclib.exception.GeneralException;
 import lombok.Getter;
 
@@ -20,6 +17,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.List;
 
+import static cz.cas.lib.arclib.util.Utils.notNull;
+import static cz.cas.lib.arclib.util.Utils.sortByIdList;
 import static java.util.Collections.emptyList;
 
 /**

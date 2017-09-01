@@ -1,17 +1,18 @@
 package cz.cas.lib.arclib.service;
 
 import cz.cas.lib.arclib.domain.Report;
+import cz.cas.lib.arclib.exception.GeneralException;
 import cz.cas.lib.arclib.store.ReportStore;
 import cz.cas.lib.arclib.store.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperReport;
-import net.sf.jasperreports.engine.util.JRSaver;
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -24,13 +25,24 @@ public class ReportService {
     private ExporterService exporter;
 
     @Transactional
-    public String saveReport(String name,InputStream template) throws IOException {
-        return store.save(new Report(name, IOUtils.toString(template, StandardCharsets.UTF_8))).getId();
+    public String saveReport(String name, InputStream template) throws IOException {
+        byte[] templateBytes = IOUtils.toByteArray(template);
+        IOUtils.closeQuietly(template);
+        JasperReport compiledReport;
+        template = new ByteArrayInputStream(templateBytes);
+        try {
+            compiledReport = JasperCompileManager.compileReport(template);
+        } catch (JRException e) {
+            throw new GeneralException("Error occurred during report template compilation.", e);
+        }
+        template = new ByteArrayInputStream(templateBytes);
+        return store.save(new Report(name, IOUtils.toString(template, StandardCharsets.UTF_8), compiledReport)).getId();
     }
 
+    @Transactional
     public String report(String templateId, ExportFormat format, OutputStream os) throws IOException {
         Report report = store.find(templateId);
-        exporter.export(report.getTemplate(),format,os);
+        exporter.export((JasperReport) report.getCompiledObject(), format, os);
         return report.getName();
     }
 
@@ -38,6 +50,7 @@ public class ReportService {
     public void setAipSipStore(ReportStore store) {
         this.store = store;
     }
+
     @Inject
     public void setExporter(ExporterService exporter) {
         this.exporter = exporter;

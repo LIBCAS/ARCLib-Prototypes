@@ -1,12 +1,8 @@
 package cz.cas.lib.arclib.api;
 
 
-import cz.cas.lib.arclib.domain.Report;
 import cz.cas.lib.arclib.service.ExportFormat;
 import cz.cas.lib.arclib.service.ReportService;
-import org.apache.commons.io.IOUtils;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,7 +10,6 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 
 @RestController
@@ -31,7 +26,7 @@ public class ReportApi {
         //@RequestParam("dateFrom") String dateFrom, @RequestParam("dateTo") String dateTo,
 
         response.setStatus(200);
-        switch (format){
+        switch (format) {
             case PDF:
                 response.setContentType("application/pdf");
                 break;
@@ -47,13 +42,13 @@ public class ReportApi {
             default:
                 throw new IllegalArgumentException("Unsupported export format");
         }
-        response.addHeader("Content-Disposition", "attachment; filename=" + service.report(reportId,format,response.getOutputStream()) + "_" + LocalDate.now().toString());
+        response.addHeader("Content-Disposition", "attachment; filename=" + service.report(reportId, format, response.getOutputStream()) + "_" + LocalDate.now().toString());
     }
 
     @RequestMapping(method = RequestMethod.POST)
     public String save(@RequestParam("template") MultipartFile template, @RequestParam("name") String name) throws IOException {
-        try(InputStream is = template.getInputStream()){
-            return service.saveReport(name,template.getInputStream());
+        try (InputStream is = template.getInputStream()) {
+            return service.saveReport(name, template.getInputStream());
         }
     }
 
