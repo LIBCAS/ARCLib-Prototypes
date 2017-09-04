@@ -6,7 +6,6 @@ import cz.inqool.arclib.storage.StorageService;
 import cz.inqool.arclib.storage.StorageType;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -44,18 +43,16 @@ public class FSStorageServiceTest {
 
     @BeforeClass
     public static void setUp() throws IOException {
+        if (Files.isDirectory(Paths.get("sip")))
+            FileUtils.deleteDirectory(new File("sip"));
+        if (Files.isDirectory(Paths.get("xml")))
+            FileUtils.deleteDirectory(new File("xml"));
         Files.createDirectories(SIP_PATH);
         Files.createDirectories(XML1_PATH);
         Files.createDirectories(XML2_PATH);
         Files.copy(Paths.get("./src/test/resources/aip/sip"), SIP_PATH.resolve(SIP_ID));
-        Files.copy(Paths.get("./src/test/resources/aip/xml1"), XML1_PATH.resolve(XML1_ID));
-        Files.copy(Paths.get("./src/test/resources/aip/xml2"), XML2_PATH.resolve(XML2_ID));
-    }
-
-    @AfterClass
-    public static void cleanUp() throws IOException {
-        FileUtils.deleteDirectory(new File("sip"));
-        FileUtils.deleteDirectory(new File("xml"));
+        Files.copy(Paths.get("./src/test/resources/aip/xml1.xml"), XML1_PATH.resolve(XML1_ID));
+        Files.copy(Paths.get("./src/test/resources/aip/xml2.xml"), XML2_PATH.resolve(XML2_ID));
     }
 
     @Before

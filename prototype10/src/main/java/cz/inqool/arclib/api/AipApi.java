@@ -61,21 +61,17 @@ public class AipApi {
      * This endpoint also handles AIP versioning when whole AIP is versioned.
      * </p>
      *
-     * @param sip  SIP part of AIP
-     * @param xml  ARCLib XML part of AIP
-     * @param meta file which contains two lines in this exact order:
-     *             <ol>
-     *             <li>SIP MD5 hash</li>
-     *             <li>ARCLib XML MD5 hash</li>
-     *             </ol>
+     * @param sip    SIP part of AIP
+     * @param xml    ARCLib XML part of AIP
+     * @param sipMD5 SIP md5 hash
+     * @param xmlMD5 XML md5 hash
      * @return Information about both stored files containing file name, its assigned id and boolean flag determining whether the stored file is consistent i.e. was not changed during the transfer.
      */
     @RequestMapping(value = "/store", method = RequestMethod.POST)
-    public List<StoredFileInfoDto> save(@RequestParam("sip") MultipartFile sip, @RequestParam("xml") MultipartFile xml, @RequestParam("meta") MultipartFile meta) throws IOException {
+    public List<StoredFileInfoDto> save(@RequestParam("sip") MultipartFile sip, @RequestParam("xml") MultipartFile xml, @RequestParam("sipMD5") String sipMD5, @RequestParam("xmlMD5") String xmlMD5) throws IOException {
         try (InputStream sipStream = sip.getInputStream();
-             InputStream xmlStream = xml.getInputStream();
-             InputStream metaStream = meta.getInputStream()) {
-            return archivalService.store(sipStream, sip.getOriginalFilename(), xmlStream, xml.getOriginalFilename(), metaStream);
+             InputStream xmlStream = xml.getInputStream()) {
+            return archivalService.store(sipStream, sip.getOriginalFilename(), sipMD5, xmlStream, xml.getOriginalFilename(), xmlMD5);
         }
     }
 
@@ -85,16 +81,15 @@ public class AipApi {
      * This endpoint handles AIP versioning when AIP XML is versioned.
      * </p>
      *
-     * @param sipId Id of SIP to which XML belongs
-     * @param xml   ARCLib XML
-     * @param meta  File containing one line with ARCLib XML MD5 hash
+     * @param sipId  Id of SIP to which XML belongs
+     * @param xml    ARCLib XML
+     * @param xmlMD5 XML md5 hash
      * @return Information about stored xml containing file name, its assigned id and boolean flag determining whether the stored file is consistent i.e. was not changed during the transfer.
      */
     @RequestMapping(value = "/{sipId}/update", method = RequestMethod.POST)
-    public StoredFileInfoDto updateXml(@PathVariable("sipId") String sipId, @RequestParam("xml") MultipartFile xml, @RequestParam("meta") MultipartFile meta) {
-        try (InputStream xmlStream = xml.getInputStream();
-             InputStream metaStream = meta.getInputStream()) {
-            return archivalService.updateXml(sipId, xml.getOriginalFilename(), xmlStream, metaStream);
+    public StoredFileInfoDto updateXml(@PathVariable("sipId") String sipId, @RequestParam("xml") MultipartFile xml, @RequestParam("xmlMD5") String xmlMD5) {
+        try (InputStream xmlStream = xml.getInputStream()) {
+            return archivalService.updateXml(sipId, xml.getOriginalFilename(), xmlStream, xmlMD5);
         } catch (IOException e) {
             throw new BadArgument(e);
         }

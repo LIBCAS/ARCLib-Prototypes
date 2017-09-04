@@ -50,9 +50,6 @@ public class ArchivalServiceTest {
     private static final InputStream XML1_STREAM = new ByteArrayInputStream(XML1_ID.getBytes(StandardCharsets.UTF_8));
     private static final InputStream XML2_STREAM = new ByteArrayInputStream(XML2_ID.getBytes(StandardCharsets.UTF_8));
 
-    private static final InputStream META1_STREAM = new ByteArrayInputStream((SIP_HASH + System.lineSeparator() + XML1_HASH).getBytes(StandardCharsets.UTF_8));
-    private static final InputStream META2_STREAM = new ByteArrayInputStream(XML1_HASH.getBytes(StandardCharsets.UTF_8));
-
     private AipSip sip;
     private AipXml xml1;
     private AipXml xml2;
@@ -95,7 +92,7 @@ public class ArchivalServiceTest {
                 }
         );
 
-        List<StoredFileInfoDto> res = service.store(SIP_STREAM, SIP_ID, XML1_STREAM, XML1_ID, META1_STREAM);
+        List<StoredFileInfoDto> res = service.store(SIP_STREAM, SIP_ID, SIP_HASH, XML1_STREAM, XML1_ID, XML1_HASH);
 
         ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
         verify(dbService).registerAipCreation(argument.capture(), anyString(), eq(SIP_HASH), argument.capture(), anyString(), eq(XML1_HASH));
@@ -113,7 +110,7 @@ public class ArchivalServiceTest {
     public void updateXml() throws IOException {
         when(storageService.storeXml(eq(XML1_STREAM), anyString())).thenReturn("wrongmd5");
 
-        StoredFileInfoDto res = service.updateXml(SIP_ID, XML1_ID, XML1_STREAM, META2_STREAM);
+        StoredFileInfoDto res = service.updateXml(SIP_ID, XML1_ID, XML1_STREAM, XML1_HASH);
 
         ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
         verify(dbService).registerXmlUpdate(eq(SIP_ID), argument.capture(), anyString(), eq(XML1_HASH));
