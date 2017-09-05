@@ -51,17 +51,17 @@ public interface StorageService {
     InputStream getXml(String xmlId) throws IOException;
 
     /**
-     * Deletes AipSip file from storage.
+     * Deletes file (SIP or XML) from storage.
      *
-     * @param sipId
+     * @param id
      * @throws IOException
      */
-    void deleteSip(String sipId) throws IOException;
+    void delete(String id) throws IOException;
 
     /**
      * Computes and retrieves MD5 checksums of Aip SIP and XML files.
      *
-     * @param sipId
+     * @param sipId if null only checksums of XML files are computed
      * @param xmlIds
      * @return Map with ids of Aip SIP and XML files as keys and MD5 strings with fixity information as values.
      * @throws IOException

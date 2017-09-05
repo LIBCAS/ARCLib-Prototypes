@@ -259,6 +259,17 @@ public class Utils {
         }
     }
 
+    public static boolean isMD5(String string){
+        if(string.length() != 32)
+            return false;
+        try{
+            Long.parseLong(string,16);
+            return true;
+        }catch (NumberFormatException nfe){
+            return false;
+        }
+    }
+
     public static boolean isProxy(Object a) {
         return (AopUtils.isAopProxy(a) && a instanceof Advised);
     }

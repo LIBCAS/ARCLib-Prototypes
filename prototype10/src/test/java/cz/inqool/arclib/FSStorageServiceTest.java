@@ -132,7 +132,7 @@ public class FSStorageServiceTest {
     @Test
     public void deleteSipOK() throws IOException {
         storage.storeAip(SIP_STREAM, "deleteTestSIP", XML1_STREAM, "deleteTestXml");
-        storage.deleteSip("deleteTestSIP");
+        storage.delete("deleteTestSIP");
         assertThat(Files.notExists(Paths.get("./sip/de/le/te/deleteTestSIP")), equalTo(true));
         assertThat(Files.exists(Paths.get("./xml/de/le/te/deleteTestXML")), equalTo(true));
     }

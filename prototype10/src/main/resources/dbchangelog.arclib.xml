@@ -29,7 +29,7 @@
                 <constraints primaryKey="true" primaryKeyName="arclib_aip_xml_pkey" nullable="false"/>
             </column>
             <column name="arclib_aip_sip_id" type="varchar(255)">
-                <constraints nullable="false" foreignKeyName="arclib_aip_sip_fk"
+                <constraints nullable="false" deleteCascade="true" foreignKeyName="arclib_aip_sip_fk"
                              referencedTableName="arclib_aip_sip" referencedColumnNames="id"/>
             </column>
             <column name="created" type="datetime"/>

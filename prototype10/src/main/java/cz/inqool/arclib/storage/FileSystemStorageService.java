@@ -39,10 +39,10 @@ public class FileSystemStorageService implements StorageService {
     public List<InputStream> getAip(String sipId, String... xmlIds) throws IOException {
         List<InputStream> refs = new ArrayList<>();
         try {
-            refs.add(new FileInputStream(getSipFilePath(sipId).toString()));
+            refs.add(new FileInputStream(getSipFilePath(sipId,false).toString()));
 
             for (String xmlId : xmlIds) {
-                refs.add(new FileInputStream(getXmlFilePath(xmlId).toString()));
+                refs.add(new FileInputStream(getXmlFilePath(xmlId,false).toString()));
             }
         } catch (Exception ex) {
             for (InputStream stream : refs) {
@@ -62,7 +62,7 @@ public class FileSystemStorageService implements StorageService {
     public InputStream getXml(String xmlId) throws IOException {
         InputStream is = null;
         try {
-            is = new FileInputStream(getXmlFilePath(xmlId).toString());
+            is = new FileInputStream(getXmlFilePath(xmlId,false).toString());
         } catch (Exception ex) {
             IOUtils.closeQuietly(is);
             throw ex;
@@ -71,16 +71,18 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
-    public void deleteSip(String sipId) throws IOException {
-        Files.delete(getSipFilePath(sipId));
+    public void delete(String id) throws IOException {
+        Files.deleteIfExists(getSipFilePath(id,false));
+        Files.deleteIfExists(getXmlFilePath(id,false));
     }
 
     @Override
     public Map<String, String> getMD5(String sipId, List<String> xmlIds) throws IOException {
         Map<String, String> checksums = new HashMap<>();
-        checksums.put(sipId, computeMD5(getSipFilePath(sipId)));
+        if(sipId != null)
+            checksums.put(sipId, computeMD5(getSipFilePath(sipId,false)));
         for (String xmlId : xmlIds) {
-            checksums.put(xmlId, computeMD5(getXmlFilePath(xmlId)));
+            checksums.put(xmlId, computeMD5(getXmlFilePath(xmlId,false)));
         }
         return checksums;
     }
@@ -91,26 +93,28 @@ public class FileSystemStorageService implements StorageService {
         return new StorageStateDto(anchor.getTotalSpace(), anchor.getFreeSpace(), true, StorageType.FILESYSTEM);
     }
 
-    private Path getXmlFilePath(String uuid) throws IOException {
+    private Path getXmlFilePath(String uuid,boolean create) throws IOException {
         Path dirPath = Paths.get("xml", uuid.substring(0, 2), uuid.substring(2, 4), uuid.substring(4, 6));
-        Files.createDirectories(dirPath);
+        if(Files.notExists(dirPath))
+            Files.createDirectories(dirPath);
         return Paths.get(dirPath.toString(), uuid);
     }
 
-    private Path getSipFilePath(String uuid) throws IOException {
+    private Path getSipFilePath(String uuid,boolean create) throws IOException {
         Path dirPath = Paths.get("sip", uuid.substring(0, 2), uuid.substring(2, 4), uuid.substring(4, 6));
-        Files.createDirectories(dirPath);
+        if(Files.notExists(dirPath))
+            Files.createDirectories(dirPath);
         return Paths.get(dirPath.toString(), uuid);
     }
 
     private String storeSipFile(InputStream file, String id) throws IOException {
-        Files.copy(file, getSipFilePath(id));
-        return computeMD5(getSipFilePath(id));
+        Files.copy(file, getSipFilePath(id,true));
+        return computeMD5(getSipFilePath(id,false));
     }
 
     private String storeXmlFile(InputStream file, String id) throws IOException {
-        Files.copy(file, getXmlFilePath(id));
-        return computeMD5(getXmlFilePath(id));
+        Files.copy(file, getXmlFilePath(id,true));
+        return computeMD5(getXmlFilePath(id,false));
     }
 
     private String computeMD5(Path pathToFile) throws IOException {

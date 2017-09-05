@@ -4,6 +4,8 @@ import cz.inqool.arclib.domain.AipSip;
 import cz.inqool.arclib.dto.StorageStateDto;
 import cz.inqool.arclib.dto.StoredFileInfoDto;
 import cz.inqool.arclib.exception.BadArgument;
+import cz.inqool.arclib.exception.ChecksumChanged;
+import cz.inqool.arclib.exception.NotFound;
 import cz.inqool.arclib.service.AipRef;
 import cz.inqool.arclib.service.ArchivalDbService;
 import cz.inqool.arclib.service.ArchivalService;
@@ -18,9 +20,14 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
+import static cz.inqool.arclib.util.Utils.checked;
+import static cz.inqool.arclib.util.Utils.isMD5;
 
 @RestController
 @RequestMapping("/api/storage")
@@ -35,7 +42,9 @@ public class AipApi {
      * @param sipId unique AIP identifier
      */
     @RequestMapping(value = "/{sipId}", method = RequestMethod.GET)
-    public void get(@PathVariable("sipId") String sipId, HttpServletResponse response) throws IOException {
+    public void get(@PathVariable("sipId") String sipId, HttpServletResponse response) throws IOException, NotFound {
+        checkUUID(sipId);
+
         AipRef aip = archivalService.get(sipId);
         response.setContentType("application/zip");
         response.setStatus(200);
@@ -65,10 +74,12 @@ public class AipApi {
      * @param xml    ARCLib XML part of AIP
      * @param sipMD5 SIP md5 hash
      * @param xmlMD5 XML md5 hash
-     * @return Information about both stored files containing file name, its assigned id and boolean flag determining whether the stored file is consistent i.e. was not changed during the transfer.
+     * @return Information about both stored files containing file name and its assigned id.
      */
     @RequestMapping(value = "/store", method = RequestMethod.POST)
-    public List<StoredFileInfoDto> save(@RequestParam("sip") MultipartFile sip, @RequestParam("xml") MultipartFile xml, @RequestParam("sipMD5") String sipMD5, @RequestParam("xmlMD5") String xmlMD5) throws IOException {
+    public List<StoredFileInfoDto> save(@RequestParam("sip") MultipartFile sip, @RequestParam("xml") MultipartFile xml, @RequestParam("sipMD5") String sipMD5, @RequestParam("xmlMD5") String xmlMD5) throws IOException, ChecksumChanged {
+        checkMD5(xmlMD5);
+        checkMD5(sipMD5);
         try (InputStream sipStream = sip.getInputStream();
              InputStream xmlStream = xml.getInputStream()) {
             return archivalService.store(sipStream, sip.getOriginalFilename(), sipMD5, xmlStream, xml.getOriginalFilename(), xmlMD5);
@@ -84,10 +95,12 @@ public class AipApi {
      * @param sipId  Id of SIP to which XML belongs
      * @param xml    ARCLib XML
      * @param xmlMD5 XML md5 hash
-     * @return Information about stored xml containing file name, its assigned id and boolean flag determining whether the stored file is consistent i.e. was not changed during the transfer.
+     * @return Information about stored xml containing file name and its assigned id
      */
     @RequestMapping(value = "/{sipId}/update", method = RequestMethod.POST)
-    public StoredFileInfoDto updateXml(@PathVariable("sipId") String sipId, @RequestParam("xml") MultipartFile xml, @RequestParam("xmlMD5") String xmlMD5) {
+    public StoredFileInfoDto updateXml(@PathVariable("sipId") String sipId, @RequestParam("xml") MultipartFile xml, @RequestParam("xmlMD5") String xmlMD5) throws ChecksumChanged {
+        checkUUID(sipId);
+        checkMD5(xmlMD5);
         try (InputStream xmlStream = xml.getInputStream()) {
             return archivalService.updateXml(sipId, xml.getOriginalFilename(), xmlStream, xmlMD5);
         } catch (IOException e) {
@@ -102,6 +115,7 @@ public class AipApi {
      */
     @RequestMapping(value = "/{sipId}", method = RequestMethod.DELETE)
     public void remove(@PathVariable("sipId") String sipId) {
+        checkUUID(sipId);
         archivalDbService.removeSip(sipId);
     }
 
@@ -112,18 +126,20 @@ public class AipApi {
      */
     @RequestMapping(value = "/{sipId}/hard", method = RequestMethod.DELETE)
     public void delete(@PathVariable("sipId") String sipId) throws IOException {
+        checkUUID(sipId);
         archivalService.delete(sipId);
     }
 
     /**
      * Retrieves information about AIP.
      *
-     * @param uuid
+     * @param sipId
      * @return
      */
     @RequestMapping(value = "/{uuid}/state", method = RequestMethod.GET)
-    public AipSip getAipInfo(@PathVariable("uuid") String uuid) throws IOException {
-        return archivalService.getAipInfo(uuid);
+    public AipSip getAipInfo(@PathVariable("uuid") String sipId) throws IOException {
+        checkUUID(sipId);
+        return archivalService.getAipInfo(sipId);
     }
 
 
@@ -135,6 +151,15 @@ public class AipApi {
     @RequestMapping(value = "/state", method = RequestMethod.GET)
     public StorageStateDto getStorageState() {
         return archivalService.getStorageState();
+    }
+
+    private void checkUUID(String id) {
+        checked(() -> UUID.fromString(id), () -> new BadArgument(id));
+    }
+
+    private void checkMD5(String s) {
+        if(!s.matches("\\p{XDigit}{32}"))
+            throw new BadArgument(s);
     }
 
     @Inject

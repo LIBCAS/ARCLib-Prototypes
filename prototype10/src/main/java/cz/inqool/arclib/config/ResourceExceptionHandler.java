@@ -1,11 +1,15 @@
 package cz.inqool.arclib.config;
 
 import cz.inqool.arclib.exception.*;
+import org.hibernate.annotations.Check;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
+
+import java.io.FileNotFoundException;
 
 /**
  * {@link Exception} to HTTP codes mapping.
@@ -22,6 +26,7 @@ public class ResourceExceptionHandler {
     @ResponseStatus(value = HttpStatus.NOT_FOUND)
     @ExceptionHandler(MissingObject.class)
     public void missingObject() {
+
     }
 
     @ResponseStatus(value = HttpStatus.NOT_FOUND)
@@ -57,5 +62,15 @@ public class ResourceExceptionHandler {
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     @ExceptionHandler(BindException.class)
     public void bindException() {
+    }
+
+    @ExceptionHandler(ChecksumChanged.class)
+    public ResponseEntity illgegalState() {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Stored file checksum do not match checksum provided in request. Make sure that provided checksum is correct and repeat the request.");
+    }
+
+    @ResponseStatus(value = HttpStatus.NOT_FOUND)
+    @ExceptionHandler(NotFound.class)
+    public void notFoundException() {
     }
 }

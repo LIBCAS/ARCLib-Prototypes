@@ -4,6 +4,8 @@ import cz.inqool.arclib.domain.AipSip;
 import cz.inqool.arclib.domain.AipState;
 import cz.inqool.arclib.domain.AipXml;
 import cz.inqool.arclib.dto.StoredFileInfoDto;
+import cz.inqool.arclib.exception.ChecksumChanged;
+import cz.inqool.arclib.exception.NotFound;
 import cz.inqool.arclib.service.AipRef;
 import cz.inqool.arclib.service.ArchivalDbService;
 import cz.inqool.arclib.service.ArchivalService;
@@ -26,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static cz.inqool.arclib.helper.ThrowableAssertion.assertThrown;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyString;
@@ -69,7 +72,7 @@ public class ArchivalServiceTest {
     }
 
     @Test
-    public void get() throws IOException {
+    public void get() throws IOException, NotFound {
         when(dbService.getAip(SIP_ID)).thenReturn(sip);
         when(storageService.getAip(SIP_ID, XML1_ID, XML2_ID)).thenReturn(Arrays.asList(SIP_STREAM, XML1_STREAM, XML2_STREAM));
 
@@ -80,12 +83,13 @@ public class ArchivalServiceTest {
     }
 
     @Test
-    public void store() throws IOException {
+    public void store() throws IOException, ChecksumChanged {
+
         when(storageService.storeAip(eq(SIP_STREAM), anyString(), eq(XML1_STREAM), anyString())).thenAnswer(
                 new Answer<Object>() {
                     public Object answer(InvocationOnMock invocation) {
                         Map<String, String> checksums = new HashMap<>();
-                        checksums.put((String) invocation.getArguments()[1], "wrongMD5");
+                        checksums.put((String) invocation.getArguments()[1], SIP_HASH);
                         checksums.put((String) invocation.getArguments()[3], XML1_HASH);
                         return checksums;
                     }
@@ -102,13 +106,40 @@ public class ArchivalServiceTest {
         verify(storageService).storeAip(SIP_STREAM, generatedSipId, XML1_STREAM, generatedXmlId);
         assertThat(generatedSipId, not(equalTo(generatedXmlId)));
         verify(dbService).finishAipCreation(generatedSipId, generatedXmlId);
-        assertThat(res.get(0), equalTo(new StoredFileInfoDto(generatedSipId, SIP_ID, false)));
-        assertThat(res.get(1), equalTo(new StoredFileInfoDto(generatedXmlId, XML1_ID, true)));
+        assertThat(res.get(0), equalTo(new StoredFileInfoDto(generatedSipId, SIP_ID)));
+        assertThat(res.get(1), equalTo(new StoredFileInfoDto(generatedXmlId, XML1_ID)));
     }
 
     @Test
-    public void updateXml() throws IOException {
-        when(storageService.storeXml(eq(XML1_STREAM), anyString())).thenReturn("wrongmd5");
+    public void storeBadMD5() throws IOException {
+        when(storageService.storeAip(eq(SIP_STREAM), anyString(), eq(XML1_STREAM), anyString())).thenAnswer(
+                new Answer<Object>() {
+                    public Object answer(InvocationOnMock invocation) {
+                        Map<String, String> checksums = new HashMap<>();
+                        checksums.put((String) invocation.getArguments()[1], "wrongMD5");
+                        checksums.put((String) invocation.getArguments()[3], XML1_HASH);
+                        return checksums;
+                    }
+                }
+        );
+
+        assertThrown(() -> service.store(SIP_STREAM, SIP_ID, SIP_HASH, XML1_STREAM, XML1_ID, XML1_HASH)).isInstanceOf(ChecksumChanged.class);
+
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(dbService).registerAipCreation(argument.capture(), anyString(), eq(SIP_HASH), argument.capture(), anyString(), eq(XML1_HASH));
+        String generatedSipId = argument.getAllValues().get(0);
+        String generatedXmlId = argument.getAllValues().get(1);
+
+        verify(storageService).storeAip(SIP_STREAM, generatedSipId, XML1_STREAM, generatedXmlId);
+        assertThat(generatedSipId, not(equalTo(generatedXmlId)));
+        verify(storageService).delete(generatedSipId);
+        verify(storageService).delete(generatedXmlId);
+        verify(dbService).deleteAip(generatedSipId);
+    }
+
+    @Test
+    public void updateXml() throws IOException, ChecksumChanged {
+        when(storageService.storeXml(eq(XML1_STREAM), anyString())).thenReturn(XML1_HASH);
 
         StoredFileInfoDto res = service.updateXml(SIP_ID, XML1_ID, XML1_STREAM, XML1_HASH);
 
@@ -117,7 +148,21 @@ public class ArchivalServiceTest {
         String generatedXmlId = argument.getValue();
         verify(storageService).storeXml(XML1_STREAM, generatedXmlId);
         verify(dbService).finishXmlProcess(generatedXmlId);
-        assertThat(res, equalTo(new StoredFileInfoDto(generatedXmlId, XML1_ID, false)));
+        assertThat(res, equalTo(new StoredFileInfoDto(generatedXmlId, XML1_ID)));
+    }
+
+    @Test
+    public void updateXmlBadMD5() throws IOException {
+        when(storageService.storeXml(eq(XML1_STREAM), anyString())).thenReturn("wrongmd5");
+
+        assertThrown(() -> service.updateXml(SIP_ID, XML1_ID, XML1_STREAM, XML1_HASH)).isInstanceOf(ChecksumChanged.class);
+
+        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
+        verify(dbService).registerXmlUpdate(eq(SIP_ID), argument.capture(), anyString(), eq(XML1_HASH));
+        String generatedXmlId = argument.getValue();
+        verify(storageService).storeXml(XML1_STREAM, generatedXmlId);
+        verify(storageService).delete(generatedXmlId);
+        verify(dbService).deleteXml(generatedXmlId);
     }
 
     @Test

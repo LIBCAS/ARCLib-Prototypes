@@ -157,6 +157,22 @@ public class ArchivalDbService {
         return sip;
     }
 
+    /**
+     * Removes record about SIP and all related XMLs from database. Should be used only when the AIP creation process fails.
+     * @param id
+     */
+    public void deleteAip(String id){
+        aipSipStore.delete(aipSipStore.find(id));
+    }
+
+    /**
+     * Removes record about XML from database. Should be used only when the XML update process fails.
+     * @param id
+     */
+    public void deleteXml(String id){
+        aipXmlStore.delete(aipXmlStore.find(id));
+    }
+
     @Inject
     public void setAipSipStore(AipSipStore store) {
         this.aipSipStore = store;

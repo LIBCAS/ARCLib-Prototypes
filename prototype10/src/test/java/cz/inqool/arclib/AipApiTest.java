@@ -53,19 +53,19 @@ public class AipApiTest extends DbTest implements ApiTest {
     @Inject
     private AipXmlStore xmlStore;
 
-    private static final String SIP_ID = "SIPtestID";
+    private static final String SIP_ID = "8f719ff7-8756-4101-9e87-42391ced37f1";
     private static final String SIP_FILE_NAME = "KPW01169310.ZIP";
     private static final String SIP_HASH = "CB30ACE944A440F77D6F99040D2DE1F2";
     private static final Path SIP_PATH = Paths.get("sip", SIP_ID.substring(0, 2), SIP_ID.substring(2, 4), SIP_ID.substring(4, 6));
 
-    private static final String XML1_ID = "XML1testID";
+    private static final String XML1_ID = "3139b6fa-4a73-4e93-9ed9-9cdcc4523d94";
     private static final String XML1_FILE_NAME = "xml1.xml";
-    private static final String XML1_HASH = "F09E5F27526A0ED7EC5B2D9D5C0B53CF";
+    private static final String XML1_HASH = "3109a2b5b54b881f234fd424b80869ef";
     private static final Path XML1_PATH = Paths.get("xml", XML1_ID.substring(0, 2), XML1_ID.substring(2, 4), XML1_ID.substring(4, 6));
 
-    private static final String XML2_ID = "XML2testID";
+    private static final String XML2_ID = "3bdfc2e3-51e3-4b88-a9f6-6dc301673ac1";
     private static final String XML2_FILE_NAME = "xml2.xml";
-    private static final String XML2_HASH = "D5B6402517014CF00C223D6A785A4230";
+    private static final String XML2_HASH = "f9408dbe836264462904651820d4162f";
     private static final Path XML2_PATH = Paths.get("xml", XML2_ID.substring(0, 2), XML2_ID.substring(2, 4), XML2_ID.substring(4, 6));
 
     private static final String BASE = "/api/storage";
@@ -135,10 +135,20 @@ public class AipApiTest extends DbTest implements ApiTest {
                 .perform(MockMvcRequestBuilders.fileUpload(BASE + "/store").file(sipFile).file(xmlFile).param("sipMD5", SIP_HASH).param("xmlMD5", XML1_HASH))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("sip"))
-                .andExpect(jsonPath("$[0].consistent").value(true))
                 .andExpect(jsonPath("$[1].name").value("xml"))
-                .andExpect(jsonPath("$[1].consistent").value(true))
                 .andExpect(jsonPath("$[0].id", not(equalTo(jsonPath("$[1].id")))));
+    }
+
+    @Test
+    public void saveMD5ChangedTest() throws Exception {
+        MockMultipartFile sipFile = new MockMultipartFile(
+                "sip", "sip", "text/plain", Files.readAllBytes(SIP_SOURCE_PATH));
+        MockMultipartFile xmlFile = new MockMultipartFile(
+                "xml", "xml", "text/plain", XML1_ID.getBytes());
+
+        mvc(api)
+                .perform(MockMvcRequestBuilders.fileUpload(BASE + "/store").file(sipFile).file(xmlFile).param("sipMD5", XML1_HASH).param("xmlMD5", XML1_HASH))
+                .andExpect(status().is(500));
     }
 
     @Test
@@ -149,8 +159,17 @@ public class AipApiTest extends DbTest implements ApiTest {
         mvc(api)
                 .perform(MockMvcRequestBuilders.fileUpload(BASE + "/{sipId}/update", SIP_ID).file(xmlFile).param("xmlMD5", XML2_HASH))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("xml"))
-                .andExpect(jsonPath("$.consistent").value(true));
+                .andExpect(jsonPath("$.name").value("xml"));
+    }
+
+    @Test
+    public void updateXmlMD5ChangedTest() throws Exception {
+        MockMultipartFile xmlFile = new MockMultipartFile(
+                "xml", "xml", "text/plain", XML2_ID.getBytes());
+
+        mvc(api)
+                .perform(MockMvcRequestBuilders.fileUpload(BASE + "/{sipId}/update", SIP_ID).file(xmlFile).param("xmlMD5", SIP_HASH))
+                .andExpect(status().is(500));
     }
 
     @Test
@@ -161,10 +180,20 @@ public class AipApiTest extends DbTest implements ApiTest {
     }
 
     @Test
-    public void deleteTest() throws Exception {
+    public void deleteThenGetTest() throws Exception {
         mvc(api)
                 .perform(delete(BASE + "/{sipId}/hard", SIP_ID))
                 .andExpect(status().isOk());
+        mvc(api)
+                .perform(get(BASE + "/{sipId}/state", SIP_ID))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value(SIP_FILE_NAME))
+                .andExpect(jsonPath("$.consistent").value(false))
+                .andExpect(jsonPath("$.state").value("DELETED"))
+                .andExpect(jsonPath("$.xmls[0].version", not(equalTo(jsonPath("$.xmls[1].version")))));
+        mvc(api)
+                .perform(get(BASE + "/{sipId}", SIP_ID))
+                .andExpect(status().is(404));
     }
 
     @Test
@@ -173,7 +202,6 @@ public class AipApiTest extends DbTest implements ApiTest {
                 .perform(get(BASE + "/{sipId}/state", SIP_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value(SIP_FILE_NAME))
-                .andExpect(jsonPath("$.consistent").value(true))
                 .andExpect(jsonPath("$.state").value("ARCHIVED"))
                 .andExpect(jsonPath("$.xmls[0].version", not(equalTo(jsonPath("$.xmls[1].version")))));
     }
@@ -187,4 +215,20 @@ public class AipApiTest extends DbTest implements ApiTest {
                 .andExpect(jsonPath("$.type", equalTo(StorageType.FILESYSTEM.toString())));
     }
 
+    @Test
+    public void invalidMD5() throws Exception {
+        MockMultipartFile xmlFile = new MockMultipartFile(
+                "xml", "xml", "text/plain", XML2_ID.getBytes());
+
+        mvc(api)
+                .perform(MockMvcRequestBuilders.fileUpload(BASE + "/{sipId}/update", SIP_ID).file(xmlFile).param("xmlMD5", "invalidhash"))
+                .andExpect(status().is(400));
+    }
+
+    @Test
+    public void invalidID() throws Exception {
+        mvc(api)
+                .perform(delete(BASE + "/{sipId}/hard", "invalidid"))
+                .andExpect(status().is(400));
+    }
 }
