@@ -1,2 +1,2 @@
 arclib:
-  pathToSignatureFile: src/main/resources/DROID_SignatureFile_V88.xml
+  workspace: workspace

@@ -1,12 +1,20 @@
 package cas.lib.arclib;
 
-import cas.lib.arclib.exception.DroidFormatIdentifierException;
-
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 
 public interface FormatIdentifier {
 
-    Map<String, String> analyze(Path pathToSIP) throws IOException, InterruptedException, DroidFormatIdentifierException;
+    /**
+     * Performs the format identification analysis for all the files belonging the SIP package
+     * @param sipId id of the SIP to analyze
+     * @return map of key-value pairs where the key is the path to a file from SIP and
+     * value is a list of formats that have been identified for the respective file
+     *
+     * @throws IOException if the SIP is not found
+     * @throws InterruptedException
+     */
+    Map<String, List<String>> analyze(String sipId) throws IOException, InterruptedException;
 }

@@ -6,7 +6,7 @@
             <charset>utf8</charset>
         </encoder>
     </appender>
-<logger name="cz.inqool.arclib" level="TRACE" additivity="false">
+<logger name="cas.lib.arclib" level="TRACE" additivity="false">
     <appender-ref ref="INQOOL"/>
 </logger>
 </configuration>
