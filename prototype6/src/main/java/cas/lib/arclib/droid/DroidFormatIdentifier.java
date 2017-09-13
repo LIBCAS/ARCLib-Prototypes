@@ -7,9 +7,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -28,16 +27,27 @@ public class DroidFormatIdentifier implements FormatIdentifier {
 
     @Override
     public Map<String, List<String>> analyze(String sipId) throws IOException, InterruptedException {
+        log.info("DROID format analysis for SIP " + sipId + " started.");
+
         Path workSpacePath = Paths.get(workspace);
-        Path sipPath = workSpacePath.resolve(sipId);
+        Path pathToSip = workSpacePath.resolve(sipId);
+
+        if (!Files.exists(pathToSip)) {
+            log.error("SIP at path " + pathToSip + " doest not exist.");
+            throw new FileNotFoundException("no file/folder found at: " + pathToSip);
+        }
 
         Path profileResultsPath = workSpacePath.resolve(sipId + ".droid");
-        runProfile(sipPath, profileResultsPath);
+        runProfile(pathToSip, profileResultsPath);
 
         Path exportResultsPath = workSpacePath.resolve(sipId + ".csv");
         exportProfile(profileResultsPath, exportResultsPath);
 
-        return parseResults(exportResultsPath, CsvResultColumn.FORMAT_NAME);
+        Map<String, List<String>> filePathsToParsedColumnValues = parseResults(exportResultsPath, CsvResultColumn.FORMAT_NAME);
+
+        log.info("DROID format analysis for SIP " + sipId + " finished.");
+
+        return filePathsToParsedColumnValues;
     }
 
     /**
@@ -53,6 +63,8 @@ public class DroidFormatIdentifier implements FormatIdentifier {
                 pathToResult.toAbsolutePath().toString());
         Process p = pb.start();
         p.waitFor();
+
+        log.info("File with DROID profile result created at " + pathToResult + ".");
     }
 
     /**
@@ -60,15 +72,17 @@ public class DroidFormatIdentifier implements FormatIdentifier {
      * (if a file has multiple identifications, then a separate row will be written out for each file and separate identification made)
      *
      * @param pathToProfile path to the <i>.DROID</i> file with the result of a profile
-     * @param pathToResults path to the <i>CSV</i> file with the result of the export of profile
+     * @param pathToResult path to the <i>CSV</i> file with the result of the export of profile
      * @throws IOException
      * @throws InterruptedException
      */
-    protected void exportProfile(Path pathToProfile, Path pathToResults) throws IOException, InterruptedException {
+    protected void exportProfile(Path pathToProfile, Path pathToResult) throws IOException, InterruptedException {
         ProcessBuilder pb = new ProcessBuilder(CMD, "-p", pathToProfile.toAbsolutePath().toString(), "-E",
-                pathToResults.toAbsolutePath().toString());
+                pathToResult.toAbsolutePath().toString());
         Process p = pb.start();
         p.waitFor();
+
+        log.info("File with DROID export result created at " + pathToResult + ".");
     }
 
     /**
@@ -81,6 +95,8 @@ public class DroidFormatIdentifier implements FormatIdentifier {
      * @throws IOException
      */
     protected Map<String, List<String>> parseResults(Path pathToResultsCsv, CsvResultColumn parsedColumn) throws IOException {
+        log.info("Parsing of CSV file " + pathToResultsCsv + " started.");
+
         BufferedReader br = null;
         Map<String, List<String>> filePathsToParsedColumnValues = new HashMap<>();
 
@@ -123,6 +139,8 @@ public class DroidFormatIdentifier implements FormatIdentifier {
 
                 filePathsToParsedColumnValues.put(filePath, values);
             }
+
+            log.info("Parsing of CSV file " + pathToResultsCsv + " finished.");
         } finally {
             if (br != null) {
                 br.close();

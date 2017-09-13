@@ -9,6 +9,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.FileSystemUtils;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -85,7 +86,7 @@ public class DroidFormatIdentifierTest {
      */
     @Test
     public void analyzeNonExistentPackageTest() {
-        assertThrown(() -> formatIdentifier.analyze("nonExistentPackage")).isInstanceOf(IOException.class);
+        assertThrown(() -> formatIdentifier.analyze("nonExistentPackage")).isInstanceOf(FileNotFoundException.class);
     }
 
     /**
@@ -95,7 +96,7 @@ public class DroidFormatIdentifierTest {
     public void analyzeNonExistentWorkspaceTest() {
         formatIdentifier.setWorkspace("nonExistentWorkspace");
 
-        assertThrown(() -> formatIdentifier.analyze("KPW01169310")).isInstanceOf(IOException.class);
+        assertThrown(() -> formatIdentifier.analyze("KPW01169310")).isInstanceOf(FileNotFoundException.class);
     }
 
     private static void copySipToWorkspace(Path path, String sipId) throws IOException {

@@ -39,6 +39,7 @@ public class FormatIdentifierBpmDelegateTest {
     private RuntimeService runtimeService;
     @Autowired
     private RepositoryService repositoryService;
+
     private String processInstanceId = null;
 
     @BeforeClass
