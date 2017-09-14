@@ -64,7 +64,7 @@ public class IngestBpmDelegate implements JavaDelegate {
                 We use the thread sleep to simulate the time required to process the SIP.
                 */
                 Thread.sleep(1000);
-    //            delSipFromWorkspace(sipId);
+                delSipFromWorkspace(sipId);
             }
 
         sip.setState(SipState.PROCESSED);
@@ -100,7 +100,7 @@ public class IngestBpmDelegate implements JavaDelegate {
                 createDirectories(folder);
             }
 
-            FileSystemUtils.copyRecursively(new File(src), new File(workspace + "/" + sipId));
+            FileSystemUtils.copyRecursively(new File(src), new File(workspace, sipId));
         });
     }
 

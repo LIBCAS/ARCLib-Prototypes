@@ -45,6 +45,9 @@ public class CoordinatorIntegrationTest implements ApiTest {
 
     @Inject
     private CoordinatorApi api;
+
+    public static final String SIP_SOURCES = "../SIP_packages";
+
     /**
      * Test of ({@link CoordinatorService#start(String)}) method. The method is passed a path to the test folder containing three empty
      * files. The test asserts that:
@@ -57,7 +60,7 @@ public class CoordinatorIntegrationTest implements ApiTest {
     public void startTest() throws Exception {
         final String[] result = new String[1];
         mvc(api).perform(post("/api/coordinator/start")
-                .content(getClass().getResource("/testFiles").getPath().getBytes()))
+                .content(SIP_SOURCES.getBytes()))
                 .andExpect(status().is2xxSuccessful())
                 .andDo(r -> result[0] = r.getResponse().getContentAsString());
 
@@ -66,13 +69,13 @@ public class CoordinatorIntegrationTest implements ApiTest {
         /*
         wait until all the JMS communication is finished and the proper data is stored in DB
          */
-        Thread.sleep(6000);
+        Thread.sleep(12000);
 
         Batch batch = batchStore.find(batchId);
         assertThat(batch.getState(), is(BatchState.PROCESSED));
 
         Collection<Sip> allSips = sipStore.findAll();
-        assertThat(allSips, hasSize(3));
+        assertThat(allSips, hasSize(5));
         allSips.forEach(sip -> {
             assertThat(sip.getState(), Is.is(SipState.PROCESSED));
         });
@@ -97,7 +100,7 @@ public class CoordinatorIntegrationTest implements ApiTest {
     public void cancelTest() throws Exception {
         final String[] result = new String[1];
         mvc(api).perform(post("/api/coordinator/start")
-                .content(getClass().getResource("/testFiles").getPath().getBytes()))
+                .content(SIP_SOURCES.getBytes()))
                 .andExpect(status().is2xxSuccessful())
                 .andDo(r -> result[0] = r.getResponse().getContentAsString());
 
@@ -126,7 +129,7 @@ public class CoordinatorIntegrationTest implements ApiTest {
         final String[] result = new String[1];
 
         mvc(api).perform(post("/api/coordinator/start")
-                .content(getClass().getResource("/testFiles").getPath().getBytes()))
+                .content(SIP_SOURCES.getBytes()))
                 .andExpect(status().is2xxSuccessful())
                 .andDo(r -> result[0] = r.getResponse().getContentAsString());
 
@@ -159,7 +162,7 @@ public class CoordinatorIntegrationTest implements ApiTest {
         final String[] result = new String[1];
 
         mvc(api).perform(post("/api/coordinator/start")
-                .content(getClass().getResource("/testFiles").getPath().getBytes()))
+                .content(SIP_SOURCES.getBytes()))
                 .andExpect(status().is2xxSuccessful())
                 .andDo(r -> result[0] = r.getResponse().getContentAsString());
 
@@ -181,7 +184,7 @@ public class CoordinatorIntegrationTest implements ApiTest {
         assertThat(batch.getState(), is(BatchState.PROCESSED));
 
         Collection<Sip> allSips = sipStore.findAll();
-        assertThat(allSips, hasSize(3));
+        assertThat(allSips, hasSize(5));
         allSips.forEach(sip -> {
             assertThat(sip.getState(), is(SipState.PROCESSED));
         });
@@ -275,12 +278,8 @@ public class CoordinatorIntegrationTest implements ApiTest {
 
     @After
     public void testTearDown() throws SQLException {
-        sipStore.findAll().forEach(sip -> {
-            sipStore.delete(sip);
-        });
+        sipStore.findAll().forEach(sipStore::delete);
 
-        batchStore.findAll().forEach(batch -> {
-            batchStore.delete(batch);
-        });
+        batchStore.findAll().forEach(batchStore::delete);
     }
 }
