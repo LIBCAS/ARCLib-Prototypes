@@ -12,11 +12,10 @@ import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.FileSystemUtils;
 
 import javax.inject.Inject;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -44,7 +43,7 @@ public class IngestBpmDelegate implements JavaDelegate {
      */
     @Transactional
     @Override
-    public void execute(DelegateExecution execution) throws FileNotFoundException, InterruptedException {
+    public void execute(DelegateExecution execution) throws IOException, InterruptedException {
         String sipId = (String) execution.getVariable("sipId");
         String batchId = (String) execution.getVariable("batchId");
 
@@ -54,11 +53,10 @@ public class IngestBpmDelegate implements JavaDelegate {
             Sip sip = sipStore.find(sipId);
             notNull(sip, () -> new MissingObject(Sip.class, sipId));
 
-            String path = sip.getPath();
-            if (path != null) {
-                InputStream stream = new FileInputStream(path);
+            String sipPath = sip.getPath();
+            if (sipPath != null) {
+                copySipToWorkspace(sipPath, sipId);
 
-                copySipToWorkspace(sipId, stream);
                 log.info("SIP " + sipId + " has been successfully copied to workspace.");
 
                 /*
@@ -90,23 +88,19 @@ public class IngestBpmDelegate implements JavaDelegate {
     }
 
     /**
-     * Creates a file in workspace folder with the sip id as name and stream as file content
-     *
-     * @param sipId  id of the file to create
-     * @param stream content of the file to create
+     * Copies folder with SIP contents to workspace
+     * @param src path to the folder where the SIP is located
+     * @param sipId id of the SIP
+     * @throws IOException
      */
-    private void copySipToWorkspace(String sipId, InputStream stream) {
+    private void copySipToWorkspace(String src, String sipId) throws IOException {
         checked(() -> {
             Path folder = Paths.get(workspace);
-
-            if (!isDirectory(folder) && exists(folder)) {
-                throw new ForbiddenObject(Path.class, sipId);
-            } else if (!isDirectory(folder)) {
+            if (!exists(folder)) {
                 createDirectories(folder);
             }
 
-            Path path = Paths.get(workspace, sipId);
-            copy(stream, path);
+            FileSystemUtils.copyRecursively(new File(src), new File(workspace + "/" + sipId));
         });
     }
 

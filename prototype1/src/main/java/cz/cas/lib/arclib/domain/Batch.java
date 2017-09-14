@@ -22,8 +22,8 @@ public class Batch extends DatedObject {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name="arclib_batch_i", joinColumns=@JoinColumn(name="batch_id"))
     @Column(name="id")
-    private Set<String> ids = new HashSet<>();
+    protected Set<String> ids = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
-    private BatchState state;
+    protected BatchState state;
 }
