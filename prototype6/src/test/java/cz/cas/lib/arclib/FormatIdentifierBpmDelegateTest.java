@@ -1,4 +1,4 @@
-package cas.lib.arclib;
+package cz.cas.lib.arclib;
 
 import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.RepositoryService;

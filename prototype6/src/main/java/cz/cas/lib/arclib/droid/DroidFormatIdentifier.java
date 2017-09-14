@@ -1,6 +1,6 @@
-package cas.lib.arclib.droid;
+package cz.cas.lib.arclib.droid;
 
-import cas.lib.arclib.FormatIdentifier;
+import cz.cas.lib.arclib.FormatIdentifier;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,18 +29,17 @@ public class DroidFormatIdentifier implements FormatIdentifier {
     public Map<String, List<String>> analyze(String sipId) throws IOException, InterruptedException {
         log.info("DROID format analysis for SIP " + sipId + " started.");
 
-        Path workSpacePath = Paths.get(workspace);
-        Path pathToSip = workSpacePath.resolve(sipId);
+        Path pathToSip = Paths.get(workspace).resolve(sipId);
 
         if (!Files.exists(pathToSip)) {
             log.error("SIP at path " + pathToSip + " doest not exist.");
             throw new FileNotFoundException("no file/folder found at: " + pathToSip);
         }
 
-        Path profileResultsPath = workSpacePath.resolve(sipId + ".droid");
+        Path profileResultsPath = Paths.get(workspace).resolve(sipId + ".droid");
         runProfile(pathToSip, profileResultsPath);
 
-        Path exportResultsPath = workSpacePath.resolve(sipId + ".csv");
+        Path exportResultsPath = Paths.get(workspace).resolve(sipId + ".csv");
         exportProfile(profileResultsPath, exportResultsPath);
 
         Map<String, List<String>> filePathsToParsedColumnValues = parseResults(exportResultsPath, CsvResultColumn.FORMAT_NAME);
@@ -97,11 +96,11 @@ public class DroidFormatIdentifier implements FormatIdentifier {
     protected Map<String, List<String>> parseResults(Path pathToResultsCsv, CsvResultColumn parsedColumn) throws IOException {
         log.info("Parsing of CSV file " + pathToResultsCsv + " started.");
 
-        BufferedReader br = null;
         Map<String, List<String>> filePathsToParsedColumnValues = new HashMap<>();
 
         final String cvsSplitBy = ",";
 
+        BufferedReader br = null;
         try {
             br = new BufferedReader(new FileReader(pathToResultsCsv.toAbsolutePath().toString()));
             String line = br.readLine();

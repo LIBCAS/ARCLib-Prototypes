@@ -1,4 +1,4 @@
-package cas.lib.arclib;
+package cz.cas.lib.arclib;
 
 import lombok.extern.slf4j.Slf4j;
 import org.camunda.bpm.spring.boot.starter.annotation.EnableProcessApplication;

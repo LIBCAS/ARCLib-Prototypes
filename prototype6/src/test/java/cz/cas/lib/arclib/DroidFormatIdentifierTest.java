@@ -1,6 +1,6 @@
-package cas.lib.arclib;
+package cz.cas.lib.arclib;
 
-import cas.lib.arclib.droid.DroidFormatIdentifier;
+import cz.cas.lib.arclib.droid.DroidFormatIdentifier;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,7 +82,7 @@ public class DroidFormatIdentifierTest {
     }
 
     /**
-     * Test the the right exception is thrown when an ID of a nonexistent SIP is provided
+     * Test that the right exception is thrown when an ID of a nonexistent SIP is provided
      */
     @Test
     public void analyzeNonExistentPackageTest() {

@@ -1,7 +1,6 @@
-package cas.lib.arclib;
+package cz.cas.lib.arclib;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 

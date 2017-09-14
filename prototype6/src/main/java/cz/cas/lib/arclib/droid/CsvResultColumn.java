@@ -1,4 +1,4 @@
-package cas.lib.arclib.droid;
+package cz.cas.lib.arclib.droid;
 
 import lombok.Getter;
 

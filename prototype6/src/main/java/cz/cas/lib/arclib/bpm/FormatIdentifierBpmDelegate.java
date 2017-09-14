@@ -1,6 +1,6 @@
-package cas.lib.arclib.bpm;
+package cz.cas.lib.arclib.bpm;
 
-import cas.lib.arclib.FormatIdentifier;
+import cz.cas.lib.arclib.FormatIdentifier;
 import lombok.extern.slf4j.Slf4j;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
