@@ -8,8 +8,8 @@ import org.springframework.context.annotation.ComponentScan;
 
 @Slf4j
 @SpringBootApplication
-@ComponentScan(basePackages = "cas.lib.arclib")
-@EntityScan(basePackages = "cas.lib.arclib.domain")
+@ComponentScan(basePackages = "cz.cas.lib.arclib")
+@EntityScan(basePackages = "cz.cas.lib.arclib.domain")
 public class Initializer {
 
     public static void main(String[] args) {

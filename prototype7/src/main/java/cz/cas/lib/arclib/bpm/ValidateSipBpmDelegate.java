@@ -4,6 +4,7 @@ import cz.cas.lib.arclib.domain.Sip;
 import cz.cas.lib.arclib.domain.SipState;
 import cz.cas.lib.arclib.service.ValidationService;
 import cz.cas.lib.arclib.store.SipStore;
+import cz.inqool.uas.exception.MissingAttribute;
 import cz.inqool.uas.exception.MissingObject;
 import cz.inqool.uas.store.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +38,7 @@ public class ValidateSipBpmDelegate implements JavaDelegate {
     protected ValidationService service;
 
     /**
-     * Executes the ingest process for the given SIP:
+     * Executes the validation process for the given SIP:
      * 1. copies SIP to workspace
      * 2. validates SIP
      * 3. deletes SIP from workspace
@@ -59,20 +60,19 @@ public class ValidateSipBpmDelegate implements JavaDelegate {
         notNull(sip, () -> new MissingObject(Sip.class, sipId));
 
         String sipPath = sip.getPath();
-        if (sipPath != null) {
-            copySipToWorkspace(sipPath, sipId);
+        notNull(sipPath, () -> new MissingAttribute(Sip.class, "sipPath"));
 
-            log.info("SIP " + sipId + " has been successfully copied to workspace.");
+        copySipToWorkspace(sipPath, sipId);
+        log.info("SIP " + sipId + " has been successfully copied to workspace.");
 
-            String workspaceSipPath = workspace + "/" + sipId;
-            service.validateSip(workspaceSipPath, validationProfileId);
-
-            delSipFromWorkspace(sipId);
-        }
+        String workspaceSipPath = workspace + "/" + sipId;
+        service.validateSip(workspaceSipPath, validationProfileId);
 
         sip.setState(SipState.PROCESSED);
         sipStore.save(sip);
         log.info("SIP " + sipId + " has been processed. The SIP state changed to PROCESSED.");
+
+        delSipFromWorkspace(sipId);
     }
 
     /**

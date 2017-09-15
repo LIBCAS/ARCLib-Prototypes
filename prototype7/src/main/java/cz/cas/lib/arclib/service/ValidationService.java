@@ -1,7 +1,6 @@
 package cz.cas.lib.arclib.service;
 
 import cz.cas.lib.arclib.domain.ValidationProfile;
-import cas.lib.arclib.exception.*;
 import cz.cas.lib.arclib.exception.MissingFile;
 import cz.cas.lib.arclib.store.ValidationProfileStore;
 import cz.cas.lib.arclib.exception.InvalidNodeValue;
