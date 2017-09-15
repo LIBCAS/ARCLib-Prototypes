@@ -1,13 +1,13 @@
 package cz.cas.lib.arclib.api;
 
-import cz.inqool.uas.store.Transactional;
+import cz.cas.lib.arclib.store.general.Transactional;
 import lombok.Getter;
 import org.camunda.bpm.engine.RuntimeService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.inject.Inject;
 
-import static cz.inqool.uas.util.Utils.asMap;
+import static cz.cas.lib.arclib.Utils.asMap;
 
 @RestController
 @RequestMapping("/api/validation_api")

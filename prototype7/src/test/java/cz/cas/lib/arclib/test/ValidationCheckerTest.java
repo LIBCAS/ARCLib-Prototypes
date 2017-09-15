@@ -1,7 +1,7 @@
 package cz.cas.lib.arclib.test;
 
 import cz.cas.lib.arclib.service.ValidationChecker;
-import cz.inqool.uas.exception.GeneralException;
+import cz.cas.lib.arclib.exception.general.GeneralException;
 import cz.cas.lib.arclib.test.helper.ThrowableAssertion;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;

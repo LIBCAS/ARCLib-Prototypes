@@ -1,7 +1,6 @@
 package cz.cas.lib.arclib.test.helper;
 
-import cz.inqool.uas.exception.ConflictObject;
-import cz.inqool.uas.exception.InvalidAttribute;
+import cz.cas.lib.arclib.exception.general.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -21,11 +20,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class ResourceExceptionHandler {
 
     @ResponseStatus(value= HttpStatus.NOT_FOUND)
-    @ExceptionHandler(cz.inqool.uas.exception.MissingObject.class)
+    @ExceptionHandler(MissingObject.class)
     public void missingObject() {}
 
     @ResponseStatus(value= HttpStatus.NOT_FOUND)
-    @ExceptionHandler(cz.inqool.uas.exception.MissingAttribute.class)
+    @ExceptionHandler(MissingAttribute.class)
     public void missingAttribute() {}
 
     @ResponseStatus(value= HttpStatus.BAD_REQUEST)
@@ -33,15 +32,15 @@ public class ResourceExceptionHandler {
     public void invalidAttribute() {}
 
     @ResponseStatus(value= HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(cz.inqool.uas.exception.BadArgument.class)
+    @ExceptionHandler(BadArgument.class)
     public void badArgument() {}
 
     @ResponseStatus(value= HttpStatus.FORBIDDEN)
-    @ExceptionHandler(cz.inqool.uas.exception.ForbiddenObject.class)
+    @ExceptionHandler(ForbiddenObject.class)
     public void forbiddenObject() {}
 
     @ResponseStatus(value= HttpStatus.FORBIDDEN)
-    @ExceptionHandler(cz.inqool.uas.exception.ForbiddenOperation.class)
+    @ExceptionHandler(ForbiddenOperation.class)
     public void forbiddenOperation() {}
 
     @ResponseStatus(value= HttpStatus.CONFLICT)

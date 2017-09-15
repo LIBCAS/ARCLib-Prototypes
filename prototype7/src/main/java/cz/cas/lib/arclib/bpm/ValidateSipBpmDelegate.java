@@ -4,9 +4,9 @@ import cz.cas.lib.arclib.domain.Sip;
 import cz.cas.lib.arclib.domain.SipState;
 import cz.cas.lib.arclib.service.ValidationService;
 import cz.cas.lib.arclib.store.SipStore;
-import cz.inqool.uas.exception.MissingAttribute;
-import cz.inqool.uas.exception.MissingObject;
-import cz.inqool.uas.store.Transactional;
+import cz.cas.lib.arclib.exception.general.MissingAttribute;
+import cz.cas.lib.arclib.exception.general.MissingObject;
+import cz.cas.lib.arclib.store.general.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
@@ -24,8 +24,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static cz.inqool.uas.util.Utils.checked;
-import static cz.inqool.uas.util.Utils.notNull;
+import static cz.cas.lib.arclib.Utils.checked;
+import static cz.cas.lib.arclib.Utils.notNull;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.exists;
 

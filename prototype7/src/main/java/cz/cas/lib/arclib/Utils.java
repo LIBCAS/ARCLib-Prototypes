@@ -1,7 +1,7 @@
-package cz.inqool.uas.util;
+package cz.cas.lib.arclib;
 
-import cz.inqool.uas.domain.DomainObject;
-import cz.inqool.uas.exception.GeneralException;
+import cz.cas.lib.arclib.domain.general.DomainObject;
+import cz.cas.lib.arclib.exception.general.GeneralException;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 

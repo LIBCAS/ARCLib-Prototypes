@@ -1,6 +1,6 @@
-package cz.inqool.uas.store;
+package cz.cas.lib.arclib.store.general;
 
-import cz.inqool.uas.domain.DatedObject;
+import cz.cas.lib.arclib.domain.general.DatedObject;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.EntityPathBase;
 import com.querydsl.core.types.dsl.StringPath;

@@ -1,6 +1,6 @@
-package cz.inqool.uas.exception;
+package cz.cas.lib.arclib.exception.general;
 
-import cz.inqool.uas.domain.DomainObject;
+import cz.cas.lib.arclib.domain.general.DomainObject;
 
 public class ForbiddenObject extends GeneralException {
     private Object object;

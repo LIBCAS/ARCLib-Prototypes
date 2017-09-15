@@ -2,18 +2,18 @@ package cz.cas.lib.arclib.api;
 
 import cz.cas.lib.arclib.domain.ValidationProfile;
 import cz.cas.lib.arclib.store.ValidationProfileStore;
-import cz.inqool.uas.domain.DomainObject;
-import cz.inqool.uas.exception.BadArgument;
-import cz.inqool.uas.exception.MissingObject;
-import cz.inqool.uas.store.Transactional;
+import cz.cas.lib.arclib.domain.general.DomainObject;
+import cz.cas.lib.arclib.exception.general.BadArgument;
+import cz.cas.lib.arclib.exception.general.MissingObject;
+import cz.cas.lib.arclib.store.general.Transactional;
 import lombok.Getter;
 import org.springframework.web.bind.annotation.*;
 
 import javax.inject.Inject;
 import java.util.Collection;
 
-import static cz.inqool.uas.util.Utils.eq;
-import static cz.inqool.uas.util.Utils.notNull;
+import static cz.cas.lib.arclib.Utils.eq;
+import static cz.cas.lib.arclib.Utils.notNull;
 
 @RestController
 @RequestMapping("/api/validation_profile")

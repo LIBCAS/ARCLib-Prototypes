@@ -9,7 +9,7 @@ import cz.cas.lib.arclib.service.ValidationService;
 import cz.cas.lib.arclib.store.ValidationProfileStore;
 import cz.cas.lib.arclib.test.helper.DbTest;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import cz.inqool.uas.exception.MissingObject;
+import cz.cas.lib.arclib.exception.general.MissingObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockitoAnnotations;

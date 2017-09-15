@@ -1,6 +1,6 @@
 package cz.cas.lib.arclib.domain;
 
-import cz.inqool.uas.domain.DatedObject;
+import cz.cas.lib.arclib.domain.general.DatedObject;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;

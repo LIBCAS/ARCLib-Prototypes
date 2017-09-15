@@ -6,8 +6,8 @@ import cz.cas.lib.arclib.store.ValidationProfileStore;
 import cz.cas.lib.arclib.exception.InvalidNodeValue;
 import cz.cas.lib.arclib.exception.SchemaValidationError;
 import cz.cas.lib.arclib.exception.WrongNodeValue;
-import cz.inqool.uas.exception.GeneralException;
-import cz.inqool.uas.exception.MissingObject;
+import cz.cas.lib.arclib.exception.general.GeneralException;
+import cz.cas.lib.arclib.exception.general.MissingObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
@@ -29,7 +29,7 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static cz.inqool.uas.util.Utils.notNull;
+import static cz.cas.lib.arclib.Utils.notNull;
 
 @Slf4j
 @Service

@@ -1,4 +1,4 @@
-package cz.inqool.uas.exception;
+package cz.cas.lib.arclib.exception.general;
 
 public class MissingObject extends GeneralException {
     private String type;

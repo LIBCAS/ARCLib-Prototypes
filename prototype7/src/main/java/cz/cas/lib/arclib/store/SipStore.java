@@ -2,7 +2,7 @@ package cz.cas.lib.arclib.store;
 
 import cz.cas.lib.arclib.domain.QSip;
 import cz.cas.lib.arclib.domain.Sip;
-import cz.inqool.uas.store.DatedStore;
+import cz.cas.lib.arclib.store.general.DatedStore;
 import org.springframework.stereotype.Repository;
 
 @Repository
