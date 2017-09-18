@@ -20,7 +20,7 @@ import java.util.Map;
 @Component
 public class DroidFormatIdentifier implements FormatIdentifier {
 
-    private static final String CMD = "droid";
+    private static final String CMD = "droid.bat";
 
     @Getter
     private String workspace;

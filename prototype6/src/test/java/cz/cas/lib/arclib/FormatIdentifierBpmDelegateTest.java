@@ -49,7 +49,7 @@ public class FormatIdentifierBpmDelegateTest {
 
     @AfterClass
     public static void tearDown() throws IOException {
-        deleteWorkspace();
+//        deleteWorkspace();
     }
 
     @Before
