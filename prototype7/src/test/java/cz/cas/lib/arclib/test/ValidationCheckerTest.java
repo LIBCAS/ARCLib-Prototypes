@@ -22,7 +22,7 @@ public class ValidationCheckerTest {
 
     @Test
     public void validationSchemaCheckSuccess() throws IOException, SAXException {
-        URL url = getClass().getResource("/validationProfileSchema");
+        URL url = getClass().getResource("/validationProfileSchema.xsd");
         String xsd = Resources.toString(url, Charsets.UTF_8);
 
         ValidationChecker.validateWithXMLSchema(getClass().getResource("/validationProfileMixedChecks.xml").getPath(), xsd);
@@ -30,7 +30,7 @@ public class ValidationCheckerTest {
 
     @Test
     public void validationSchemaCheckInvalidXml() throws IOException, SAXException {
-        URL url = getClass().getResource("/validationProfileSchema");
+        URL url = getClass().getResource("/validationProfileSchema.xsd");
         String xsd = Resources.toString(url, Charsets.UTF_8);
         ThrowableAssertion.assertThrown(() -> ValidationChecker.validateWithXMLSchema(getClass().getResource
                 ("/validationProfileInvalidProfile.xml").getPath(), xsd)).isInstanceOf(GeneralException.class);
@@ -38,7 +38,7 @@ public class ValidationCheckerTest {
 
     @Test
     public void validationSchemaCheckInvalidXsd() throws IOException, SAXException {
-        URL url = getClass().getResource("/schemaInvalid.xml");
+        URL url = getClass().getResource("/schemaInvalid.xsd");
         String xsd = Resources.toString(url, Charsets.UTF_8);
         ThrowableAssertion.assertThrown(() -> ValidationChecker.validateWithXMLSchema(getClass().getResource
                 ("/validationProfileMixedChecks.xml").getPath(), xsd)).isInstanceOf(SAXException.class);

@@ -1,4 +1,4 @@
-<profile xmlns="http://www.cas.lib.arclib">
+<profile xmlns="http://www.arclib.lib.cas.cz">
     <rule>
     <validationSchemaCheck>
         <filePath>/info.xml</filePath>

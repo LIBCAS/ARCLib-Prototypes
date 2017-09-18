@@ -113,7 +113,7 @@ public class ValidationServiceTest extends DbTest {
     @Test
     public void validateSipValidationSchemaCheckFailure() throws ParserConfigurationException, SAXException, XPathExpressionException,
             IOException {
-        InputStream inputStream = getClass().getResourceAsStream("/validationProfileInvalidScheme.xml");
+        InputStream inputStream = getClass().getResourceAsStream("/validationProfileInvalidSchema.xml");
         String xml = readFromInputStream(inputStream);
 
         ValidationProfile validationProfile = new ValidationProfile();
