@@ -144,8 +144,8 @@ public class DroidFormatIdentifier implements FormatIdentifier {
                 filePathsToParsedColumnValues.put(filePath, values);
             }
             filePathsToParsedColumnValues.keySet().stream().forEach(filePath -> {
-                List<String> strings = filePathsToParsedColumnValues.get(filePath);
-                log.info("File at path \"" + filePath + "\" has been identified with formats: " + strings.toString());
+                List<String> formats = filePathsToParsedColumnValues.get(filePath);
+                log.info("File at path \"" + filePath + "\" has been identified with formats: " + formats.toString());
             });
 
             log.info("Parsing of CSV file " + pathToResultsCsv + " finished.");

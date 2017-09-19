@@ -3,7 +3,7 @@
         <nodeCheck>
             <filePath>/info.xml</filePath>
             <xPath>/info/creator</xPath>
-            <regex>notMatchingRegex</regex>
+            <regex>someRegexPattern</regex>
         </nodeCheck>
     </rule>
 </profile>
