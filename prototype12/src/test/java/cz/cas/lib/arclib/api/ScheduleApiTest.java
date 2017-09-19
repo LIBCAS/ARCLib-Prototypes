@@ -5,6 +5,8 @@ import cz.cas.lib.arclib.helper.ApiTest;
 import cz.cas.lib.arclib.store.JobStore;
 import cz.cas.lib.arclib.exception.BadArgument;
 import cz.cas.lib.arclib.helper.ThrowableAssertion;
+import liquibase.util.SystemUtils;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,12 +33,29 @@ public class ScheduleApiTest implements ApiTest {
         ThrowableAssertion.assertThrown(() -> api.schedule("%#%@#")).isInstanceOf(BadArgument.class);
     }
 
+    private static String SCRIPT_1;
+    private static String SCRIPT_2;
+    private static String SCRIPT_3;
+
+    @BeforeClass
+    public static void setScriptFiles() {
+        if (SystemUtils.IS_OS_WINDOWS) {
+            SCRIPT_1 = "/script1.bat";
+            SCRIPT_2 = "/script2.bat";
+            SCRIPT_3 = "/script3.bat";
+        } else {
+            SCRIPT_1 = "/script1.sh";
+            SCRIPT_2 = "/script2.sh";
+            SCRIPT_3 = "/script3.sh";
+        }
+    }
+
     @Test
     public void scheduleTestScriptReturnsZero() throws InterruptedException {
         Instant start = Instant.now();
 
         Job job = new Job();
-        job.setScript((this.getClass().getResource("/script1.bat")).getPath());
+        job.setScript((this.getClass().getResource(SCRIPT_1)).getPath());
         job.setTiming("*/1 * * * * ?");
         store.save(job);
 
@@ -58,7 +77,8 @@ public class ScheduleApiTest implements ApiTest {
         Instant start = Instant.now();
 
         Job job = new Job();
-        job.setScript((this.getClass().getResource("/script2.bat")).getPath());
+        job.setScript((this.getClass().getResource(SCRIPT_2)).getPath());
+
         job.setTiming("*/1 * * * * ?");
         store.save(job);
 
@@ -80,7 +100,7 @@ public class ScheduleApiTest implements ApiTest {
         Instant start = Instant.now();
 
         Job job = new Job();
-        job.setScript((this.getClass().getResource("/script3.bat")).getPath());
+        job.setScript((this.getClass().getResource(SCRIPT_3)).getPath());
         job.setTiming("*/1 * * * * ?");
         store.save(job);
 
@@ -98,16 +118,11 @@ public class ScheduleApiTest implements ApiTest {
     }
 
     @Test
-    public void unscheduleNonExistentJobTest() throws InterruptedException {
-        ThrowableAssertion.assertThrown(() -> api.unschedule("%#%@#")).isInstanceOf(BadArgument.class);
-    }
-
-    @Test
     public void unscheduleTest() throws InterruptedException {
         Instant start = Instant.now();
 
         Job job = new Job();
-        job.setScript((this.getClass().getResource("/script1.bat")).getPath());
+        job.setScript((this.getClass().getResource(SCRIPT_1)).getPath());
         job.setTiming("*/1 * * * * ?");
         store.save(job);
 
@@ -128,5 +143,11 @@ public class ScheduleApiTest implements ApiTest {
         job = store.find(job.getId());
         assertThat(job.getActive(), is(false));
         assertThat(job.getLastExecutionTime().isAfter(start), is(true));
-        assertThat(job.getLastExecutionTime().isBefore(finish), is(true));    }
+        assertThat(job.getLastExecutionTime().isBefore(finish), is(true));
+    }
+
+    @Test
+    public void unscheduleNonExistentJobTest() throws InterruptedException {
+        ThrowableAssertion.assertThrown(() -> api.unschedule("%#%@#")).isInstanceOf(BadArgument.class);
+    }
 }
