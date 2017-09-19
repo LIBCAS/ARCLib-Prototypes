@@ -31,11 +31,7 @@ public class JobRunner {
 
         int exitCode = runShell(job.getScript());
 
-        if (exitCode != -1) {
-            log.info("Script execution of job " + job.getId() + " has finished successfully.");
-        } else {
-            log.error("Script execution of job " + job.getId() + " has failed.");
-        }
+        log.info("Script execution of job " + job.getId() + " has finished with code " + exitCode + ".");
 
         job.setLastReturnCode(exitCode);
         job.setLastExecutionTime(Instant.now());

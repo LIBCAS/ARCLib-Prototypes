@@ -3,7 +3,7 @@
         <nodeCheck>
             <filePath>/info.xml</filePath>
             <xPath>/info/creator</xPath>
-            <value>wrongValue</value>
+            <value>123456</value>
         </nodeCheck>
     </rule>
 </profile>
