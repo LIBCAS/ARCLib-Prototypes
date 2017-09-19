@@ -16,7 +16,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
-import static cz.inqool.uas.helper.ThrowableAssertion.assertThrown;
+import static cz.cas.lib.arclib.helper.ThrowableAssertion.assertThrown;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.exists;
 import static org.hamcrest.MatcherAssert.assertThat;

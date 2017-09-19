@@ -1,4 +1,4 @@
-package cz.inqool.uas.helper;
+package cz.cas.lib.arclib.helper;
 
 @FunctionalInterface
 public interface ExceptionThrower {
