@@ -10,7 +10,7 @@
         <class>com.github.marschall.threeten.jpa.LocalDateConverter</class>
         <class>com.github.marschall.threeten.jpa.LocalDateTimeConverter</class>
         <class>com.github.marschall.threeten.jpa.InstantConverter</class>
-        <class>cas.lib.arclib.domain.Job</class>
+        <class>cz.cas.lib.arclib.domain.Job</class>
         <exclude-unlisted-classes>false</exclude-unlisted-classes>
 
         <properties>
