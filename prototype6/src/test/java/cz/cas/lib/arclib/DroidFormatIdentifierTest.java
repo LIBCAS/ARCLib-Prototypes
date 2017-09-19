@@ -69,7 +69,7 @@ public class DroidFormatIdentifierTest {
         Path pathToSip = Paths.get(WORKSPACE).resolve(SIP_ID);
 
         String filePath1 = pathToSip.resolve("METS_KPW01169310.xml").toAbsolutePath().toString();
-        assertThat(result.get(filePath1), contains("text/xml"));
+        assertThat(result.get(filePath1), contains("Extensible Markup Language"));
 
         String filePath2 = pathToSip.resolve("desktop.ini").toAbsolutePath().toString();
         assertThat(result.get(filePath2), contains("Text Configuration file"));

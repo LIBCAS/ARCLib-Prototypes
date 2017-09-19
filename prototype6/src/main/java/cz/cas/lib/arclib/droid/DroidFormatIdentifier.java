@@ -126,7 +126,12 @@ public class DroidFormatIdentifier implements FormatIdentifier {
             while ((line = br.readLine()) != null) {
                 list = line.split(cvsSplitBy);
 
-                String parsedColumnValue = list[parsedColumnIndex].replace("\"", "").trim();
+                String parsedColumnValue = list[parsedColumnIndex].replace("\"", "");
+
+                if (parsedColumnValue.startsWith(" ")) {
+                    parsedColumnValue = list[parsedColumnIndex + 1].replace("\"", "");
+                }
+
                 String filePath = list[filePathColumnIndex].replace("\"", "");
 
                 List<String> values = filePathsToParsedColumnValues.get(filePath);
@@ -138,6 +143,10 @@ public class DroidFormatIdentifier implements FormatIdentifier {
 
                 filePathsToParsedColumnValues.put(filePath, values);
             }
+            filePathsToParsedColumnValues.keySet().stream().forEach(filePath -> {
+                List<String> strings = filePathsToParsedColumnValues.get(filePath);
+                log.info("File at path \"" + filePath + "\" has been identified with formats: " + strings.toString());
+            });
 
             log.info("Parsing of CSV file " + pathToResultsCsv + " finished.");
         } finally {
