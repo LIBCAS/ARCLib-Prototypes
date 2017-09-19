@@ -28,6 +28,8 @@ public class ValidationServiceTest extends DbTest {
 
     private ValidationService service;
     private ValidationProfileStore store;
+    private static final String SIP_ID = "KPW01169310";
+    private static final String SIP_PATH = "../SIP_packages/" + SIP_ID;
 
     @Before
     public void setUp() {
@@ -52,15 +54,13 @@ public class ValidationServiceTest extends DbTest {
         store.save(validationProfile);
         flushCache();
 
-        String sipPath = "../KPW01169310";
-        service.validateSip(sipPath, validationProfile.getId());
+        service.validateSip(SIP_ID, SIP_PATH, validationProfile.getId());
     }
 
     @Test
     public void validateSipProfileMissing() throws ParserConfigurationException, SAXException, XPathExpressionException,
             IOException {
-        String sipPath = "../KPW01169310";
-        assertThrown(() -> service.validateSip(sipPath, "nonExistentId")).isInstanceOf(MissingObject.class);
+        assertThrown(() -> service.validateSip(SIP_ID, SIP_PATH, "nonExistentId")).isInstanceOf(MissingObject.class);
     }
 
     @Test
@@ -74,8 +74,7 @@ public class ValidationServiceTest extends DbTest {
         store.save(validationProfile);
         flushCache();
 
-        String sipPath = "../KPW01169310";
-        service.validateSip(sipPath, validationProfile.getId());
+        service.validateSip(SIP_ID, SIP_PATH, validationProfile.getId());
     }
 
     @Test
@@ -90,8 +89,7 @@ public class ValidationServiceTest extends DbTest {
         store.save(validationProfile);
         flushCache();
 
-        String sipPath = "../KPW01169310";
-        assertThrown(() -> service.validateSip(sipPath, validationProfile.getId())).isInstanceOf(MissingFile.class);
+        assertThrown(() -> service.validateSip(SIP_ID, SIP_PATH, validationProfile.getId())).isInstanceOf(MissingFile.class);
     }
 
     @Test
@@ -106,8 +104,7 @@ public class ValidationServiceTest extends DbTest {
         store.save(validationProfile);
         flushCache();
 
-        String sipPath = "../KPW01169310";
-        service.validateSip(sipPath, validationProfile.getId());
+        service.validateSip(SIP_ID, SIP_PATH, validationProfile.getId());
     }
 
     @Test
@@ -122,8 +119,7 @@ public class ValidationServiceTest extends DbTest {
         store.save(validationProfile);
         flushCache();
 
-        String sipPath = "../KPW01169310";
-        assertThrown(() -> service.validateSip(sipPath, validationProfile.getId())).isInstanceOf(SchemaValidationError.class);
+        assertThrown(() -> service.validateSip(SIP_ID, SIP_PATH, validationProfile.getId())).isInstanceOf(SchemaValidationError.class);
     }
 
     @Test
@@ -138,8 +134,7 @@ public class ValidationServiceTest extends DbTest {
         store.save(validationProfile);
         flushCache();
 
-        String sipPath = "../KPW01169310";
-        service.validateSip(sipPath, validationProfile.getId());
+        service.validateSip(SIP_ID, SIP_PATH, validationProfile.getId());
     }
 
     @Test
@@ -154,8 +149,7 @@ public class ValidationServiceTest extends DbTest {
         store.save(validationProfile);
         flushCache();
 
-        String sipPath = "../KPW01169310";
-        assertThrown(() -> service.validateSip(sipPath, validationProfile.getId())).isInstanceOf(WrongNodeValue.class);
+        assertThrown(() -> service.validateSip(SIP_ID, SIP_PATH, validationProfile.getId())).isInstanceOf(WrongNodeValue.class);
     }
 
     @Test
@@ -170,8 +164,7 @@ public class ValidationServiceTest extends DbTest {
         store.save(validationProfile);
         flushCache();
 
-        String sipPath = "../KPW01169310";
-        assertThrown(() -> service.validateSip(sipPath, validationProfile.getId())).isInstanceOf(InvalidNodeValue.class);
+        assertThrown(() -> service.validateSip(SIP_ID, SIP_PATH, validationProfile.getId())).isInstanceOf(InvalidNodeValue.class);
     }
 
     private String readFromInputStream(InputStream inputStream) throws IOException {

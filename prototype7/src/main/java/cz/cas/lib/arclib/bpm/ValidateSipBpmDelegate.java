@@ -66,7 +66,7 @@ public class ValidateSipBpmDelegate implements JavaDelegate {
         log.info("SIP " + sipId + " has been successfully copied to workspace.");
 
         String workspaceSipPath = workspace + "/" + sipId;
-        service.validateSip(workspaceSipPath, validationProfileId);
+        service.validateSip(sipId, workspaceSipPath, validationProfileId);
 
         sip.setState(SipState.PROCESSED);
         sipStore.save(sip);

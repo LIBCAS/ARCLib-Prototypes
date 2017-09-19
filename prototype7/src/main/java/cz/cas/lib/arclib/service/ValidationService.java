@@ -52,7 +52,7 @@ public class ValidationService {
      * @throws XPathExpressionException if there is an error in the XPath expression
      * @throws ParserConfigurationException
      */
-    public void validateSip(String sipPath, String validationProfileId)
+    public void validateSip(String sipId, String sipPath, String validationProfileId)
             throws ParserConfigurationException, IOException, SAXException, XPathExpressionException {
         ValidationProfile profile = validationProfileStore.find(validationProfileId);
         notNull(profile, () -> new MissingObject(ValidationProfile.class, validationProfileId));
@@ -65,9 +65,9 @@ public class ValidationService {
         Document validationProfileDoc = dBuilder.parse(new ByteArrayInputStream(validationProfileXml.getBytes()));
         validationProfileDoc.getDocumentElement().normalize();
 
-        performFileExistenceChecks(sipPath, validationProfileDoc, validationProfileId);
-        performValidationSchemaChecks(sipPath, validationProfileDoc, validationProfileId);
-        performNodeValueChecks(sipPath, validationProfileDoc, validationProfileId);
+        performFileExistenceChecks(sipPath, validationProfileDoc, sipId);
+        performValidationSchemaChecks(sipPath, validationProfileDoc, sipId);
+        performNodeValueChecks(sipPath, validationProfileDoc, sipId);
 
         log.info("Validation of SIP with profile " + validationProfileId + " succeeded.");
     }
@@ -93,7 +93,7 @@ public class ValidationService {
             String relativePath = element.getElementsByTagName("filePath").item(0).getTextContent();
             String absolutePath = sipPath + relativePath;
             if (!ValidationChecker.fileExists(absolutePath)) {
-                log.info("Validation of SIP with profile " + validationProfileId + " failed. File at " + absolutePath + " is missing.");
+                log.info("Validation of SIP with profile " + validationProfileId + " failed. File at \"" + absolutePath + "\" is missing.");
                 throw new MissingFile(absolutePath, validationProfileId);
             }
         }
@@ -127,8 +127,8 @@ public class ValidationService {
             try {
                 ValidationChecker.validateWithXMLSchema(absolutePath, schema);
             } catch (GeneralException e) {
-                log.info("Validation of SIP with profile " + validationProfileId + " failed. File at " + absolutePath + " is not valid " +
-                        "against its corresponding schema.");
+                log.info("Validation of SIP with profile " + validationProfileId + " failed. File at \"" + absolutePath + "\" is not " +
+                        "valid against its corresponding schema.");
                 throw new SchemaValidationError(absolutePath, schema, e.getMessage());
             }
         }
@@ -168,8 +168,8 @@ public class ValidationService {
                 String expectedValue = valueElement.getTextContent();
                 // compare with value
                 if (!expectedValue.equals(actualValue)) {
-                    log.info("Validation of SIP with profile " + validationProfileId + " failed. Expected value of node at path " +
-                            expression + " is " + expectedValue + ". Actual value is " + actualValue + ".");
+                    log.info("Validation of SIP with profile " + validationProfileId + " failed. Expected value of node at path \"" +
+                            expression + "\" is " + expectedValue + ". Actual value is " + actualValue + ".");
                     throw new WrongNodeValue(expectedValue, actualValue, absolutePath, expression);                }
             } else {
                 //compare with regex
@@ -179,7 +179,7 @@ public class ValidationService {
                 Matcher m = pattern.matcher(actualValue);
                 if (!m.matches()) {
                     log.info("Validation of SIP with profile " + validationProfileId + " failed. Value " + actualValue + " of node at " +
-                            "path " + expression + " does not match regex " + regex + ".");
+                            "path \"" + expression + "\" does not match regex " + regex + ".");
                     throw new InvalidNodeValue(regex, actualValue, absolutePath, expression);                }
             }
         }
