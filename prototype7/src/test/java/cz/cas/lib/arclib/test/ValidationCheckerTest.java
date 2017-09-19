@@ -20,6 +20,9 @@ import static org.junit.Assert.assertThat;
 
 public class ValidationCheckerTest {
 
+    private static final String SIP_ID = "KPW01169310";
+    private static final String SIP_PATH = "../SIP_packages/" + SIP_ID;
+
     @Test
     public void validationSchemaCheckSuccess() throws IOException, SAXException {
         URL url = getClass().getResource("/validationProfileSchema.xsd");
@@ -68,7 +71,7 @@ public class ValidationCheckerTest {
 
     @Test
     public void filePresenceCheckExistentFileTest() {
-        boolean success = ValidationChecker.fileExists("../KPW01169310/METS_KPW01169310.xml");
+        boolean success = ValidationChecker.fileExists(SIP_PATH + "/METS_KPW01169310.xml");
         assertThat(success, is(true));
     }
 

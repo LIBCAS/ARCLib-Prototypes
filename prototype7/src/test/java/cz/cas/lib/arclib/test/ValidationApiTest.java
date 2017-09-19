@@ -30,10 +30,13 @@ public class ValidationApiTest implements ApiTest {
     @Inject
     private ValidationProfileStore validationProfileStore;
 
+    private static final String SIP_ID = "KPW01169310";
+    private static final String SIP_PATH = "../SIP_packages/" + SIP_ID;
+
     @Test
     public void validationApiTest() throws Exception {
         Sip sip = new Sip();
-        sip.setPath("../KPW01169310");
+        sip.setPath(SIP_PATH);
         sipStore.save(sip);
 
         ValidationProfile validationProfile = new ValidationProfile();
