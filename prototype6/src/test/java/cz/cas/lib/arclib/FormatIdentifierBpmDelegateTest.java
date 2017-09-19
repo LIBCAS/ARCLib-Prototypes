@@ -31,7 +31,7 @@ import static org.hamcrest.Matchers.notNullValue;
 public class FormatIdentifierBpmDelegateTest {
     private static final String SIP_ID = "KPW01169310";
     private static final String WORKSPACE = "workspace";
-    private static final Path SIP_SOURCES_FOLDER = Paths.get("../");
+    private static final Path SIP_SOURCES_FOLDER = Paths.get("../SIP_packages/");
 
     @Autowired
     private HistoryService historyService;
@@ -83,7 +83,7 @@ public class FormatIdentifierBpmDelegateTest {
                 .singleResult().getValue());
 
         assertThat(mapOfFilesToFormats, is(notNullValue()));
-        assertThat(mapOfFilesToFormats.size(), is(39));
+        assertThat(mapOfFilesToFormats.size(), is(55));
     }
 
     private static void copySipToWorkspace(Path path, String sipId) throws IOException {

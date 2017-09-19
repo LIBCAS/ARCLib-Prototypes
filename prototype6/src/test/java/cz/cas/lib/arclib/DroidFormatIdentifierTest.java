@@ -29,7 +29,7 @@ public class DroidFormatIdentifierTest {
 
     private static final String SIP_ID = "KPW01169310";
     private static final String WORKSPACE = "workspace";
-    private static final Path SIP_SOURCES_FOLDER = Paths.get("../");
+    private static final Path SIP_SOURCES_FOLDER = Paths.get("../SIP_packages/");
 
     @Autowired
     private DroidFormatIdentifier formatIdentifier;
@@ -56,7 +56,7 @@ public class DroidFormatIdentifierTest {
     public void testThatAllFilesScanned() throws InterruptedException, IOException {
         Map<String, List<String>> result = formatIdentifier.analyze(SIP_ID);
 
-        assertThat(result.size(), is(39));
+        assertThat(result.size(), is(55));
     }
 
     /**
