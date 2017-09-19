@@ -1,6 +1,6 @@
 mail:
   sender:
-    email: noreply@inqool.cz
+    email: noreply@test.cz
     name: Aplikace Arclib
   app:
     name: Arclib
