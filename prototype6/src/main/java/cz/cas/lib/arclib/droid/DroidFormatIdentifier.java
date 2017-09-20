@@ -37,6 +37,9 @@ public class DroidFormatIdentifier implements FormatIdentifier {
         }
 
         Path profileResultsPath = Paths.get(workspace).resolve(sipId + ".droid");
+
+        getDroidSignatureFileVersion();
+
         runProfile(pathToSip, profileResultsPath);
 
         Path exportResultsPath = Paths.get(workspace).resolve(sipId + ".csv");
@@ -50,9 +53,35 @@ public class DroidFormatIdentifier implements FormatIdentifier {
     }
 
     /**
+     * Get the names of DROID's current default signature file and container signature
+     *
+     * @return names of signature file and container signature
+     * @throws InterruptedException
+     * @throws IOException
+     */
+    protected List<String> getDroidSignatureFileVersion() throws InterruptedException, IOException {
+        ProcessBuilder pb = new ProcessBuilder(CMD, "-x");
+        Process p = pb.start();
+        p.waitFor();
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+        List<String> signatureFileNames = new ArrayList<>();
+
+        String line = br.readLine();
+        while (line != null) {
+            log.info(line);
+            signatureFileNames.add(line);
+            line = br.readLine();
+        }
+
+        return signatureFileNames;
+    }
+
+    /**
      * Runs DROID that creates and runs a new profile from the files belonging the SIP
      *
-     * @param pathToSIP path to the SIP to analyze
+     * @param pathToSIP    path to the SIP to analyze
      * @param pathToResult path to the <i>.DROID</i> file with the result of the profile
      * @throws IOException
      * @throws InterruptedException
@@ -71,7 +100,7 @@ public class DroidFormatIdentifier implements FormatIdentifier {
      * (if a file has multiple identifications, then a separate row will be written out for each file and separate identification made)
      *
      * @param pathToProfile path to the <i>.DROID</i> file with the result of a profile
-     * @param pathToResult path to the <i>CSV</i> file with the result of the export of profile
+     * @param pathToResult  path to the <i>CSV</i> file with the result of the export of profile
      * @throws IOException
      * @throws InterruptedException
      */
@@ -88,7 +117,7 @@ public class DroidFormatIdentifier implements FormatIdentifier {
      * From the CSV file with the exported profile parses the values of the specified column
      *
      * @param pathToResultsCsv path to the CSV file to parse
-     * @param parsedColumn column of which respective values will appear in the result as values
+     * @param parsedColumn     column of which respective values will appear in the result as values
      * @return map of key-value pairs where the key is the path to a file and value is the list of values that appear
      * in the same row in the parsed column
      * @throws IOException
