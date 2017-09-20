@@ -109,6 +109,8 @@ public class DroidFormatIdentifier implements FormatIdentifier {
             //from the first line of the CSV get the index of the the parsed column and the index of the column with file path
             int filePathColumnIndex = -1;
             int parsedColumnIndex = -1;
+            int methodColumnIndex = -1;
+
             for (int i = 0; (i < header.length); i++) {
                 //remove double quotes
                 header[i] = header[i].replace("\"", "");
@@ -118,6 +120,9 @@ public class DroidFormatIdentifier implements FormatIdentifier {
                 }
                 if (header[i].equals(parsedColumn.name())) {
                     parsedColumnIndex = i;
+                }
+                if (header[i].equals(CsvResultColumn.METHOD.name())) {
+                    methodColumnIndex = i;
                 }
             }
 
@@ -134,6 +139,8 @@ public class DroidFormatIdentifier implements FormatIdentifier {
 
                 String filePath = list[filePathColumnIndex].replace("\"", "");
 
+                String methodColumnValue = list[methodColumnIndex].replace("\"", "");
+
                 List<String> values = filePathsToParsedColumnValues.get(filePath);
                 if (values == null) {
                     values = new ArrayList();
@@ -141,12 +148,11 @@ public class DroidFormatIdentifier implements FormatIdentifier {
 
                 values.add(parsedColumnValue);
 
+                log.info("File at path \"" + filePath + "\" has been identified with format: " + parsedColumnValue +
+                        ". Identification method: " + methodColumnValue + ".");
+
                 filePathsToParsedColumnValues.put(filePath, values);
             }
-            filePathsToParsedColumnValues.keySet().stream().forEach(filePath -> {
-                List<String> formats = filePathsToParsedColumnValues.get(filePath);
-                log.info("File at path \"" + filePath + "\" has been identified with formats: " + formats.toString());
-            });
 
             log.info("Parsing of CSV file " + pathToResultsCsv + " finished.");
         } finally {
