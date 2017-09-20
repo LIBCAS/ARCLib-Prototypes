@@ -42,7 +42,7 @@ public class DroidFormatIdentifier implements FormatIdentifier {
         Path exportResultsPath = Paths.get(workspace).resolve(sipId + ".csv");
         exportProfile(profileResultsPath, exportResultsPath);
 
-        Map<String, List<String>> filePathsToParsedColumnValues = parseResults(exportResultsPath, CsvResultColumn.FORMAT_NAME);
+        Map<String, List<String>> filePathsToParsedColumnValues = parseResults(exportResultsPath, CsvResultColumn.PUID);
 
         log.info("DROID format analysis for SIP " + sipId + " finished.");
 
