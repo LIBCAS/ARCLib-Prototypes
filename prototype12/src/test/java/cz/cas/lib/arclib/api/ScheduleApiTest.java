@@ -118,6 +118,58 @@ public class ScheduleApiTest implements ApiTest {
     }
 
     @Test
+    public void scheduleTestMultipleParallelScripts() throws InterruptedException {
+        Instant start = Instant.now();
+
+        Job job1 = new Job();
+        job1.setScriptPath((this.getClass().getResource(SCRIPT_1)).getPath());
+        job1.setTiming("*/1 * * * * ?");
+        store.save(job1);
+
+        String job1Id = job1.getId();
+
+        api.schedule(job1Id);
+
+        Job job2 = new Job();
+        job2.setScriptPath((this.getClass().getResource(SCRIPT_2)).getPath());
+        job2.setTiming("*/1 * * * * ?");
+        store.save(job2);
+
+        String job2Id = job2.getId();
+
+        api.schedule(job2Id);
+
+        Job job3 = new Job();
+        job3.setScriptPath((this.getClass().getResource(SCRIPT_3)).getPath());
+        job3.setTiming("*/1 * * * * ?");
+        store.save(job3);
+
+        String job3Id = job3.getId();
+
+        api.schedule(job3Id);
+
+        Thread.sleep(2000);
+
+        job1 = store.find(job1.getId());
+        assertThat(job1.getActive(), is(true));
+        assertThat(job1.getLastReturnCode(), is(0));
+        assertThat(job1.getLastExecutionTime().isAfter(start), is(true));
+        assertThat(job1.getLastExecutionTime().isBefore(Instant.now()), is(true));
+
+        job2 = store.find(job2.getId());
+        assertThat(job2.getActive(), is(true));
+        assertThat(job2.getLastReturnCode(), is(1));
+        assertThat(job2.getLastExecutionTime().isAfter(start), is(true));
+        assertThat(job2.getLastExecutionTime().isBefore(Instant.now()), is(true));
+
+        job3 = store.find(job3.getId());
+        assertThat(job3.getActive(), is(true));
+        assertThat(job3.getLastReturnCode(), is(-1));
+        assertThat(job3.getLastExecutionTime().isAfter(start), is(true));
+        assertThat(job3.getLastExecutionTime().isBefore(Instant.now()), is(true));
+    }
+
+    @Test
     public void unscheduleTest() throws InterruptedException {
         Instant start = Instant.now();
 
