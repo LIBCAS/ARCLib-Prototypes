@@ -69,7 +69,7 @@ public class CoordinatorIntegrationTest implements ApiTest {
         /*
         wait until all the JMS communication is finished and the proper data is stored in DB
          */
-        Thread.sleep(12000);
+        Thread.sleep(24000);
 
         Batch batch = batchStore.find(batchId);
         assertThat(batch.getState(), is(BatchState.PROCESSED));
@@ -111,7 +111,7 @@ public class CoordinatorIntegrationTest implements ApiTest {
         /*
         wait until all the JMS communication is finished and the proper data is stored in DB
          */
-        Thread.sleep(6000);
+        Thread.sleep(12000);
 
         Batch batch = batchStore.find(batchId);
         assertThat(batch.getState(), is(BatchState.CANCELED));
@@ -140,7 +140,7 @@ public class CoordinatorIntegrationTest implements ApiTest {
         /*
         wait until all the JMS communication is finished and the proper data is stored in DB
          */
-        Thread.sleep(6000);
+        Thread.sleep(12000);
 
         Batch batch = batchStore.find(batchId);
         assertThat(batch.getState(), is(BatchState.SUSPENDED));
@@ -178,7 +178,7 @@ public class CoordinatorIntegrationTest implements ApiTest {
         /*
         wait until all the JMS communication is finished and the proper data is stored in DB
          */
-        Thread.sleep(6000);
+        Thread.sleep(32000);
 
         Batch batch = batchStore.find(batchId);
         assertThat(batch.getState(), is(BatchState.PROCESSED));
