@@ -36,17 +36,22 @@ public class AntivirusProcessTest {
 
     private static final Path QUARANTINE_FOLDER = Paths.get(System.getenv("CLAMAV"), "quarantine");
     private static final String CORRUPTED_FILE_NAME = "eicar.com";
+    private static final String CORRUPTED_FILE_NAME2 = "eicar2.com";
     private static final Path CORRUPTED_FILE_REPRESENTANT = Paths.get("src/test/resources").resolve(CORRUPTED_FILE_NAME);
-    private static final Path SIP = Paths.get("src/test/resources/testSIP");
+    private static final Path CORRUPTED_FILE_REPRESENTANT2 = Paths.get("src/test/resources").resolve(CORRUPTED_FILE_NAME2);
+    private static final Path SIP = Paths.get("../SIP_packages/KPW01169310");
 
     @BeforeClass
     public static void beforeClass() throws IOException {
         Files.copy(CORRUPTED_FILE_REPRESENTANT, SIP.resolve(CORRUPTED_FILE_NAME), REPLACE_EXISTING);
+        Files.copy(CORRUPTED_FILE_REPRESENTANT2, SIP.resolve(CORRUPTED_FILE_NAME2), REPLACE_EXISTING);
+
     }
 
     @AfterClass
     public static void afterClass() throws IOException {
         Files.deleteIfExists(QUARANTINE_FOLDER.resolve(CORRUPTED_FILE_NAME));
+        Files.deleteIfExists(QUARANTINE_FOLDER.resolve(CORRUPTED_FILE_NAME2));
     }
 
     @Before
@@ -57,39 +62,23 @@ public class AntivirusProcessTest {
     }
 
     /**
-     * Called on single file. Tests that:
+     * Tests that:
      * <ul>
-     *     <li>AV scan process does not evaluate clean file as corrupted and therefore does not move it to quarantine folder</li>
-     *     <li>BPM process starts scan based on given process variable (path to file)</li>
-     *     <li>after scan BPM 'scan' tasks set process variable with path to corrupted files which is empty list</li>
-     *     <li>BPM 'quarantine' task does not move any files to quarantine because process variable with corrupted files is </li>
+     * <li>AV scan process recognizes infected files inside SIP folder and move it to quarantine folder</li>
+     * <li>BPM process starts scan based on given process variable (path to file)</li>
+     * <li>after scan BPM 'scan' tasks set process variable with paths to infected files</li>
+     * <li>BPM 'quarantine' task moves infected files to quarantine based on the variable set by 'scan' task</li>
      * </ul>
      */
     @Test
-    public void testOK() throws IOException {
-        Map variables = new HashMap();
-        variables.put("pathToSip", SIP.resolve("clean.txt").toString());
-        runtimeService.startProcessInstanceByKey("antivirus", variables).getId();
-        assertThat(Files.list(QUARANTINE_FOLDER).count(), equalTo(0L));
-    }
-
-    /**
-     * Called on folder. Tests that:
-     * <ul>
-     *     <li>AV scan process recognizes corrupted file inside folder and move it to quarantine folder</li>
-     *     <li>BPM process starts scan based on given process variable (path to file)</li>
-     *     <li>after scan BPM 'scan' tasks set process variable with paths to corrupted files</li>
-     *     <li>BPM 'quarantine' task moves corrupted files to quarantine based on the variable set by 'scan' task</li>
-     * </ul>
-     */
-    @Test
-    public void testCorrupted() throws IOException {
+    public void testAntivirusOnSIP() throws IOException {
         Map variables = new HashMap();
         variables.put("pathToSip", SIP.toString());
         runtimeService.startProcessInstanceByKey("antivirus", variables).getId();
-        assertThat(Files.list(QUARANTINE_FOLDER).count(), equalTo(1L));
+        assertThat(Files.list(QUARANTINE_FOLDER).count(), equalTo(2L));
         assertThat(Files.exists(QUARANTINE_FOLDER.resolve(CORRUPTED_FILE_NAME)), equalTo(true));
         assertThat(Files.notExists(SIP.resolve(CORRUPTED_FILE_NAME)), equalTo(true));
+        assertThat(Files.exists(QUARANTINE_FOLDER.resolve(CORRUPTED_FILE_NAME2)), equalTo(true));
+        assertThat(Files.notExists(SIP.resolve(CORRUPTED_FILE_NAME2)), equalTo(true));
     }
 }
-
