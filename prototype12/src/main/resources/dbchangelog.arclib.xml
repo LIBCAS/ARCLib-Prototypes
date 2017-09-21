@@ -24,4 +24,7 @@
             <column name="active" type="boolean"/>
         </createTable>
     </changeSet>
+    <changeSet id="2" author="hochla">
+        <renameColumn tableName="arclib_job" oldColumnName="script" newColumnName="scriptPath"/>
+    </changeSet>
 </databaseChangeLog>

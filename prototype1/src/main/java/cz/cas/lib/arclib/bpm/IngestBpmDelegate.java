@@ -17,8 +17,7 @@ import org.springframework.util.FileSystemUtils;
 
 import javax.inject.Inject;
 import java.io.*;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 
 import static cz.cas.lib.arclib.util.Utils.asList;
 import static cz.cas.lib.arclib.util.Utils.checked;
@@ -66,7 +65,7 @@ public class IngestBpmDelegate implements JavaDelegate {
                 We use the thread sleep to simulate the time required to process the SIP.
                 */
                 Thread.sleep(1000);
-//                delSipFromWorkspace(sipId);
+                delSipFromWorkspace(sipId);
             }
 
         sip.setState(SipState.PROCESSED);
@@ -111,13 +110,11 @@ public class IngestBpmDelegate implements JavaDelegate {
      *
      * @param sipId id of the file to delete
      */
-    private void delSipFromWorkspace(String sipId) {
-        Path path = Paths.get(workspace, sipId);
+    private void delSipFromWorkspace(String sipId) throws IOException {
+        Path directory = Paths.get(workspace, sipId);
 
-        if (exists(path)) {
-            checked(() -> delete(path));
-        } else {
-            log.warn("File {} not found.", path);
+        if (exists(directory)) {
+            FileSystemUtils.deleteRecursively(new File(directory.toAbsolutePath().toString()));
         }
     }
 

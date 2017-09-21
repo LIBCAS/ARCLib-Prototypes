@@ -55,7 +55,7 @@ public class ScheduleApiTest implements ApiTest {
         Instant start = Instant.now();
 
         Job job = new Job();
-        job.setScript((this.getClass().getResource(SCRIPT_1)).getPath());
+        job.setScriptPath((this.getClass().getResource(SCRIPT_1)).getPath());
         job.setTiming("*/1 * * * * ?");
         store.save(job);
 
@@ -77,7 +77,7 @@ public class ScheduleApiTest implements ApiTest {
         Instant start = Instant.now();
 
         Job job = new Job();
-        job.setScript((this.getClass().getResource(SCRIPT_2)).getPath());
+        job.setScriptPath((this.getClass().getResource(SCRIPT_2)).getPath());
 
         job.setTiming("*/1 * * * * ?");
         store.save(job);
@@ -100,7 +100,7 @@ public class ScheduleApiTest implements ApiTest {
         Instant start = Instant.now();
 
         Job job = new Job();
-        job.setScript((this.getClass().getResource(SCRIPT_3)).getPath());
+        job.setScriptPath((this.getClass().getResource(SCRIPT_3)).getPath());
         job.setTiming("*/1 * * * * ?");
         store.save(job);
 
@@ -122,7 +122,7 @@ public class ScheduleApiTest implements ApiTest {
         Instant start = Instant.now();
 
         Job job = new Job();
-        job.setScript((this.getClass().getResource(SCRIPT_1)).getPath());
+        job.setScriptPath((this.getClass().getResource(SCRIPT_1)).getPath());
         job.setTiming("*/1 * * * * ?");
         store.save(job);
 

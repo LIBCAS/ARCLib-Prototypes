@@ -19,7 +19,7 @@ public class Job extends DatedObject {
 
     private String timing;
 
-    private String script;
+    private String scriptPath;
 
     private Boolean active;
 
