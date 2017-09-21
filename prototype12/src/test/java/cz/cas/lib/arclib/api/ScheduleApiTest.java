@@ -17,6 +17,7 @@ import javax.inject.Inject;
 import java.time.Instant;
 
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
 
 @RunWith(SpringRunner.class)
@@ -194,6 +195,30 @@ public class ScheduleApiTest implements ApiTest {
 
         job = store.find(job.getId());
         assertThat(job.getActive(), is(false));
+        assertThat(job.getLastExecutionTime().isAfter(start), is(true));
+        assertThat(job.getLastExecutionTime().isBefore(finish), is(true));
+    }
+
+    @Test
+    public void runTest() throws InterruptedException {
+        Instant start = Instant.now();
+
+        Job job = new Job();
+        job.setScriptPath((this.getClass().getResource(SCRIPT_1)).getPath());
+        job.setTiming("*/1 * * * * ?");
+        store.save(job);
+
+        String jobId = job.getId();
+
+        api.run(jobId);
+
+        Thread.sleep(2000);
+
+        Instant finish = Instant.now();
+
+        job = store.find(job.getId());
+        assertThat(job.getActive(), is(nullValue()));
+        assertThat(job.getLastReturnCode(), is(0));
         assertThat(job.getLastExecutionTime().isAfter(start), is(true));
         assertThat(job.getLastExecutionTime().isBefore(finish), is(true));
     }

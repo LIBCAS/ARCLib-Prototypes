@@ -21,9 +21,9 @@ public class Job extends DatedObject {
 
     private String scriptPath;
 
-    private Boolean active;
+    private Boolean active ;
 
-    private int lastReturnCode = -1;
+    private int lastReturnCode;
 
     private Instant lastExecutionTime;
 }

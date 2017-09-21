@@ -67,6 +67,16 @@ public class JobScheduler {
     }
 
     /**
+     * Runs the job immediately
+     *
+     * @param job
+     */
+    @Transactional
+    public void runNow(Job job) {
+        jobRunner.run(job);
+    }
+
+    /**
      * Returns instance of the scheduler.
      *
      * @return instance of the scheduler

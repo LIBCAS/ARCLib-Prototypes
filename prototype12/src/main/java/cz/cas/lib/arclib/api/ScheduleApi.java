@@ -34,7 +34,6 @@ public class ScheduleApi {
 
     /**
      * Unschedules the job.
-     * |
      *
      * @param id Id of the {@link Job}
      */
@@ -43,6 +42,18 @@ public class ScheduleApi {
     public void unschedule(@PathVariable("id") String id) {
         Job job = adapter.find(id);
         scheduler.unschedule(job);
+    }
+
+    /**
+     * Runs the job immediately.
+     *
+     * @param id Id of the {@link Job}
+     */
+    @Transactional
+    @RequestMapping(value = "/{id}/run", method = RequestMethod.POST)
+    public void run(@PathVariable("id") String id) {
+        Job job = adapter.find(id);
+        scheduler.runNow(job);
     }
 
     @Inject
