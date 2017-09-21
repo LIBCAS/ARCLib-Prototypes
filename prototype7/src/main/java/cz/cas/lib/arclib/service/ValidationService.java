@@ -54,6 +54,8 @@ public class ValidationService {
      */
     public void validateSip(String sipId, String sipPath, String validationProfileId)
             throws ParserConfigurationException, IOException, SAXException, XPathExpressionException {
+        log.info("Validation of SIP " + sipId + " with profile " + validationProfileId + " started.");
+
         ValidationProfile profile = validationProfileStore.find(validationProfileId);
         notNull(profile, () -> new MissingObject(ValidationProfile.class, validationProfileId));
 
@@ -69,7 +71,7 @@ public class ValidationService {
         performValidationSchemaChecks(sipPath, validationProfileDoc, sipId);
         performNodeValueChecks(sipPath, validationProfileDoc, sipId);
 
-        log.info("Validation of SIP with profile " + validationProfileId + " succeeded.");
+        log.info("Validation of SIP " + sipId + " with profile succeeded.");
     }
 
     /**
