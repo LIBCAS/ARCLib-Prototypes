@@ -93,8 +93,8 @@ public class ValidationService {
             String relativePath = element.getElementsByTagName("filePath").item(0).getTextContent();
             String absolutePath = sipPath + relativePath;
             if (!ValidationChecker.fileExists(absolutePath)) {
-                log.info("Validation of SIP with profile " + validationProfileId + " failed. File at \"" + absolutePath + "\" is missing.");
-                throw new MissingFile(absolutePath, validationProfileId);
+                log.info("Validation of SIP with profile " + validationProfileId + " failed. File at \"" + relativePath + "\" is missing.");
+                throw new MissingFile(relativePath, validationProfileId);
             }
         }
     }
@@ -127,9 +127,9 @@ public class ValidationService {
             try {
                 ValidationChecker.validateWithXMLSchema(absolutePath, schema);
             } catch (GeneralException e) {
-                log.info("Validation of SIP with profile " + validationProfileId + " failed. File at \"" + absolutePath + "\" is not " +
+                log.info("Validation of SIP with profile " + validationProfileId + " failed. File at \"" + relativePath + "\" is not " +
                         "valid against its corresponding schema.");
-                throw new SchemaValidationError(absolutePath, schema, e.getMessage());
+                throw new SchemaValidationError(relativePath, schema, e.getMessage());
             }
         }
     }

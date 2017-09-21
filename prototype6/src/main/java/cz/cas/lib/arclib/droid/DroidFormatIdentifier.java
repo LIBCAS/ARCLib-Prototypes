@@ -45,7 +45,7 @@ public class DroidFormatIdentifier implements FormatIdentifier {
         Path exportResultsPath = Paths.get(workspace).resolve(sipId + ".csv");
         exportProfile(profileResultsPath, exportResultsPath);
 
-        Map<String, List<String>> filePathsToParsedColumnValues = parseResults(exportResultsPath, CsvResultColumn.PUID);
+        Map<String, List<String>> filePathsToParsedColumnValues = parseResults(exportResultsPath, CsvResultColumn.PUID, pathToSip);
 
         log.info("DROID format analysis for SIP " + sipId + " finished.");
 
@@ -117,12 +117,14 @@ public class DroidFormatIdentifier implements FormatIdentifier {
      * From the CSV file with the exported profile parses the values of the specified column
      *
      * @param pathToResultsCsv path to the CSV file to parse
-     * @param parsedColumn     column of which respective values will appear in the result as values
+     * @param parsedColumn column of which respective values will appear in the result as values
+     * @param pathToSip path to the SIP package
      * @return map of key-value pairs where the key is the path to a file and value is the list of values that appear
      * in the same row in the parsed column
      * @throws IOException
      */
-    protected Map<String, List<String>> parseResults(Path pathToResultsCsv, CsvResultColumn parsedColumn) throws IOException {
+    protected Map<String, List<String>> parseResults(Path pathToResultsCsv, CsvResultColumn parsedColumn, Path pathToSip) throws
+            IOException {
         log.info("Parsing of CSV file " + pathToResultsCsv + " started.");
 
         Map<String, List<String>> filePathsToParsedColumnValues = new HashMap<>();
@@ -166,7 +168,13 @@ public class DroidFormatIdentifier implements FormatIdentifier {
                     parsedColumnValue = list[parsedColumnIndex + 1].replace("\"", "");
                 }
 
-                String filePath = list[filePathColumnIndex].replace("\"", "");
+                String filePath = list[filePathColumnIndex];
+                //remove double quotes
+                filePath = filePath.replace("\"", "");
+                //replace backslashes with slashes
+                filePath = filePath.replace("\\", "/");
+                //trim the path to SIP package to get a relative file path instead of the absolute file path
+                filePath = filePath.substring(pathToSip.toAbsolutePath().toString().length());
 
                 String methodColumnValue = list[methodColumnIndex].replace("\"", "");
 
@@ -174,12 +182,10 @@ public class DroidFormatIdentifier implements FormatIdentifier {
                 if (values == null) {
                     values = new ArrayList();
                 }
-
                 values.add(parsedColumnValue);
 
                 log.info("File at path \"" + filePath + "\" has been identified with format: " + parsedColumnValue +
                         ". Identification method: " + methodColumnValue + ".");
-
                 filePathsToParsedColumnValues.put(filePath, values);
             }
 
