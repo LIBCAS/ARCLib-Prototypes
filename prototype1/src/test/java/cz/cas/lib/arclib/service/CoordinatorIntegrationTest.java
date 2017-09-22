@@ -178,7 +178,7 @@ public class CoordinatorIntegrationTest implements ApiTest {
         /*
         wait until all the JMS communication is finished and the proper data is stored in DB
          */
-        Thread.sleep(32000);
+        Thread.sleep(48000);
 
         Batch batch = batchStore.find(batchId);
         assertThat(batch.getState(), is(BatchState.PROCESSED));
