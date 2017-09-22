@@ -18,3 +18,5 @@ fileTestFiles
 /export
 /doc
 coverage-error.log
+sip/
+xml/
