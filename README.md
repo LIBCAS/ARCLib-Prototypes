@@ -8,3 +8,6 @@ Some prototypes need aditional configuration:
   * run **freshclam.exe**
 * **clamscan** command has to be added to PATH variable
 * there must be **CLAMAV** environment variable pointing to CLAMAV directory
+* 
+**prototype 6**
+* path to the directory with the binary of DROID must be added to PATH
