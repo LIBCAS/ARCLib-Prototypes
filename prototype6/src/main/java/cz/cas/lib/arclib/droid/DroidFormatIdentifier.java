@@ -3,6 +3,7 @@ package cz.cas.lib.arclib.droid;
 import cz.cas.lib.arclib.FormatIdentifier;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.SystemUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +21,15 @@ import java.util.Map;
 @Component
 public class DroidFormatIdentifier implements FormatIdentifier {
 
-    private static final String CMD = "droid.bat";
+    private static final String CMD;
+
+    static {
+        if (SystemUtils.IS_OS_WINDOWS) {
+            CMD = "droid.bat";
+        } else {
+            CMD = "droid.sh";
+        }
+    }
 
     @Getter
     private String workspace;
