@@ -9,12 +9,16 @@ import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import java.time.Instant;
 
 @Getter
 @Setter
 @BatchSize(size = 100)
 @Entity
 @Table(name = "arclib_aip_xml")
+/**
+ * XML database entity. Its id is used only for internal purpose and is neither accessible over API nor projected to storage.
+ */
 public class AipXml extends ArchivalObject {
 
     @ManyToOne
@@ -25,11 +29,18 @@ public class AipXml extends ArchivalObject {
     private boolean processing;
 
     public AipXml() {
-        super(null, null, null);
+        super(null,  null);
     }
 
-    public AipXml(String id, String name, String md5, AipSip sip, int version, boolean processing) {
-        super(id, name, md5);
+    public AipXml(String id, String md5, AipSip sip, int version, boolean processing) {
+        super(id, md5);
+        this.sip = sip;
+        this.version = version;
+        this.processing = processing;
+    }
+
+    public AipXml(String md5, AipSip sip, int version, boolean processing) {
+        super(md5);
         this.sip = sip;
         this.version = version;
         this.processing = processing;

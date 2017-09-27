@@ -22,17 +22,18 @@ public abstract class ArchivalObject extends DomainObject {
     @Column(updatable = false, nullable = false)
     @JsonIgnore
     protected String md5;
-    @Column(updatable = false, nullable = false)
-    protected String name;
     @Column(updatable = false)
     @GeneratorType(type = InstantGenerator.class, when = GenerationTime.INSERT)
     protected Instant created;
     @Transient
     boolean consistent;
 
-    public ArchivalObject(String id, String name, String md5) {
+    public ArchivalObject(String id, String md5) {
         this.id = id;
         this.md5 = md5;
-        this.name = name;
+    }
+
+    public ArchivalObject(String md5) {
+        this.md5 = md5;
     }
 }

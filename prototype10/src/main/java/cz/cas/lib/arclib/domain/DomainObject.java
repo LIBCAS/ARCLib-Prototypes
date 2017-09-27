@@ -1,5 +1,6 @@
 package cz.cas.lib.arclib.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,6 +29,7 @@ import java.util.UUID;
 @MappedSuperclass
 public abstract class DomainObject {
     @Id
+    @JsonIgnore
     protected String id = UUID.randomUUID().toString();
 
     @Override

@@ -13,6 +13,9 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 
+import java.util.Collections;
+import java.util.Map;
+
 import static cz.cas.lib.arclib.util.Utils.notNull;
 
 
@@ -30,25 +33,20 @@ public class ArchivalDbService {
      * Registers that AIP creation process has started. Stores AIP records to database and sets their state to <i>processing</i>.
      *
      * @param sipId
-     * @param sipName
      * @param sipHash
-     * @param xmlId
-     * @param xmlName
      * @param xmlHash
+     * @return  generated ID of XML record
      */
-    public void registerAipCreation(String sipId, String sipName, String sipHash, String xmlId, String xmlName, String xmlHash) {
+    public String registerAipCreation(String sipId, String sipHash,String xmlHash) {
         notNull(sipId, () -> new BadArgument(sipId));
-        notNull(xmlId, () -> new BadArgument(xmlId));
         AipSip sip = aipSipStore.find(sipId);
-        AipXml xml = aipXmlStore.find(xmlId);
         if (sip != null)
             throw new ConflictObject(sip);
-        if (xml != null)
-            throw new ConflictObject(xml);
-        sip = new AipSip(sipId, sipName, sipHash, AipState.PROCESSING);
-        xml = new AipXml(xmlId, xmlName, xmlHash, sip, 1, true);
+        sip = new AipSip(sipId, sipHash, AipState.PROCESSING);
+        AipXml xml = new AipXml(xmlHash, sip, 1, true);
         aipSipStore.save(sip);
         aipXmlStore.save(xml);
+        return xml.getId();
     }
 
     /**
@@ -58,7 +56,7 @@ public class ArchivalDbService {
      * @param xmlId
      * @throws IllegalStateException if {@link AipSip#state} is not {@link AipState#PROCESSING} or {@link AipXml#processing} is false
      */
-    public void finishAipCreation(String sipId, String xmlId) {
+    public void finishAipCreation(String sipId,String xmlId) {
         AipSip sip = aipSipStore.find(sipId);
         notNull(sip, () -> new MissingObject(AipSip.class, sipId));
         if (sip.getState() != AipState.PROCESSING)
@@ -72,17 +70,15 @@ public class ArchivalDbService {
      * Registers that AIP XML update process has started.
      *
      * @param sipId
-     * @param xmlId
-     * @param xmlName
      * @param xmlHash
+     * @return  created XML entity filled with generated ID and version
      */
-    public void registerXmlUpdate(String sipId, String xmlId, String xmlName, String xmlHash) {
+    public AipXml registerXmlUpdate(String sipId, String xmlHash) {
         notNull(sipId, () -> new BadArgument(sipId));
-        notNull(xmlId, () -> new BadArgument(xmlId));
-        AipXml xml = aipXmlStore.find(xmlId);
-        if (xml != null)
-            throw new ConflictObject(xml);
-        aipXmlStore.save(new AipXml(xmlId, xmlName, xmlHash, new AipSip(sipId), aipXmlStore.getNextXmlVersionNumber(sipId), true));
+        int xmlVersion = aipXmlStore.getNextXmlVersionNumber(sipId);
+        AipXml newVersion = new AipXml(xmlHash, new AipSip(sipId), xmlVersion, true);
+        aipXmlStore.save(newVersion);
+        return newVersion;
     }
 
     /**
@@ -131,7 +127,7 @@ public class ArchivalDbService {
     }
 
     /**
-     * Logically removes SIP i.e. sets its state to <i>removed</i> in the database.
+     * Logically removes SIP i.e. sets its state to {@link AipState#REMOVED} in the database.
      *
      * @param sipId
      * @throws IllegalArgumentException if {@link AipSip#state} is not {@link AipState#ARCHIVED} or {@link AipState#REMOVED}
@@ -159,17 +155,19 @@ public class ArchivalDbService {
 
     /**
      * Removes record about SIP and all related XMLs from database. Should be used only when the AIP creation process fails.
+     *
      * @param id
      */
-    public void deleteAip(String id){
+    public void deleteAip(String id) {
         aipSipStore.delete(aipSipStore.find(id));
     }
 
     /**
      * Removes record about XML from database. Should be used only when the XML update process fails.
+     *
      * @param id
      */
-    public void deleteXml(String id){
+    public void deleteXml(String id) {
         aipXmlStore.delete(aipXmlStore.find(id));
     }
 

@@ -54,23 +54,25 @@ public class AipApiTest extends DbTest implements ApiTest {
     private AipXmlStore xmlStore;
 
     private static final String SIP_ID = "8f719ff7-8756-4101-9e87-42391ced37f1";
-    private static final String SIP_FILE_NAME = "KPW01169310.ZIP";
     private static final String SIP_HASH = "CB30ACE944A440F77D6F99040D2DE1F2";
-    private static final Path SIP_PATH = Paths.get("sip", SIP_ID.substring(0, 2), SIP_ID.substring(2, 4), SIP_ID.substring(4, 6));
 
-    private static final String XML1_ID = "3139b6fa-4a73-4e93-9ed9-9cdcc4523d94";
-    private static final String XML1_FILE_NAME = "xml1.xml";
-    private static final String XML1_HASH = "3109a2b5b54b881f234fd424b80869ef";
-    private static final Path XML1_PATH = Paths.get("xml", XML1_ID.substring(0, 2), XML1_ID.substring(2, 4), XML1_ID.substring(4, 6));
+    private static final String XML1_ID = "XML1testID";
+    private static final String XML1_HASH = "F09E5F27526A0ED7EC5B2D9D5C0B53CF";
 
-    private static final String XML2_ID = "3bdfc2e3-51e3-4b88-a9f6-6dc301673ac1";
-    private static final String XML2_FILE_NAME = "xml2.xml";
-    private static final String XML2_HASH = "f9408dbe836264462904651820d4162f";
-    private static final Path XML2_PATH = Paths.get("xml", XML2_ID.substring(0, 2), XML2_ID.substring(2, 4), XML2_ID.substring(4, 6));
+    private static final String XML2_ID = "XML2testID";
+    private static final String XML2_HASH = "D5B6402517014CF00C223D6A785A4230";
+
+    private static final Path SIP_PATH_DIRS = Paths.get(SIP_ID.substring(0, 2), SIP_ID.substring(2, 4), SIP_ID.substring(4, 6));
+    private static final Path SIP_PATH = Paths.get("sip").resolve(SIP_PATH_DIRS);
+    private static final Path XML_PATH = Paths.get("xml").resolve(SIP_PATH_DIRS);
 
     private static final String BASE = "/api/storage";
-    private static final Path SIP_SOURCE_PATH = Paths.get("..", SIP_FILE_NAME);
+    private static final Path SIP_SOURCE_PATH = Paths.get("..", "KPW01169310.ZIP");
 
+    /**
+     * Recursively deletes old test directories, create new and copies one SIP and two XMLs to them.
+     * @throws IOException
+     */
     @BeforeClass
     public static void setUp() throws IOException {
         if (Files.isDirectory(Paths.get("sip")))
@@ -78,13 +80,15 @@ public class AipApiTest extends DbTest implements ApiTest {
         if (Files.isDirectory(Paths.get("xml")))
             FileUtils.deleteDirectory(new File("xml"));
         Files.createDirectories(SIP_PATH);
-        Files.createDirectories(XML1_PATH);
-        Files.createDirectories(XML2_PATH);
+        Files.createDirectories(XML_PATH);
         Files.copy(Paths.get(SIP_SOURCE_PATH.toString()), SIP_PATH.resolve(SIP_ID));
-        Files.copy(Paths.get("./src/test/resources/aip/" + XML1_FILE_NAME), XML1_PATH.resolve(XML1_ID));
-        Files.copy(Paths.get("./src/test/resources/aip/" + XML2_FILE_NAME), XML2_PATH.resolve(XML2_ID));
+        Files.copy(Paths.get("./src/test/resources/aip/xml1.xml"), XML_PATH.resolve(toXmlId(SIP_ID, 1)));
+        Files.copy(Paths.get("./src/test/resources/aip/xml2.xml"), XML_PATH.resolve(toXmlId(SIP_ID, 2)));
     }
 
+    /**
+     * Creates new database records before every test
+     */
     @Before
     public void before() {
         xmlStore.setEntityManager(getEm());
@@ -93,19 +97,23 @@ public class AipApiTest extends DbTest implements ApiTest {
         sipStore.setEntityManager(getEm());
         sipStore.setQueryFactory(new JPAQueryFactory(getEm()));
 
-        AipSip sip = new AipSip(SIP_ID, SIP_FILE_NAME, SIP_HASH, AipState.ARCHIVED);
+        AipSip sip = new AipSip(SIP_ID, SIP_HASH, AipState.ARCHIVED);
         sipStore.save(sip);
-        xmlStore.save(new AipXml(XML1_ID, XML1_FILE_NAME, XML1_HASH, sip, 1, false));
-        xmlStore.save(new AipXml(XML2_ID, XML2_FILE_NAME, XML2_HASH, sip, 2, false));
+        xmlStore.save(new AipXml(XML1_ID, XML1_HASH, sip, 1, false));
+        xmlStore.save(new AipXml(XML2_ID, XML2_HASH, sip, 2, false));
     }
 
+    /**
+     * Clear database records after each test
+     * @throws SQLException
+     */
     @After
     public void after() throws SQLException {
         clearDatabase();
     }
 
     /**
-     * Send request for AIP data and verifies that ZIP file containing one ZIP (sip) and two XMLs (aip xmls) is retrieved.
+     * Send request for AIP data and verifies that ZIP file containing one ZIP (SIP) and latest AIP XML is retrieved.
      *
      * @throws Exception
      */
@@ -126,11 +134,11 @@ public class AipApiTest extends DbTest implements ApiTest {
                 packedFiles.add(entry.getName());
             }
         }
-        assertThat(packedFiles, containsInAnyOrder((SIP_ID + "_" + SIP_FILE_NAME), (XML1_ID + "_" + XML1_FILE_NAME), (XML2_ID + "_" + XML2_FILE_NAME)));
+        assertThat(packedFiles, containsInAnyOrder(SIP_ID, toXmlId(SIP_ID, 2)));
     }
 
     /**
-     * Send AIP creation request with AIP data (sip & xml) and verifies that response contains names of stored files and their ids which are not the same.
+     * Send AIP creation request with AIP data (sip & xml) and verifies that response contains ID of newly created AIP (SIP).
      *
      * @throws Exception
      */
@@ -140,13 +148,11 @@ public class AipApiTest extends DbTest implements ApiTest {
                 "sip", "sip", "text/plain", Files.readAllBytes(SIP_SOURCE_PATH));
         MockMultipartFile xmlFile = new MockMultipartFile(
                 "xml", "xml", "text/plain", XML1_ID.getBytes());
-
-        mvc(api)
+        String id = mvc(api)
                 .perform(MockMvcRequestBuilders.fileUpload(BASE + "/store").file(sipFile).file(xmlFile).param("sipMD5", SIP_HASH).param("xmlMD5", XML1_HASH))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("sip"))
-                .andExpect(jsonPath("$[1].name").value("xml"))
-                .andExpect(jsonPath("$[0].id", not(equalTo(jsonPath("$[1].id")))));
+                .andReturn().getResponse().getContentAsString();
+        assertThat(id, not(isEmptyOrNullString()));
     }
 
     /**
@@ -167,7 +173,7 @@ public class AipApiTest extends DbTest implements ApiTest {
     }
 
     /**
-     * Send request for XML update and verifies that response contains created file name.
+     * Send request for XML update and verifies that response status is OK.
      *
      * @throws Exception
      */
@@ -175,11 +181,9 @@ public class AipApiTest extends DbTest implements ApiTest {
     public void updateXmlTest() throws Exception {
         MockMultipartFile xmlFile = new MockMultipartFile(
                 "xml", "xml", "text/plain", XML2_ID.getBytes());
-
         mvc(api)
                 .perform(MockMvcRequestBuilders.fileUpload(BASE + "/{sipId}/update", SIP_ID).file(xmlFile).param("xmlMD5", XML2_HASH))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("xml"));
+                .andExpect(status().isOk());
     }
 
     /**
@@ -225,7 +229,6 @@ public class AipApiTest extends DbTest implements ApiTest {
         mvc(api)
                 .perform(get(BASE + "/{sipId}/state", SIP_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value(SIP_FILE_NAME))
                 .andExpect(jsonPath("$.consistent").value(false))
                 .andExpect(jsonPath("$.state").value("DELETED"))
                 .andExpect(jsonPath("$.xmls[0].version", not(equalTo(jsonPath("$.xmls[1].version")))));
@@ -236,6 +239,7 @@ public class AipApiTest extends DbTest implements ApiTest {
 
     /**
      * Send request for AIP state and verifies that it is in ARCHIVED state and it has two xml versions.
+     *
      * @throws Exception
      */
     @Test
@@ -243,13 +247,13 @@ public class AipApiTest extends DbTest implements ApiTest {
         mvc(api)
                 .perform(get(BASE + "/{sipId}/state", SIP_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value(SIP_FILE_NAME))
                 .andExpect(jsonPath("$.state").value("ARCHIVED"))
                 .andExpect(jsonPath("$.xmls[0].version", not(equalTo(jsonPath("$.xmls[1].version")))));
     }
 
     /**
      * Send request for storage state and verifies response contains number of free bytes and type of storage.
+     *
      * @throws Exception
      */
     @Test
@@ -263,6 +267,7 @@ public class AipApiTest extends DbTest implements ApiTest {
 
     /**
      * Send request with invalid MD5 and verifies that response contains BAD_REQUEST error status.
+     *
      * @throws Exception
      */
     @Test
@@ -277,6 +282,7 @@ public class AipApiTest extends DbTest implements ApiTest {
 
     /**
      * Send request with invalid UUID and verifies that response contains BAD_REQUEST error status.
+     *
      * @throws Exception
      */
     @Test
@@ -284,5 +290,9 @@ public class AipApiTest extends DbTest implements ApiTest {
         mvc(api)
                 .perform(delete(BASE + "/{sipId}/hard", "invalidid"))
                 .andExpect(status().is(400));
+    }
+
+    private static String toXmlId(String sipId, int version) {
+        return String.format("%s_xml_%d", sipId, version);
     }
 }

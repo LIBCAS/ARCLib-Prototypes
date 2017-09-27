@@ -65,8 +65,13 @@ public class ResourceExceptionHandler {
     }
 
     @ExceptionHandler(ChecksumChanged.class)
-    public ResponseEntity illgegalState() {
+    public ResponseEntity checksumChanged() {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Stored file checksum do not match checksum provided in request. Make sure that provided checksum is correct and repeat the request.");
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity illgegalState() {
+        return ResponseEntity.status(HttpStatus.LOCKED).body("Action not permitted. Requested action would result in illegal state transition. This problems occurs for example when you try to logically remove already deleted package or delete package which is still uploading.");
     }
 
     @ResponseStatus(value = HttpStatus.NOT_FOUND)

@@ -20,6 +20,7 @@ import org.junit.rules.TestName;
 
 import javax.persistence.PersistenceException;
 import java.sql.SQLException;
+import java.time.Instant;
 
 import static cz.cas.lib.arclib.helper.ThrowableAssertion.assertThrown;
 import static org.hamcrest.Matchers.equalTo;
@@ -51,10 +52,10 @@ public class ArchivalDbServiceTest extends DbTest {
         service.setAipSipStore(sipStore);
         service.setAipXmlStore(xmlStore);
 
-        AipSip sip = new AipSip(SIP_ID, S, S, AipState.ARCHIVED);
+        AipSip sip = new AipSip(SIP_ID, S, AipState.ARCHIVED);
         sipStore.save(sip);
-        xmlStore.save(new AipXml(XML1_ID, S, S, sip, 1, false));
-        xmlStore.save(new AipXml(XML2_ID, S, S, sip, 2, false));
+        xmlStore.save(new AipXml(XML1_ID, S, sip, 1, false));
+        xmlStore.save(new AipXml(XML2_ID, S, sip, 2, false));
     }
 
     @After
@@ -65,23 +66,23 @@ public class ArchivalDbServiceTest extends DbTest {
 
     @Test
     public void registerAipCreation() {
-        service.registerAipCreation(name.getMethodName(), S, S, name.getMethodName(), S, S);
+        String xmlId = service.registerAipCreation(name.getMethodName(), S, S);
         assertThat(sipStore.find(name.getMethodName()).getState(), equalTo(AipState.PROCESSING));
-        assertThat(xmlStore.find(name.getMethodName()).isProcessing(), equalTo(true));
+        assertThat(xmlStore.find(xmlId).isProcessing(), equalTo(true));
     }
 
     @Test
     public void finishAipCreation() {
-        service.registerAipCreation(name.getMethodName(), S, S, name.getMethodName(), S, S);
-        service.finishAipCreation(name.getMethodName(), name.getMethodName());
+        String xmlId = service.registerAipCreation(name.getMethodName(), S, S);
+        service.finishAipCreation(name.getMethodName(), xmlId);
         assertThat(sipStore.find(name.getMethodName()).getState(), equalTo(AipState.ARCHIVED));
-        assertThat(xmlStore.find(name.getMethodName()).isProcessing(), equalTo(false));
+        assertThat(xmlStore.find(xmlId).isProcessing(), equalTo(false));
     }
 
     @Test
     public void registerXmlUpdate() {
-        service.registerXmlUpdate(SIP_ID, name.getMethodName(), S, S);
-        assertThat(xmlStore.find(name.getMethodName()).isProcessing(), equalTo(true));
+        AipXml xmlEntity = service.registerXmlUpdate(SIP_ID, S);
+        assertThat(xmlStore.find(xmlEntity.getId()).isProcessing(), equalTo(true));
         assertThat(sipStore.find(SIP_ID).getState(), equalTo(AipState.ARCHIVED));
     }
 
@@ -129,7 +130,7 @@ public class ArchivalDbServiceTest extends DbTest {
         assertThrown(() -> service.finishAipCreation(S, S)).isInstanceOf(MissingObject.class);
         assertThrown(() -> service.registerSipDeletion(S)).isInstanceOf(MissingObject.class);
         assertThrown(() -> service.finishSipDeletion(S)).isInstanceOf(MissingObject.class);
-        assertThrown(() -> service.registerXmlUpdate(XML1_ID, name.getMethodName(), S, S)).isInstanceOf(MissingObject.class);
+        assertThrown(() -> service.registerXmlUpdate(XML1_ID, S)).isInstanceOf(MissingObject.class);
         assertThrown(() -> service.getAip(S)).isInstanceOf(MissingObject.class);
         assertThrown(() -> service.removeSip(S)).isInstanceOf(MissingObject.class);
         assertThrown(() -> service.finishXmlProcess(S)).isInstanceOf(MissingObject.class);
@@ -137,23 +138,16 @@ public class ArchivalDbServiceTest extends DbTest {
 
     @Test
     public void alreadyExistsTest() {
-        assertThrown(() -> service.registerAipCreation(SIP_ID, SIP_ID, SIP_ID, name.getMethodName(), XML1_ID, XML1_ID)).isInstanceOf(ConflictObject.class);
-        assertThrown(() -> service.registerAipCreation(name.getMethodName(), SIP_ID, SIP_ID, XML1_ID, XML1_ID, XML1_ID)).isInstanceOf(ConflictObject.class);
-        assertThrown(() -> service.registerXmlUpdate(SIP_ID, XML1_ID, S, S)).isInstanceOf(ConflictObject.class);
+        assertThrown(() -> service.registerAipCreation(SIP_ID, S,S)).isInstanceOf(ConflictObject.class);
     }
 
     @Test
     public void nullTest() {
-        assertThrown(() -> service.registerAipCreation(null, S, S, S, S, S)).isInstanceOf(BadArgument.class);
-        assertThrown(() -> service.registerAipCreation(S, null, S, S, S, S)).isInstanceOf(PersistenceException.class);
-        assertThrown(() -> service.registerAipCreation(S, S, null, S, S, S)).isInstanceOf(PersistenceException.class);
-        assertThrown(() -> service.registerAipCreation(S, S, S, null, S, S)).isInstanceOf(BadArgument.class);
-        assertThrown(() -> service.registerAipCreation(S, S, S, S, null, S)).isInstanceOf(PersistenceException.class);
-        assertThrown(() -> service.registerAipCreation(S, S, S, S, S, null)).isInstanceOf(PersistenceException.class);
-        assertThrown(() -> service.registerXmlUpdate(null, S, S, S)).isInstanceOf(BadArgument.class);
-        assertThrown(() -> service.registerXmlUpdate(S, null, S, S)).isInstanceOf(BadArgument.class);
-        assertThrown(() -> service.registerXmlUpdate(S, S, null, S)).isInstanceOf(PersistenceException.class);
-        assertThrown(() -> service.registerXmlUpdate(S, S, S, null)).isInstanceOf(PersistenceException.class);
+        assertThrown(() -> service.registerAipCreation(null, S, S)).isInstanceOf(BadArgument.class);
+        assertThrown(() -> service.registerAipCreation(S, null, S)).isInstanceOf(PersistenceException.class);
+        assertThrown(() -> service.registerAipCreation("blah", S, null)).isInstanceOf(PersistenceException.class);
+        assertThrown(() -> service.registerXmlUpdate(null, S)).isInstanceOf(BadArgument.class);
+        assertThrown(() -> service.registerXmlUpdate(S, null)).isInstanceOf(PersistenceException.class);
     }
 
     @Test

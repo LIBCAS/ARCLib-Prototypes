@@ -1,5 +1,6 @@
 package cz.cas.lib.arclib.storage;
 
+import cz.cas.lib.arclib.dto.AipCreationMd5Info;
 import cz.cas.lib.arclib.dto.StorageStateDto;
 
 import java.io.IOException;
@@ -8,65 +9,99 @@ import java.util.List;
 import java.util.Map;
 
 
+/**
+ * Implementation <b>must</b> store files in that way that later it is possible to retrieve:
+ * <ul>
+ *     <li>initial MD5 checksum of file</li>
+ *     <li>creation time of file</li>
+ *     <li>info if file is being processed</li>
+ *     <li>for SIP its ID and info if is {@link cz.cas.lib.arclib.domain.AipState#DELETED} or {@link cz.cas.lib.arclib.domain.AipState#REMOVED}</li>
+ *     <li>for XML its version and ID of SIP</li>
+ * </ul>
+ */
 public interface StorageService {
+
     /**
      * Stores Aip files into storage.
-     *
      * @param sip
      * @param sipId
      * @param xml
-     * @param xmlId
-     * @return Map with SIP and XML files ids as keys and their MD5 checksums as values.
+     * @return  Object containing MD5 checksums computed from stored files.
      * @throws IOException
      */
-    Map<String, String> storeAip(InputStream sip, String sipId, InputStream xml, String xmlId) throws IOException;
+    AipCreationMd5Info storeAip(InputStream sip, String sipId, InputStream xml) throws IOException;
 
     /**
      * Retrieves references to Aip files. Caller is responsible for closing retrieved streams.
-     *
      * @param sipId
-     * @param xmlIds
-     * @return List of opened input streams to Aip files in order specified by input params i.e. first is reference to AipSip and then references to AipXmls.
+     * @param xmlVersions   specifies which XML versions should be retrieved, typically all or the latest only
+     * @return  list with opened file streams where first item is SIP stream and others are XML streams in the same order as was passed in {@code xmlVersions} parameter
      * @throws IOException
      */
-    List<InputStream> getAip(String sipId, String... xmlIds) throws IOException;
+    List<InputStream> getAip(String sipId, Integer... xmlVersions) throws IOException;
 
     /**
-     * Stores AipXml files into storage.
-     *
-     * @param xml   opened input stream to xml file
-     * @param xmlId
-     * @return MD5 hash of stored file
+     * Stores XML files into storage.
+     * @param sipId
+     * @param version
+     * @param xml
+     * @return  MD5 checksum computed from stored file
      * @throws IOException
      */
-    String storeXml(InputStream xml, String xmlId) throws IOException;
+    String storeXml(InputStream xml, String sipId,int version) throws IOException;
 
     /**
      * Retrieves reference to AipXml file. Caller is responsible for closing retrieved stream.
-     *
-     * @param xmlId
-     * @return opened input stream to AipXml file
+     * @param sipId
+     * @param version
+     * @return
      * @throws IOException
      */
-    InputStream getXml(String xmlId) throws IOException;
+    InputStream getXml(String sipId,int version) throws IOException;
 
     /**
-     * Deletes file (SIP or XML) from storage.
+     * Deletes SIP file from storage.
      *
      * @param id
      * @throws IOException
      */
-    void delete(String id) throws IOException;
+    void deleteSip(String id) throws IOException;
 
     /**
-     * Computes and retrieves MD5 checksums of Aip SIP and XML files.
+     * Deletes XML file from storage.
      *
-     * @param sipId if null only checksums of XML files are computed
-     * @param xmlIds
-     * @return Map with ids of Aip SIP and XML files as keys and MD5 strings with fixity information as values.
+     * @param sipId
+     * @param version
      * @throws IOException
      */
-    Map<String, String> getMD5(String sipId, List<String> xmlIds) throws IOException;
+    void deleteXml(String sipId, int version) throws IOException;
+
+    /**
+     * Logically removes SIP.
+     *
+     * @param id
+     * @throws IOException
+     */
+    void remove(String id) throws IOException;
+
+    /**
+     * Computes and retrieves MD5 checksums of XML files.
+     *
+     * @param sipId
+     * @param xmlVersions
+     * @return Map with versions of XML as keys and MD5 strings with fixity information as values.
+     * @throws IOException
+     */
+    Map<Integer, String> getXmlsMD5(String sipId, List<Integer> xmlVersions) throws IOException;
+
+    /**
+     * Computes and retrieves MD5 checksum of SIP file.
+     *
+     * @param sipId
+     * @return MD5 checksum of SIP file
+     * @throws IOException
+     */
+    String getSipMD5(String sipId) throws IOException;
 
     /**
      * Returns state of currently used storage.
