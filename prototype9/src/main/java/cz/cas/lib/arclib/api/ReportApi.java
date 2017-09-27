@@ -30,8 +30,8 @@ public class ReportApi {
             case CSV:
                 response.setContentType("text/csv");
                 break;
-            case XLS:
-                response.setContentType("application/vnd.ms-excel");
+            case XLSX:
+                response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
                 break;
             case HTML:
                 response.setContentType("text/html");

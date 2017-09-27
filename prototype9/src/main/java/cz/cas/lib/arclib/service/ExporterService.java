@@ -44,7 +44,7 @@ public class ExporterService {
                 exporter = getPdfExporter();
                 exporter.setExporterOutput(new SimpleOutputStreamExporterOutput(os));
                 break;
-            case XLS:
+            case XLSX:
                 exporter = getXlsExporter();
                 exporter.setExporterOutput(new SimpleOutputStreamExporterOutput(os));
                 break;
