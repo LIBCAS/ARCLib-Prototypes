@@ -1,18 +1,13 @@
 **Database**
-
-* url: **jdbc:postgresql://localhost:5432/arclib**  
-user: **arclib**  
-password: **vuji61oilo**
-
-
-* url: **jdbc:postgresql://localhost:5432/arclib-7**  
-user: **arclib**  
-password: **vuji61oilo**
-
-
-* url: **jdbc:postgresql://localhost:5432/arclib-12**  
-user: **arclib**  
-password: **vuji61oilo**
+* user: **arclib**
+* password: **vuji61oilo**
+* urls:
+  * **jdbc:postgresql://localhost:5432/arclib-1**
+  * **jdbc:postgresql://localhost:5432/arclib-7**
+  * **jdbc:postgresql://localhost:5432/arclib-8**
+  * **jdbc:postgresql://localhost:5432/arclib-9**
+  * **jdbc:postgresql://localhost:5432/arclib-10**
+  * **jdbc:postgresql://localhost:5432/arclib-12**
 
 Some prototypes need aditional configuration:
 
