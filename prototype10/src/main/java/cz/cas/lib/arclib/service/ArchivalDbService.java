@@ -9,12 +9,11 @@ import cz.cas.lib.arclib.exception.MissingObject;
 import cz.cas.lib.arclib.store.AipSipStore;
 import cz.cas.lib.arclib.store.AipXmlStore;
 import cz.cas.lib.arclib.store.Transactional;
+import lombok.extern.log4j.Log4j;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
-
-import java.util.Collections;
-import java.util.Map;
+import java.util.List;
 
 import static cz.cas.lib.arclib.util.Utils.notNull;
 
@@ -24,6 +23,7 @@ import static cz.cas.lib.arclib.util.Utils.notNull;
  */
 @Service
 @Transactional
+@Log4j
 public class ArchivalDbService {
 
     private AipSipStore aipSipStore;
@@ -35,9 +35,9 @@ public class ArchivalDbService {
      * @param sipId
      * @param sipHash
      * @param xmlHash
-     * @return  generated ID of XML record
+     * @return generated ID of XML record
      */
-    public String registerAipCreation(String sipId, String sipHash,String xmlHash) {
+    public String registerAipCreation(String sipId, String sipHash, String xmlHash) {
         notNull(sipId, () -> new BadArgument(sipId));
         AipSip sip = aipSipStore.find(sipId);
         if (sip != null)
@@ -56,7 +56,7 @@ public class ArchivalDbService {
      * @param xmlId
      * @throws IllegalStateException if {@link AipSip#state} is not {@link AipState#PROCESSING} or {@link AipXml#processing} is false
      */
-    public void finishAipCreation(String sipId,String xmlId) {
+    public void finishAipCreation(String sipId, String xmlId) {
         AipSip sip = aipSipStore.find(sipId);
         notNull(sip, () -> new MissingObject(AipSip.class, sipId));
         if (sip.getState() != AipState.PROCESSING)
@@ -71,7 +71,7 @@ public class ArchivalDbService {
      *
      * @param sipId
      * @param xmlHash
-     * @return  created XML entity filled with generated ID and version
+     * @return created XML entity filled with generated ID and version
      */
     public AipXml registerXmlUpdate(String sipId, String xmlHash) {
         notNull(sipId, () -> new BadArgument(sipId));
@@ -169,6 +169,16 @@ public class ArchivalDbService {
      */
     public void deleteXml(String id) {
         aipXmlStore.delete(aipXmlStore.find(id));
+    }
+
+    public void fillUnfinishedFilesLists(List<AipSip> unfinishedSips, List<AipXml> unfinishedXmls) {
+        unfinishedSips.addAll(aipSipStore.findUnfinishedSips());
+        unfinishedXmls.addAll(aipXmlStore.findUnfinishedXmls());
+    }
+
+    public void deleteUnfinishedFilesRecords() {
+        aipSipStore.deleteUnfinishedSipsRecords();
+        aipXmlStore.deleteUnfinishedXmlsRecords();
     }
 
     @Inject

@@ -20,11 +20,10 @@ import org.junit.rules.TestName;
 
 import javax.persistence.PersistenceException;
 import java.sql.SQLException;
-import java.time.Instant;
+import java.util.List;
 
 import static cz.cas.lib.arclib.helper.ThrowableAssertion.assertThrown;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 public class ArchivalDbServiceTest extends DbTest {
@@ -61,7 +60,6 @@ public class ArchivalDbServiceTest extends DbTest {
     @After
     public void after() throws SQLException {
         clearDatabase();
-
     }
 
     @Test
@@ -138,7 +136,7 @@ public class ArchivalDbServiceTest extends DbTest {
 
     @Test
     public void alreadyExistsTest() {
-        assertThrown(() -> service.registerAipCreation(SIP_ID, S,S)).isInstanceOf(ConflictObject.class);
+        assertThrown(() -> service.registerAipCreation(SIP_ID, S, S)).isInstanceOf(ConflictObject.class);
     }
 
     @Test
@@ -165,4 +163,34 @@ public class ArchivalDbServiceTest extends DbTest {
         assertThrown(() -> service.removeSip(SIP_ID)).isInstanceOf(IllegalStateException.class);
     }
 
+    @Test
+    public void findAndDeleteUnfinished() {
+        AipSip sip1 = new AipSip("sip1", S, AipState.PROCESSING);
+        AipXml xml1 = new AipXml("xml1", S, sip1, 1, true);
+        AipSip sip2 = new AipSip("sip2", S, AipState.ARCHIVED);
+        AipXml xml2 = new AipXml("xml2", S, sip2, 1, false);
+        AipXml xml3 = new AipXml("xml3", S, sip2, 2, true);
+        sipStore.save(sip1);
+        sipStore.save(sip2);
+
+        xmlStore.save(xml1);
+        xmlStore.save(xml2);
+        xmlStore.save(xml3);
+
+        List<AipSip> sips = sipStore.findUnfinishedSips();
+        List<AipXml> xmls = xmlStore.findUnfinishedXmls();
+
+        assertThat(sips, hasSize(1));
+        assertThat(sips.get(0), equalTo(sip1));
+        assertThat(xmls, hasSize(1));
+        assertThat(xmls.get(0), equalTo(xml3));
+
+        sipStore.deleteUnfinishedSipsRecords();
+        xmlStore.deleteUnfinishedXmlsRecords();
+
+        assertThat(sipStore.findUnfinishedSips(), empty());
+        assertThat(xmlStore.findUnfinishedXmls(), empty());
+        assertThat(xmlStore.findAll(), hasSize(3));
+        assertThat(sipStore.findAll(), hasSize(2));
+    }
 }

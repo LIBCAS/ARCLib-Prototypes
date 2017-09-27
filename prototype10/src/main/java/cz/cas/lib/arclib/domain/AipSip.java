@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.arclib.exception.NotFound;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import java.time.Instant;
@@ -25,6 +27,7 @@ public class AipSip extends ArchivalObject {
     }
 
     @OneToMany(mappedBy = "sip", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<AipXml> xmls = new ArrayList<>();
 
     @Setter

@@ -9,18 +9,17 @@ import cz.cas.lib.arclib.dto.StorageStateDto;
 import cz.cas.lib.arclib.exception.ChecksumChanged;
 import cz.cas.lib.arclib.exception.NotFound;
 import cz.cas.lib.arclib.storage.StorageService;
+import lombok.extern.log4j.Log4j;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Log4j
 public class ArchivalService {
 
     private StorageService storageService;
@@ -33,7 +32,7 @@ public class ArchivalService {
      * @param all   if true reference to SIP and all XMLs is returned otherwise reference to SIP and latest XML is retrieved
      * @return reference of AIP which contains ids and streams of its parts
      * @throws IOException
-     * @throws NotFound if AIP does not exist or is in {@link cz.cas.lib.arclib.domain.AipState#DELETED} state
+     * @throws NotFound    if AIP does not exist or is in {@link cz.cas.lib.arclib.domain.AipState#DELETED} state
      */
     public AipRef get(String sipId, Optional<Boolean> all) throws IOException, NotFound {
         AipSip sipEntity = archivalDbService.getAip(sipId);
@@ -54,11 +53,12 @@ public class ArchivalService {
 
     /**
      * Retrieves AIP XML reference.
+     *
      * @param sipId
-     * @param version   specifies version of XML to return, by default the latest XML is returned
-     * @return  reference to AIP XML
+     * @param version specifies version of XML to return, by default the latest XML is returned
+     * @return reference to AIP XML
      * @throws IOException
-     * @throws NotFound if either AIP does not exists or specified version of XML does not exist
+     * @throws NotFound    if either AIP does not exists or specified version of XML does not exist
      */
     public FileRef getXml(String sipId, Optional<Integer> version) throws IOException, NotFound {
         AipSip sipEntity = archivalDbService.getAip(sipId);
@@ -82,14 +82,15 @@ public class ArchivalService {
      * <p>
      * Also handles AIP versioning when whole AIP is versioned.
      * </p>
+     *
      * @param sip    SIP part of AIP
-     * @param aipXml    ARCLib XML part of AIP
+     * @param aipXml ARCLib XML part of AIP
      * @param sipMD5 SIP md5 hash
      * @param xmlMD5 XML md5 hash
-     * @param id    optional parameter, if not specified id is generated
+     * @param id     optional parameter, if not specified id is generated
      * @return SIP ID of created AIP
      * @throws IOException
-     * @throws ChecksumChanged  if provided MD5 checksums does not match checksums of stored files
+     * @throws ChecksumChanged if provided MD5 checksums does not match checksums of stored files
      */
     public String store(InputStream sip, String sipMD5, InputStream aipXml, String xmlMD5, Optional<String> id) throws IOException, ChecksumChanged {
         String sipId = id.isPresent() ? id.get() : UUID.randomUUID().toString();
@@ -111,6 +112,7 @@ public class ArchivalService {
      * Stores ARCLib AIP XML into Archival Storage.
      * <p>
      * If MD5 hash of file after upload does not match MD5 hash provided in request, the database is cleared and exception is thrown.
+     *
      * @param sipId  Id of SIP to which XML belongs
      * @param xml    Stream of xml file
      * @param xmlMD5 XML md5 hash
@@ -176,6 +178,30 @@ public class ArchivalService {
      */
     public StorageStateDto getStorageState() {
         return storageService.getStorageState();
+    }
+
+    /**
+     * Deletes files which are in PROCESSING state from storage and database.
+     *
+     * @throws IOException
+     */
+    public void clearUnfinished() throws IOException {
+        List<AipSip> unfinishedSips = new ArrayList<>();
+        List<AipXml> unfinshedXmls = new ArrayList<>();
+        archivalDbService.fillUnfinishedFilesLists(unfinishedSips, unfinshedXmls);
+        for (AipSip sip :
+                unfinishedSips) {
+            if (sip.getXmls().size() > 1)
+                log.warn("Found more than one XML of SIP package with id " + sip.getId() + " which was in PROCESSING state. SIP and all XMLS will be deleted.");
+            storageService.deleteSip(sip.getId());
+            for (AipXml xml : sip.getXmls()) {
+                storageService.deleteXml(sip.getId(), xml.getVersion());
+            }
+        }
+        for (AipXml xml : unfinshedXmls) {
+            storageService.deleteXml(xml.getSip().getId(), xml.getVersion());
+        }
+        archivalDbService.deleteUnfinishedFilesRecords();
     }
 
     @Inject
