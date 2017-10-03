@@ -21,10 +21,8 @@ public class AipSipStore extends DomainStore<AipSip, QAipSip> {
         return (List<AipSip>) query().where(sip.state.eq(AipState.PROCESSING)).fetch();
     }
 
-    public void deleteUnfinishedSipsRecords() {
+    public void rollbackUnfinishedSipsRecords() {
         QAipSip sip = qObject();
-        queryFactory.delete(sip)
-                .where(sip.state.eq(AipState.PROCESSING))
-                .execute();
+        queryFactory.update(sip).where(sip.state.eq(AipState.PROCESSING)).set(sip.state, AipState.ROLLBACKED).execute();
     }
 }

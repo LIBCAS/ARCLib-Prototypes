@@ -1,5 +1,6 @@
 package cz.cas.lib.arclib;
 
+import cz.cas.lib.arclib.dto.AipCreationMd5Info;
 import cz.cas.lib.arclib.dto.StorageStateDto;
 import cz.cas.lib.arclib.storage.FileSystemStorageService;
 import cz.cas.lib.arclib.storage.StorageService;
@@ -7,7 +8,6 @@ import cz.cas.lib.arclib.storage.StorageType;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.*;
@@ -34,7 +34,6 @@ public class FSStorageServiceTest {
     private static final String XML1_CONTENT = "XML1testID";
     private static final String XML2_CONTENT = "XML2testID";
 
-
     private static final Path SIP_PATH_DIRS = Paths.get(SIP_ID.substring(0, 2), SIP_ID.substring(2, 4), SIP_ID.substring(4, 6));
     private static final Path SIP_PATH = Paths.get("sip", SIP_PATH_DIRS.toString());
     private static final Path XML_PATH = Paths.get("xml", SIP_PATH_DIRS.toString());
@@ -44,8 +43,8 @@ public class FSStorageServiceTest {
 
     private static final StorageService storage = new FileSystemStorageService();
 
-    @BeforeClass
-    public static void setUp() throws IOException {
+    @Before
+    public void beforeTest() throws IOException {
         if (Files.isDirectory(Paths.get("sip")))
             FileUtils.deleteDirectory(new File("sip"));
         if (Files.isDirectory(Paths.get("xml")))
@@ -53,12 +52,11 @@ public class FSStorageServiceTest {
         Files.createDirectories(SIP_PATH);
         Files.createDirectories(XML_PATH);
         Files.copy(Paths.get("./src/test/resources/aip/sip"), SIP_PATH.resolve(SIP_ID));
+        Files.createFile(SIP_PATH.resolve(SIP_ID + ".MD5"));
+        Files.createFile(XML_PATH.resolve(XML1_ID + ".MD5"));
+        Files.createFile(XML_PATH.resolve(XML2_ID + ".MD5"));
         Files.copy(Paths.get("./src/test/resources/aip/xml1.xml"), XML_PATH.resolve(XML1_ID));
         Files.copy(Paths.get("./src/test/resources/aip/xml2.xml"), XML_PATH.resolve(XML2_ID));
-    }
-
-    @Before
-    public void beforeTest() throws IOException {
         SIP_STREAM.reset();
         XML1_STREAM.reset();
     }
@@ -67,13 +65,17 @@ public class FSStorageServiceTest {
     public void storeAipOK() throws IOException {
         Path xmlP = Paths.get("./xml/SI/Pu/ui/SIPuuid_xml_1");
         Path sipP = Paths.get("./sip/SI/Pu/ui/SIPuuid");
-
-        storage.storeAip(SIP_STREAM, "SIPuuid", XML1_STREAM);
-
+        Path xmlMd5P = Paths.get(xmlP.toString() + ".MD5");
+        Path sipMd5P = Paths.get(sipP.toString() + ".MD5");
+        AipCreationMd5Info checksums = storage.storeAip(SIP_STREAM, "SIPuuid", XML1_STREAM);
         assertThat(Files.exists(xmlP), equalTo(true));
         assertThat(Files.exists(sipP), equalTo(true));
+        assertThat(Files.exists(xmlMd5P), equalTo(true));
+        assertThat(Files.exists(sipMd5P), equalTo(true));
         assertThat(new String(Files.readAllBytes(sipP), CHARSET), equalTo(SIP_ID));
         assertThat(new String(Files.readAllBytes(xmlP), CHARSET), equalTo(XML1_ID));
+        assertThat(new String(Files.readAllBytes(xmlMd5P), CHARSET), equalTo(checksums.getXmlMd5()));
+        assertThat(new String(Files.readAllBytes(sipMd5P), CHARSET), equalTo(checksums.getSipMd5()));
     }
 
     @Test
@@ -104,22 +106,25 @@ public class FSStorageServiceTest {
 
     @Test
     public void storeXmlOK() throws IOException {
-        storage.storeXml(XML1_STREAM, "sipIdOk",2);
+        String xmlMd5 = storage.storeXml(XML1_STREAM, "sipIdOk", 2);
         Path xmlP = Paths.get("xml/si/pI/dO/sipIdOk_xml_2");
+        Path xmlMd5P = Paths.get(xmlP.toString() + ".MD5");
         assertThat(Files.exists(xmlP), equalTo(true));
+        assertThat(Files.exists(xmlMd5P), equalTo(true));
         assertThat(new String(Files.readAllBytes(xmlP), CHARSET), equalTo(XML1_ID));
+        assertThat(new String(Files.readAllBytes(xmlMd5P), CHARSET), equalTo(xmlMd5));
     }
 
     @Test
     public void storeXmlFileExists() throws IOException {
-        assertThrown(() -> storage.storeXml(XML1_STREAM, SIP_ID,1)).isInstanceOf(FileAlreadyExistsException.class);
+        assertThrown(() -> storage.storeXml(XML1_STREAM, SIP_ID, 1)).isInstanceOf(FileAlreadyExistsException.class);
     }
 
     @Test
     public void getXmlOK() throws IOException {
         InputStream xmlRef = null;
         try {
-            xmlRef = storage.getXml(SIP_ID,1);
+            xmlRef = storage.getXml(SIP_ID, 1);
             assertThat(IOUtils.toString(xmlRef, CHARSET), equalTo(XML1_CONTENT));
         } finally {
             IOUtils.closeQuietly(xmlRef);
@@ -128,20 +133,50 @@ public class FSStorageServiceTest {
 
     @Test
     public void getXmlSipDoesNotExist() {
-        assertThrown(() -> storage.getXml("WRONGSIPID",1)).isInstanceOf(FileNotFoundException.class);
+        assertThrown(() -> storage.getXml("WRONGSIPID", 1)).isInstanceOf(FileNotFoundException.class);
     }
 
     @Test
     public void getXmlVersionDoesNotExist() {
-        assertThrown(() -> storage.getXml(SIP_ID,99)).isInstanceOf(FileNotFoundException.class);
+        assertThrown(() -> storage.getXml(SIP_ID, 99)).isInstanceOf(FileNotFoundException.class);
     }
 
     @Test
-    public void deleteSipOK() throws IOException {
-        storage.storeAip(SIP_STREAM, "deleteTestSIP", XML1_STREAM);
-        storage.deleteSip("deleteTestSIP");
-        assertThat(Files.notExists(Paths.get("./sip/de/le/te/deleteTestSIP")), equalTo(true));
-        assertThat(Files.exists(Paths.get("./xml/de/le/te/deleteTestSIP_xml_1")), equalTo(true));
+    public void removeThenDeleteSip() throws IOException {
+        storage.remove(SIP_ID);
+        assertThat(Files.exists(SIP_PATH.resolve(SIP_ID)), equalTo(true));
+        assertThat(Files.exists(SIP_PATH.resolve(SIP_ID + ".REMOVED")), equalTo(true));
+        assertThat(Files.exists(SIP_PATH.resolve(SIP_ID + ".MD5")), equalTo(true));
+        storage.deleteSip(SIP_ID, false);
+        assertThat(Files.exists(SIP_PATH.resolve(SIP_ID)), equalTo(false));
+        assertThat(Files.exists(SIP_PATH.resolve(SIP_ID + ".REMOVED")), equalTo(false));
+        assertThat(Files.exists(SIP_PATH.resolve(SIP_ID + ".MD5")), equalTo(false));
+    }
+
+    @Test
+    public void rollbackFiles() throws IOException {
+        Files.createFile(SIP_PATH.resolve(SIP_ID + ".LOCK"));
+        Files.createFile(SIP_PATH.resolve(SIP_ID + ".REMOVED"));
+        Files.createFile(XML_PATH.resolve(XML1_ID + ".LOCK"));
+        Files.createFile(XML_PATH.resolve(XML2_ID + ".LOCK"));
+
+        storage.deleteSip(SIP_ID, true);
+        assertThat(Files.exists(SIP_PATH.resolve(SIP_ID)), equalTo(false));
+        assertThat(Files.exists(SIP_PATH.resolve(SIP_ID + ".REMOVED")), equalTo(false));
+        assertThat(Files.exists(SIP_PATH.resolve(SIP_ID + ".LOCK")), equalTo(false));
+        assertThat(Files.exists(SIP_PATH.resolve(SIP_ID + ".MD5")), equalTo(false));
+        assertThat(Files.exists(SIP_PATH.resolve(SIP_ID + ".ROLLBACKED")), equalTo(true));
+        assertThat(Files.exists(XML_PATH.resolve(XML2_ID)), equalTo(true));
+
+        storage.deleteXml(SIP_ID, 2);
+        assertThat(Files.exists(XML_PATH.resolve(XML2_ID)), equalTo(false));
+        assertThat(Files.exists(XML_PATH.resolve(XML2_ID + ".MD5")), equalTo(false));
+        assertThat(Files.exists(XML_PATH.resolve(XML2_ID + ".LOCK")), equalTo(false));
+        assertThat(Files.exists(XML_PATH.resolve(XML2_ID + ".ROLLBACKED")), equalTo(true));
+
+        assertThat(Files.exists(XML_PATH.resolve(XML1_ID)), equalTo(true));
+        assertThat(Files.exists(XML_PATH.resolve(XML1_ID + ".LOCK")), equalTo(true));
+        assertThat(Files.exists(XML_PATH.resolve(XML1_ID + ".MD5")), equalTo(true));
     }
 
     @Test
@@ -149,7 +184,7 @@ public class FSStorageServiceTest {
         StorageStateDto before = storage.getStorageState();
         byte[] b = new byte[1024];
         new Random().nextBytes(b);
-        storage.storeXml(new ByteArrayInputStream(b), "STORAGECAPACITYTEST",10);
+        storage.storeXml(new ByteArrayInputStream(b), "STORAGECAPACITYTEST", 10);
         StorageStateDto after = storage.getStorageState();
         assertThat(before.getNodes(), empty());
         assertThat(before.getType(), is(StorageType.FILESYSTEM));

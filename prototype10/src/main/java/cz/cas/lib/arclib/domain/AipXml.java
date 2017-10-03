@@ -5,11 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
 
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import java.time.Instant;
+import javax.persistence.*;
 
 @Getter
 @Setter
@@ -26,23 +22,25 @@ public class AipXml extends ArchivalObject {
     @JsonIgnore
     private AipSip sip;
     private int version;
-    private boolean processing;
+
+    @Enumerated(EnumType.STRING)
+    private XmlState state;
 
     public AipXml() {
-        super(null,  null);
+        super(null, null);
     }
 
-    public AipXml(String id, String md5, AipSip sip, int version, boolean processing) {
+    public AipXml(String id, String md5, AipSip sip, int version, XmlState state) {
         super(id, md5);
         this.sip = sip;
         this.version = version;
-        this.processing = processing;
+        this.state = state;
     }
 
-    public AipXml(String md5, AipSip sip, int version, boolean processing) {
+    public AipXml(String md5, AipSip sip, int version, XmlState state) {
         super(md5);
         this.sip = sip;
         this.version = version;
-        this.processing = processing;
+        this.state = state;
     }
 }

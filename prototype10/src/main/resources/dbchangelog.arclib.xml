@@ -36,7 +36,7 @@
             <column name="version" type="integer">
                 <constraints nullable="false"/>
             </column>
-            <column name="processing" type="boolean">
+            <column name="state" type="varchar(32)">
                 <constraints nullable="false"/>
             </column>
         </createTable>

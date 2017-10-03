@@ -3,10 +3,12 @@ package cz.cas.lib.arclib.storage;
 import cz.cas.lib.arclib.dto.AipCreationMd5Info;
 import cz.cas.lib.arclib.dto.StorageStateDto;
 import cz.cas.lib.arclib.store.Transactional;
+import lombok.extern.log4j.Log4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -22,6 +24,7 @@ import static cz.cas.lib.arclib.util.Utils.notNull;
 
 @Service
 @Transactional
+@Log4j
 /**
  * File System implementation of {@link StorageService}. Files are stored to filesystem into <i>sip</i> and <i>xml</i> folders in <i>working directory</i>.
  * <p>Data are distributed into three level folder structure based on their uuid. E.g. sip file with id <i>38a4a26f-67fd-4e4c-8af3-1fd0f26465f6</i> will be stored into sip/38/a4/a2 folder</p>
@@ -35,6 +38,7 @@ import static cz.cas.lib.arclib.util.Utils.notNull;
  *     SIP ID is its file name, when SIP is DELETED its files are no longer stored, when its REMOVED new empty file with SIP ID and <i>.REMOVED</i> sufffix is created</li>
  *     <li>for XML its version and ID of SIP: XML file name follows <i>'SIPID'_xml_'XMLVERSION'</i> pattern</li>
  * </ul>
+ * <b>For testing purposes, this prototype implementation uses {@link Thread#sleep(long)} in create/delete methods to simulate time-consuming operations.</b>
  */
 public class FileSystemStorageService implements StorageService {
 
@@ -79,29 +83,47 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
-    public void deleteSip(String sipId) throws IOException {
+    public void deleteSip(String sipId, boolean rollback) throws IOException {
         Path sipPath = getSipPath(sipId);
-        Files.createFile(sipPath.resolve(String.format("%s.LOCK", sipId)));
+        if (Files.notExists(sipPath.resolve(String.format("%s.LOCK", sipId))))
+            Files.createFile(sipPath.resolve(String.format("%s.LOCK", sipId)));
         Files.deleteIfExists(sipPath.resolve(sipId));
         Files.deleteIfExists(sipPath.resolve(String.format("%s.REMOVED", sipId)));
         Files.deleteIfExists(sipPath.resolve(String.format("%s.MD5", sipId)));
-        Files.delete(sipPath.resolve(String.format("%s.LOCK", sipId)));
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        if (rollback)
+            sipPath.resolve(String.format("%s.LOCK", sipId)).toFile().renameTo(sipPath.resolve(String.format("%s.ROLLBACKED", sipId)).toFile());
+        else
+            Files.delete(sipPath.resolve(String.format("%s.LOCK", sipId)));
     }
 
     @Override
     public void deleteXml(String sipId, int version) throws IOException {
         String xmlId = toXmlId(sipId, version);
         Path xmlPath = getXmlPath(sipId);
-        Files.createFile(xmlPath.resolve(String.format("%s.LOCK", xmlId)));
+        if (Files.notExists(xmlPath.resolve(String.format("%s.LOCK", xmlId))))
+            Files.createFile(xmlPath.resolve(String.format("%s.LOCK", xmlId)));
         Files.deleteIfExists(xmlPath.resolve(xmlId));
         Files.deleteIfExists(xmlPath.resolve(String.format("%s.MD5", xmlId)));
-        Files.delete(xmlPath.resolve(String.format("%s.LOCK", xmlId)));
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        xmlPath.resolve(String.format("%s.LOCK", xmlId)).toFile().renameTo(xmlPath.resolve(String.format("%s.ROLLBACKED", xmlId)).toFile());
     }
 
     @Override
     public void remove(String sipId) throws IOException {
         Path filePath = getSipPath(sipId);
-        Files.createFile(filePath.resolve(String.format("%s.REMOVED", sipId)));
+        try {
+            Files.createFile(filePath.resolve(String.format("%s.REMOVED", sipId)));
+        } catch (FileAlreadyExistsException e) {
+        }
     }
 
     @Override
@@ -143,13 +165,18 @@ public class FileSystemStorageService implements StorageService {
         Path filePath = id.contains("_xml_") ? getXmlPath(id) : getSipPath(id);
         Files.createFile(filePath.resolve(String.format("%s.LOCK", id)));
         Files.copy(file, filePath.resolve(id));
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         String md5 = computeMD5(filePath.resolve(id));
         Files.copy(new ByteArrayInputStream(md5.getBytes()), filePath.resolve(String.format("%s.MD5", id)));
         Files.delete(filePath.resolve(String.format("%s.LOCK", id)));
         return md5;
     }
 
-    private String computeMD5(Path pathToFile) throws IOException {
+    private String computeMD5(Path pathToFile) {
         notNull(pathToFile, () -> {
             throw new IllegalArgumentException();
         });
@@ -166,6 +193,11 @@ public class FileSystemStorageService implements StorageService {
             return bytesToHexString(complete.digest());
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
+        } catch (FileNotFoundException e) {
+            return null;
+        } catch (IOException e) {
+            log.warn(String.format("IO error occurred while computing MD5 of file on path: %s. %s", pathToFile.toString(), e.toString()));
+            return null;
         }
     }
 

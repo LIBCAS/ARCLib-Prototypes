@@ -1,15 +1,12 @@
 package cz.cas.lib.arclib.config;
 
 import cz.cas.lib.arclib.exception.*;
-import org.hibernate.annotations.Check;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
-
-import java.io.FileNotFoundException;
 
 /**
  * {@link Exception} to HTTP codes mapping.
@@ -26,7 +23,6 @@ public class ResourceExceptionHandler {
     @ResponseStatus(value = HttpStatus.NOT_FOUND)
     @ExceptionHandler(MissingObject.class)
     public void missingObject() {
-
     }
 
     @ResponseStatus(value = HttpStatus.NOT_FOUND)
@@ -64,18 +60,18 @@ public class ResourceExceptionHandler {
     public void bindException() {
     }
 
-    @ExceptionHandler(ChecksumChanged.class)
-    public ResponseEntity checksumChanged() {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Stored file checksum do not match checksum provided in request. Make sure that provided checksum is correct and repeat the request.");
+    @ExceptionHandler(DeletedException.class)
+    public ResponseEntity deletedException(Exception e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.toString());
     }
 
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity illgegalState() {
-        return ResponseEntity.status(HttpStatus.LOCKED).body("Action not permitted. Requested action would result in illegal state transition. This problems occurs for example when you try to logically remove already deleted package or delete package which is still uploading.");
+    @ExceptionHandler(RollbackedException.class)
+    public ResponseEntity rollbackedException(Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.toString());
     }
 
-    @ResponseStatus(value = HttpStatus.NOT_FOUND)
-    @ExceptionHandler(NotFound.class)
-    public void notFoundException() {
+    @ExceptionHandler(StillProcessingException.class)
+    public ResponseEntity stillProcessingException(Exception e) {
+        return ResponseEntity.status(HttpStatus.LOCKED).body(e.toString());
     }
 }

@@ -2,15 +2,16 @@ package cz.cas.lib.arclib.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import cz.cas.lib.arclib.exception.NotFound;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
-import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 @Entity
 @Table(name = "arclib_aip_sip")
@@ -40,7 +41,7 @@ public class AipSip extends ArchivalObject {
     }
 
     public AipSip(String id) {
-        super(id,  null);
+        super(id, null);
     }
 
     public AipSip(String id, String md5, AipState state) {
@@ -69,6 +70,6 @@ public class AipSip extends ArchivalObject {
 
     @JsonIgnore
     public AipXml getLatestXml() {
-        return this.xmls.stream().max(Comparator.comparingInt(xml->xml.getVersion())).get();
+        return this.xmls.stream().max(Comparator.comparingInt(xml -> xml.getVersion())).get();
     }
 }
