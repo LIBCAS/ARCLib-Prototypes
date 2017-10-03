@@ -14,9 +14,9 @@ import java.util.stream.StreamSupport;
 public class Utils {
 
     public static <T> T unwrap(T a) {
-        if(isProxy(a)) {
+        if (isProxy(a)) {
             try {
-                return (T) ((Advised)a).getTargetSource().getTarget();
+                return (T) ((Advised) a).getTargetSource().getTarget();
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -34,7 +34,7 @@ public class Utils {
         if (o == null) {
             throw supplier.get();
         } else if (o instanceof Optional) {
-            if(!((Optional)o).isPresent()) {
+            if (!((Optional) o).isPresent()) {
                 throw supplier.get();
             }
         } else if (isProxy(o)) {
@@ -43,6 +43,7 @@ public class Utils {
             }
         }
     }
+
     public static <T extends DomainObject> List<T> sortByIdList(List<String> ids, Iterable<T> objects) {
         Map<String, T> map = StreamSupport.stream(objects.spliterator(), true)
                 .collect(Collectors.toMap(DomainObject::getId, o -> o));
@@ -63,7 +64,7 @@ public class Utils {
             method.checked();
         } catch (Exception ex) {
             if (ex instanceof GeneralException) {
-                throw (GeneralException)ex;
+                throw (GeneralException) ex;
             } else {
                 throw new GeneralException(ex);
             }
@@ -75,7 +76,7 @@ public class Utils {
         return new HashSet<>(Arrays.asList(a));
     }
 
-    public static <U, T extends RuntimeException> void in(U o1,  Collection<U> o2, Supplier<T> supplier) {
+    public static <U, T extends RuntimeException> void in(U o1, Collection<U> o2, Supplier<T> supplier) {
         if (!o2.contains(o1)) {
             throw supplier.get();
         }
@@ -92,7 +93,7 @@ public class Utils {
         return map;
     }
 
-    public static <U, T extends RuntimeException> void eq(U o1,  U o2, Supplier<T> supplier) {
+    public static <U, T extends RuntimeException> void eq(U o1, U o2, Supplier<T> supplier) {
         if (!Objects.equals(o1, o2)) {
             throw supplier.get();
         }
