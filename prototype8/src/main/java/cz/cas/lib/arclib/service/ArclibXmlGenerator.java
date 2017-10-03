@@ -15,10 +15,7 @@ import org.xml.sax.SAXException;
 
 import javax.inject.Inject;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPathExpressionException;
@@ -87,7 +84,7 @@ public class ArclibXmlGenerator {
      * @throws ParserConfigurationException
      */
     private void addNodesByMapping(Document arclibXml, Element mappingElement, String sipPath)
-            throws IOException, SAXException, ParserConfigurationException, XPathExpressionException {
+            throws IOException, SAXException, ParserConfigurationException, XPathExpressionException, TransformerException {
         Element source = (Element) mappingElement.getElementsByTagName("source").item(0);
 
         String sourceFilePath = source.getElementsByTagName("filePath").item(0).getTextContent();
@@ -107,21 +104,19 @@ public class ArclibXmlGenerator {
     }
 
     /**
-     * Transforms {@link Node} to {@link String}
+     * Transforms {@link org.w3c.dom.Node} to {@link String}
      *
      * @param node node to transform
-     * @return {@link String} representation of the {@link Node}
+     * @return {@link String} representation of the {@link org.w3c.dom.Node}
      */
-    private static String nodeToString(org.w3c.dom.Node node) {
+    private static String nodeToString(org.w3c.dom.Node node) throws TransformerException {
         StringWriter sw = new StringWriter();
-        try {
-            Transformer t = TransformerFactory.newInstance().newTransformer();
-            t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-            t.setOutputProperty(OutputKeys.INDENT, "yes");
-            t.transform(new DOMSource(node), new StreamResult(sw));
-        } catch (TransformerException te) {
-            System.out.println("nodeToString Transformer Exception");
-        }
+
+        Transformer t = TransformerFactory.newInstance().newTransformer();
+        t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+        t.setOutputProperty(OutputKeys.INDENT, "yes");
+        t.transform(new DOMSource(node), new StreamResult(sw));
+
         return sw.toString();
     }
 

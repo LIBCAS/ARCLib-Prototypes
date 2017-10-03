@@ -1,0 +1,11 @@
+<profile xmlns="http://www.arclib.lib.cas.cz">
+    <mapping>
+        <source>
+            <filePath>METS_KPW01169310.xml</filePath>
+            <xPath>/mets/metsHdr/agent[1]</xPath>
+        </source>
+        <destination>
+            <xPath>/arclibXml/mets/metsHdr</xPath>
+        </destination>
+    </mapping>
+</profile>

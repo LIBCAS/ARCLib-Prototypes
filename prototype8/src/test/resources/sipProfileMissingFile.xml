@@ -1,0 +1,11 @@
+<profile xmlns="http://www.arclib.lib.cas.cz">
+    <mapping>
+        <source>
+            <filePath>nonExistentFile</filePath>
+            <xPath>/mets/metsHdr/agent/name</xPath>
+        </source>
+        <destination>
+            <xPath>/arclibXml/mets/metsHdr/agent</xPath>
+        </destination>
+    </mapping>
+</profile>
