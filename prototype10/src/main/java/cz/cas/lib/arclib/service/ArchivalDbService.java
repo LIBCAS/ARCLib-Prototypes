@@ -3,15 +3,16 @@ package cz.cas.lib.arclib.service;
 import cz.cas.lib.arclib.domain.AipSip;
 import cz.cas.lib.arclib.domain.AipState;
 import cz.cas.lib.arclib.domain.AipXml;
-import cz.cas.lib.arclib.exception.BadArgument;
-import cz.cas.lib.arclib.exception.ConflictObject;
-import cz.cas.lib.arclib.exception.MissingObject;
+import cz.cas.lib.arclib.domain.XmlState;
+import cz.cas.lib.arclib.exception.*;
 import cz.cas.lib.arclib.store.AipSipStore;
 import cz.cas.lib.arclib.store.AipXmlStore;
 import cz.cas.lib.arclib.store.Transactional;
+import lombok.extern.log4j.Log4j;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
+import java.util.List;
 
 import static cz.cas.lib.arclib.util.Utils.notNull;
 
@@ -21,6 +22,7 @@ import static cz.cas.lib.arclib.util.Utils.notNull;
  */
 @Service
 @Transactional
+@Log4j
 public class ArchivalDbService {
 
     private AipSipStore aipSipStore;
@@ -30,25 +32,20 @@ public class ArchivalDbService {
      * Registers that AIP creation process has started. Stores AIP records to database and sets their state to <i>processing</i>.
      *
      * @param sipId
-     * @param sipName
      * @param sipHash
-     * @param xmlId
-     * @param xmlName
      * @param xmlHash
+     * @return generated ID of XML record
      */
-    public void registerAipCreation(String sipId, String sipName, String sipHash, String xmlId, String xmlName, String xmlHash) {
+    public String registerAipCreation(String sipId, String sipHash, String xmlHash) {
         notNull(sipId, () -> new BadArgument(sipId));
-        notNull(xmlId, () -> new BadArgument(xmlId));
         AipSip sip = aipSipStore.find(sipId);
-        AipXml xml = aipXmlStore.find(xmlId);
         if (sip != null)
             throw new ConflictObject(sip);
-        if (xml != null)
-            throw new ConflictObject(xml);
-        sip = new AipSip(sipId, sipName, sipHash, AipState.PROCESSING);
-        xml = new AipXml(xmlId, xmlName, xmlHash, sip, 1, true);
+        sip = new AipSip(sipId, sipHash, AipState.PROCESSING);
+        AipXml xml = new AipXml(xmlHash, new AipSip(sipId), 1, XmlState.PROCESSING);
         aipSipStore.save(sip);
         aipXmlStore.save(xml);
+        return xml.getId();
     }
 
     /**
@@ -56,13 +53,9 @@ public class ArchivalDbService {
      *
      * @param sipId
      * @param xmlId
-     * @throws IllegalStateException if {@link AipSip#state} is not {@link AipState#PROCESSING} or {@link AipXml#processing} is false
      */
     public void finishAipCreation(String sipId, String xmlId) {
         AipSip sip = aipSipStore.find(sipId);
-        notNull(sip, () -> new MissingObject(AipSip.class, sipId));
-        if (sip.getState() != AipState.PROCESSING)
-            throw new IllegalStateException("SIP: " + sipId + " creation can't be finished because SIP is not in " + AipState.PROCESSING + " state. Current state: " + sip.getState());
         sip.setState(AipState.ARCHIVED);
         aipSipStore.save(sip);
         finishXmlProcess(xmlId);
@@ -72,30 +65,34 @@ public class ArchivalDbService {
      * Registers that AIP XML update process has started.
      *
      * @param sipId
-     * @param xmlId
-     * @param xmlName
      * @param xmlHash
+     * @return created XML entity filled with generated ID and version
      */
-    public void registerXmlUpdate(String sipId, String xmlId, String xmlName, String xmlHash) {
+    public AipXml registerXmlUpdate(String sipId, String xmlHash) {
         notNull(sipId, () -> new BadArgument(sipId));
-        notNull(xmlId, () -> new BadArgument(xmlId));
-        AipXml xml = aipXmlStore.find(xmlId);
-        if (xml != null)
-            throw new ConflictObject(xml);
-        aipXmlStore.save(new AipXml(xmlId, xmlName, xmlHash, new AipSip(sipId), aipXmlStore.getNextXmlVersionNumber(sipId), true));
+        int xmlVersion = aipXmlStore.getNextXmlVersionNumber(sipId);
+        AipXml newVersion = new AipXml(xmlHash, new AipSip(sipId), xmlVersion, XmlState.PROCESSING);
+        aipXmlStore.save(newVersion);
+        return newVersion;
     }
 
     /**
      * Registers that AIP SIP deletion process has started.
      *
      * @param sipId
-     * @throws IllegalStateException if {@link AipSip#state} is {@link AipState#PROCESSING}
+     * @throws RollbackedException
+     * @throws StillProcessingException
      */
-    public void registerSipDeletion(String sipId) {
+    public void registerSipDeletion(String sipId) throws StillProcessingException, RollbackedException {
         AipSip sip = aipSipStore.find(sipId);
-        notNull(sip, () -> new MissingObject(AipSip.class, sipId));
+        notNull(sip, () -> {
+            log.warn(String.format("Could not find AIP: %s", sipId));
+            return new MissingObject(AipSip.class, sipId);
+        });
         if (sip.getState() == AipState.PROCESSING)
-            throw new IllegalStateException("SIP: " + sipId + " deletion can't be started because SIP is in " + AipState.PROCESSING + " state.");
+            throw new StillProcessingException(sip);
+        if (sip.getState() == AipState.ROLLBACKED)
+            throw new RollbackedException(sip);
         sip.setState(AipState.PROCESSING);
         aipSipStore.save(sip);
     }
@@ -104,13 +101,9 @@ public class ArchivalDbService {
      * Registers that AIP SIP deletion process has ended.
      *
      * @param sipId
-     * @throws IllegalStateException if {@link AipSip#state} is not {@link AipState#PROCESSING}
      */
     public void finishSipDeletion(String sipId) {
         AipSip sip = aipSipStore.find(sipId);
-        notNull(sip, () -> new MissingObject(AipSip.class, sipId));
-        if (sip.getState() != AipState.PROCESSING)
-            throw new IllegalStateException("SIP: " + sipId + " deletion can't be finished because SIP is not in " + AipState.PROCESSING + " state. Current state: " + sip.getState());
         sip.setState(AipState.DELETED);
         aipSipStore.save(sip);
     }
@@ -119,28 +112,33 @@ public class ArchivalDbService {
      * Registers that process which used AIP XML file has ended.
      *
      * @param xmlId
-     * @throws IllegalArgumentException if {@link AipXml#processing} is false
      */
     public void finishXmlProcess(String xmlId) {
         AipXml xml = aipXmlStore.find(xmlId);
-        notNull(xml, () -> new MissingObject(AipXml.class, xmlId));
-        if (!xml.isProcessing())
-            throw new IllegalStateException("XML " + xmlId + " process has already finished");
-        xml.setProcessing(false);
+        xml.setState(XmlState.ARCHIVED);
         aipXmlStore.save(xml);
     }
 
     /**
-     * Logically removes SIP i.e. sets its state to <i>removed</i> in the database.
+     * Logically removes SIP i.e. sets its state to {@link AipState#REMOVED} in the database.
      *
      * @param sipId
-     * @throws IllegalArgumentException if {@link AipSip#state} is not {@link AipState#ARCHIVED} or {@link AipState#REMOVED}
+     * @throws DeletedException         if SIP is deleted
+     * @throws RollbackedException
+     * @throws StillProcessingException
      */
-    public void removeSip(String sipId) {
+    public void removeSip(String sipId) throws DeletedException, RollbackedException, StillProcessingException {
         AipSip sip = aipSipStore.find(sipId);
-        notNull(sip, () -> new MissingObject(AipSip.class, sipId));
-        if (sip.getState() != AipState.ARCHIVED)
-            throw new IllegalStateException("SIP: " + sipId + " can't be logically removed because it is not in " + AipState.ARCHIVED + "/" + AipState.REMOVED + " state. Current state: " + sip.getState());
+        notNull(sip, () -> {
+            log.warn(String.format("Could not find AIP: %s", sipId));
+            return new MissingObject(AipSip.class, sipId);
+        });
+        if (sip.getState() == AipState.DELETED)
+            throw new DeletedException(sip);
+        if (sip.getState() == AipState.ROLLBACKED)
+            throw new RollbackedException(sip);
+        if (sip.getState() == AipState.PROCESSING)
+            throw new StillProcessingException(sip);
         sip.setState(AipState.REMOVED);
         aipSipStore.save(sip);
     }
@@ -153,24 +151,53 @@ public class ArchivalDbService {
      */
     public AipSip getAip(String sipId) {
         AipSip sip = aipSipStore.find(sipId);
-        notNull(sip, () -> new MissingObject(AipSip.class, sipId));
+        notNull(sip, () -> {
+            log.warn(String.format("Could not find AIP: %s", sipId));
+            return new MissingObject(AipSip.class, sipId);
+        });
         return sip;
     }
 
     /**
-     * Removes record about SIP and all related XMLs from database. Should be used only when the AIP creation process fails.
+     * Rollback SIP and related XML. Used when the AIP creation process fails.
+     *
      * @param id
      */
-    public void deleteAip(String id){
-        aipSipStore.delete(aipSipStore.find(id));
+    public void rollbackSip(String id, String xmlId) {
+        AipSip sip = aipSipStore.find(id);
+        sip.setState(AipState.ROLLBACKED);
+        aipSipStore.save(sip);
+        rollbackXml(xmlId);
     }
 
     /**
-     * Removes record about XML from database. Should be used only when the XML update process fails.
+     * Rollback XML. Used when the XML update process or AIP creation process fails.
+     *
      * @param id
      */
-    public void deleteXml(String id){
-        aipXmlStore.delete(aipXmlStore.find(id));
+    public void rollbackXml(String id) {
+        AipXml xml = aipXmlStore.find(id);
+        xml.setState(XmlState.ROLLBACKED);
+        aipXmlStore.save(xml);
+    }
+
+    /**
+     * Fill initialized lists passed as parameters with records of files in processing state.
+     *
+     * @param unfinishedSips
+     * @param unfinishedXmls
+     */
+    public void fillUnfinishedFilesLists(List<AipSip> unfinishedSips, List<AipXml> unfinishedXmls) {
+        unfinishedSips.addAll(aipSipStore.findUnfinishedSips());
+        unfinishedXmls.addAll(aipXmlStore.findUnfinishedXmls());
+    }
+
+    /**
+     * Deletes records of files in processing state.
+     */
+    public void rollbackUnfinishedFilesRecords() {
+        aipSipStore.rollbackUnfinishedSipsRecords();
+        aipXmlStore.rollbackUnfinishedXmlsRecords();
     }
 
     @Inject

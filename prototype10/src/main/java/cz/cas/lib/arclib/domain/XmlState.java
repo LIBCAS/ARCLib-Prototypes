@@ -3,10 +3,8 @@ package cz.cas.lib.arclib.domain;
 import lombok.Getter;
 
 @Getter
-public enum AipState {
-    PROCESSING,
+public enum XmlState {
     ARCHIVED,
-    DELETED,
-    REMOVED,
+    PROCESSING,
     ROLLBACKED
 }

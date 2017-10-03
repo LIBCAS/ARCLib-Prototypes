@@ -3,17 +3,15 @@ package cz.cas.lib.arclib;
 import cz.cas.lib.arclib.domain.AipSip;
 import cz.cas.lib.arclib.domain.AipState;
 import cz.cas.lib.arclib.domain.AipXml;
-import cz.cas.lib.arclib.dto.StoredFileInfoDto;
-import cz.cas.lib.arclib.exception.ChecksumChanged;
-import cz.cas.lib.arclib.exception.NotFound;
-import cz.cas.lib.arclib.service.AipRef;
-import cz.cas.lib.arclib.service.ArchivalDbService;
-import cz.cas.lib.arclib.service.ArchivalService;
-import cz.cas.lib.arclib.service.FileRef;
+import cz.cas.lib.arclib.domain.XmlState;
+import cz.cas.lib.arclib.dto.AipCreationMd5Info;
+import cz.cas.lib.arclib.exception.DeletedException;
+import cz.cas.lib.arclib.exception.RollbackedException;
+import cz.cas.lib.arclib.exception.StillProcessingException;
+import cz.cas.lib.arclib.service.*;
 import cz.cas.lib.arclib.storage.StorageService;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
@@ -25,18 +23,19 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
-import static cz.cas.lib.arclib.helper.ThrowableAssertion.assertThrown;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.*;
 
 public class ArchivalServiceTest {
 
     private static final ArchivalService service = new ArchivalService();
+    private static final ArchivalAsyncService async = new ArchivalAsyncService();
 
     @Mock
     private ArchivalDbService dbService;
@@ -63,124 +62,121 @@ public class ArchivalServiceTest {
 
         service.setArchivalDbService(dbService);
         service.setStorageService(storageService);
+        service.setAsyncService(async);
 
-        sip = new AipSip(SIP_ID, SIP_ID, SIP_HASH, AipState.ARCHIVED);
-        xml1 = new AipXml(XML1_ID, XML1_ID, XML1_HASH, sip, 1, false);
-        xml2 = new AipXml(XML2_ID, XML2_ID, XML2_ID, sip, 2, false);
+        async.setArchivalDbService(dbService);
+        async.setStorageService(storageService);
+
+        sip = new AipSip(SIP_ID, SIP_HASH, AipState.ARCHIVED);
+        xml1 = new AipXml(XML1_ID, XML1_HASH, sip, 1, XmlState.ARCHIVED);
+        xml2 = new AipXml(XML2_ID, XML2_ID, sip, 2, XmlState.ARCHIVED);
         sip.addXml(xml1);
         sip.addXml(xml2);
     }
 
     @Test
-    public void get() throws IOException, NotFound {
+    public void getAll() throws IOException, DeletedException, StillProcessingException, RollbackedException {
         when(dbService.getAip(SIP_ID)).thenReturn(sip);
-        when(storageService.getAip(SIP_ID, XML1_ID, XML2_ID)).thenReturn(Arrays.asList(SIP_STREAM, XML1_STREAM, XML2_STREAM));
+        when(storageService.getAip(SIP_ID, 1, 2)).thenReturn(Arrays.asList(SIP_STREAM, XML1_STREAM, XML2_STREAM));
 
-        AipRef aip = service.get(SIP_ID);
+        AipRef aip = service.get(SIP_ID, Optional.of(true));
 
-        assertThat(aip.getSip(), equalTo(new FileRef(SIP_ID, SIP_ID, SIP_STREAM)));
-        assertThat(aip.getXmls(), containsInAnyOrder(new FileRef(XML1_ID, XML1_ID, XML1_STREAM), new FileRef(XML2_ID, XML2_ID, XML2_STREAM)));
+        assertThat(aip.getSip(), equalTo(new FileRef(SIP_ID, SIP_STREAM)));
+        assertThat(aip.getXmls(), containsInAnyOrder(new FileRef(XML1_ID, XML1_STREAM), new FileRef(XML2_ID, XML2_STREAM)));
     }
 
     @Test
-    public void store() throws IOException, ChecksumChanged {
+    public void getLatest() throws IOException, DeletedException, StillProcessingException, RollbackedException {
+        when(dbService.getAip(SIP_ID)).thenReturn(sip);
+        when(storageService.getAip(eq(SIP_ID), any())).thenReturn(Arrays.asList(SIP_STREAM, XML2_STREAM));
 
-        when(storageService.storeAip(eq(SIP_STREAM), anyString(), eq(XML1_STREAM), anyString())).thenAnswer(
+        AipRef aip = service
+                .get(SIP_ID, Optional.empty());
+
+        assertThat(aip.getSip(), equalTo(new FileRef(SIP_ID, SIP_STREAM)));
+        assertThat(aip.getXmls(), containsInAnyOrder(new FileRef(XML2_ID, XML2_STREAM)));
+        assertThat(aip.getXmls().size(), equalTo(1));
+    }
+
+    @Test
+    public void storeIdProvided() throws IOException {
+        when(storageService.storeAip(eq(SIP_STREAM), anyString(), eq(XML1_STREAM))).thenAnswer(
                 new Answer<Object>() {
                     public Object answer(InvocationOnMock invocation) {
-                        Map<String, String> checksums = new HashMap<>();
-                        checksums.put((String) invocation.getArguments()[1], SIP_HASH);
-                        checksums.put((String) invocation.getArguments()[3], XML1_HASH);
-                        return checksums;
+                        return new AipCreationMd5Info(SIP_HASH, XML1_HASH);
                     }
                 }
         );
+        when(dbService.registerAipCreation(eq(SIP_ID), eq(SIP_HASH), eq(XML1_HASH))).thenReturn("xmlId");
 
-        List<StoredFileInfoDto> res = service.store(SIP_STREAM, SIP_ID, SIP_HASH, XML1_STREAM, XML1_ID, XML1_HASH);
+        service.store(SIP_ID, SIP_STREAM, SIP_HASH, XML1_STREAM, XML1_HASH);
 
-        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
-        verify(dbService).registerAipCreation(argument.capture(), anyString(), eq(SIP_HASH), argument.capture(), anyString(), eq(XML1_HASH));
-        String generatedSipId = argument.getAllValues().get(0);
-        String generatedXmlId = argument.getAllValues().get(1);
-
-        verify(storageService).storeAip(SIP_STREAM, generatedSipId, XML1_STREAM, generatedXmlId);
-        assertThat(generatedSipId, not(equalTo(generatedXmlId)));
-        verify(dbService).finishAipCreation(generatedSipId, generatedXmlId);
-        assertThat(res.get(0), equalTo(new StoredFileInfoDto(generatedSipId, SIP_ID)));
-        assertThat(res.get(1), equalTo(new StoredFileInfoDto(generatedXmlId, XML1_ID)));
+        verify(dbService).registerAipCreation(eq(SIP_ID), eq(SIP_HASH), eq(XML1_HASH));
+        verify(storageService).storeAip(SIP_STREAM, SIP_ID, XML1_STREAM);
+        verify(dbService).finishAipCreation(SIP_ID, "xmlId");
     }
 
     @Test
     public void storeBadMD5() throws IOException {
-        when(storageService.storeAip(eq(SIP_STREAM), anyString(), eq(XML1_STREAM), anyString())).thenAnswer(
+        when(storageService.storeAip(eq(SIP_STREAM), anyString(), eq(XML1_STREAM))).thenAnswer(
                 new Answer<Object>() {
                     public Object answer(InvocationOnMock invocation) {
-                        Map<String, String> checksums = new HashMap<>();
-                        checksums.put((String) invocation.getArguments()[1], "wrongMD5");
-                        checksums.put((String) invocation.getArguments()[3], XML1_HASH);
-                        return checksums;
+                        return new AipCreationMd5Info("wrongMD5", XML1_HASH);
                     }
                 }
         );
+        when(dbService.registerAipCreation(eq(SIP_ID), eq(SIP_HASH), eq(XML1_HASH))).thenReturn("xmlId");
 
-        assertThrown(() -> service.store(SIP_STREAM, SIP_ID, SIP_HASH, XML1_STREAM, XML1_ID, XML1_HASH)).isInstanceOf(ChecksumChanged.class);
+        service.store(SIP_ID, SIP_STREAM, SIP_HASH, XML1_STREAM, XML1_HASH);
 
-        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
-        verify(dbService).registerAipCreation(argument.capture(), anyString(), eq(SIP_HASH), argument.capture(), anyString(), eq(XML1_HASH));
-        String generatedSipId = argument.getAllValues().get(0);
-        String generatedXmlId = argument.getAllValues().get(1);
-
-        verify(storageService).storeAip(SIP_STREAM, generatedSipId, XML1_STREAM, generatedXmlId);
-        assertThat(generatedSipId, not(equalTo(generatedXmlId)));
-        verify(storageService).delete(generatedSipId);
-        verify(storageService).delete(generatedXmlId);
-        verify(dbService).deleteAip(generatedSipId);
+        verify(dbService).registerAipCreation(eq(SIP_ID), eq(SIP_HASH), eq(XML1_HASH));
+        verify(storageService).storeAip(eq(SIP_STREAM), eq(SIP_ID), eq(XML1_STREAM));
+        verify(storageService).deleteSip(eq(SIP_ID), eq(true));
+        verify(storageService).deleteXml(eq(SIP_ID), eq(1));
+        verify(dbService).rollbackSip(eq(SIP_ID), eq("xmlId"));
     }
 
     @Test
-    public void updateXml() throws IOException, ChecksumChanged {
-        when(storageService.storeXml(eq(XML1_STREAM), anyString())).thenReturn(XML1_HASH);
+    public void updateXml() throws IOException {
+        AipXml xmlEntity = new AipXml("xmlId", XML1_HASH, null, 50, XmlState.PROCESSING);
+        when(storageService.storeXml(eq(XML1_STREAM), anyString(), eq(50))).thenReturn(XML1_HASH);
+        when(dbService.registerXmlUpdate(eq(SIP_ID), eq(XML1_HASH))).thenReturn(xmlEntity);
 
-        StoredFileInfoDto res = service.updateXml(SIP_ID, XML1_ID, XML1_STREAM, XML1_HASH);
+        service.updateXml(SIP_ID, XML1_STREAM, XML1_HASH);
 
-        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
-        verify(dbService).registerXmlUpdate(eq(SIP_ID), argument.capture(), anyString(), eq(XML1_HASH));
-        String generatedXmlId = argument.getValue();
-        verify(storageService).storeXml(XML1_STREAM, generatedXmlId);
-        verify(dbService).finishXmlProcess(generatedXmlId);
-        assertThat(res, equalTo(new StoredFileInfoDto(generatedXmlId, XML1_ID)));
+        verify(dbService).registerXmlUpdate(eq(SIP_ID), eq(XML1_HASH));
+        verify(storageService).storeXml(eq(XML1_STREAM), eq(SIP_ID), eq(50));
+        verify(dbService).finishXmlProcess("xmlId");
     }
 
     @Test
     public void updateXmlBadMD5() throws IOException {
-        when(storageService.storeXml(eq(XML1_STREAM), anyString())).thenReturn("wrongmd5");
+        AipXml xmlEntity = new AipXml("xmlId", XML1_HASH, null, 51, XmlState.PROCESSING);
+        when(storageService.storeXml(eq(XML1_STREAM), anyString(), anyInt())).thenReturn("wrongmd5");
+        when(dbService.registerXmlUpdate(eq(SIP_ID), eq(XML1_HASH))).thenReturn(xmlEntity);
 
-        assertThrown(() -> service.updateXml(SIP_ID, XML1_ID, XML1_STREAM, XML1_HASH)).isInstanceOf(ChecksumChanged.class);
+        service.updateXml(SIP_ID, XML1_STREAM, XML1_HASH);
 
-        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
-        verify(dbService).registerXmlUpdate(eq(SIP_ID), argument.capture(), anyString(), eq(XML1_HASH));
-        String generatedXmlId = argument.getValue();
-        verify(storageService).storeXml(XML1_STREAM, generatedXmlId);
-        verify(storageService).delete(generatedXmlId);
-        verify(dbService).deleteXml(generatedXmlId);
+        verify(dbService).registerXmlUpdate(eq(SIP_ID), eq(XML1_HASH));
+        verify(storageService).storeXml(eq(XML1_STREAM), eq(SIP_ID), eq(51));
+        verify(storageService).deleteXml(eq(SIP_ID), eq(51));
+        verify(dbService).rollbackXml(eq("xmlId"));
     }
 
     @Test
-    public void getAipInfo() throws IOException {
-        Map<String, String> checksums = new HashMap<>();
-        checksums.put(SIP_ID, SIP_HASH);
-        checksums.put(XML1_ID, XML1_HASH);
-        checksums.put(XML2_ID, "wronghash");
+    public void getAipInfo() throws IOException, StillProcessingException {
+        Map<Integer, String> checksums = new HashMap<>();
+        checksums.put(1, XML1_HASH);
+        checksums.put(2, "wronghash");
 
         when(dbService.getAip(SIP_ID)).thenReturn(sip);
-        when(storageService.getMD5(SIP_ID, Arrays.asList(XML1_ID, XML2_ID))).thenReturn(checksums);
+        when(storageService.getXmlsMD5(SIP_ID, Arrays.asList(1, 2))).thenReturn(checksums);
+        when(storageService.getSipMD5(eq(SIP_ID))).thenReturn(SIP_HASH);
 
-        AipSip res = service.getAipInfo(SIP_ID);
+        AipSip res = service.getAipState(SIP_ID);
 
         assertThat(res.isConsistent(), is(true));
         assertThat(res.getState(), is(AipState.ARCHIVED));
         assertThat(res.getXml(0).isConsistent(), not(equalTo(res.getXml(1).isConsistent())));
     }
-
-
 }

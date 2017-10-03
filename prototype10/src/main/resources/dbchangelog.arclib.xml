@@ -16,9 +16,6 @@
             <column name="md5" type="varchar(32)">
                 <constraints nullable="false"/>
             </column>
-            <column name="name" type="varchar(255)">
-                <constraints nullable="false"/>
-            </column>
             <column name="state" type="varchar(32)">
                 <constraints nullable="false"/>
             </column>
@@ -36,15 +33,17 @@
             <column name="md5" type="varchar(32)">
                 <constraints nullable="false"/>
             </column>
-            <column name="name" type="varchar(255)">
-                <constraints nullable="false"/>
-            </column>
             <column name="version" type="integer">
                 <constraints nullable="false"/>
             </column>
-            <column name="processing" type="boolean">
+            <column name="state" type="varchar(32)">
                 <constraints nullable="false"/>
             </column>
         </createTable>
+
+        <addUniqueConstraint
+                columnNames="arclib_aip_sip_id, version"
+                constraintName="unique_version"
+                tableName="arclib_aip_xml"/>
     </changeSet>
 </databaseChangeLog>

@@ -5,16 +5,16 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
 
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Getter
 @Setter
 @BatchSize(size = 100)
 @Entity
 @Table(name = "arclib_aip_xml")
+/**
+ * XML database entity. Its id is used only for internal purpose and is neither accessible over API nor projected to storage.
+ */
 public class AipXml extends ArchivalObject {
 
     @ManyToOne
@@ -22,16 +22,25 @@ public class AipXml extends ArchivalObject {
     @JsonIgnore
     private AipSip sip;
     private int version;
-    private boolean processing;
+
+    @Enumerated(EnumType.STRING)
+    private XmlState state;
 
     public AipXml() {
-        super(null, null, null);
+        super(null, null);
     }
 
-    public AipXml(String id, String name, String md5, AipSip sip, int version, boolean processing) {
-        super(id, name, md5);
+    public AipXml(String id, String md5, AipSip sip, int version, XmlState state) {
+        super(id, md5);
         this.sip = sip;
         this.version = version;
-        this.processing = processing;
+        this.state = state;
+    }
+
+    public AipXml(String md5, AipSip sip, int version, XmlState state) {
+        super(md5);
+        this.sip = sip;
+        this.version = version;
+        this.state = state;
     }
 }
