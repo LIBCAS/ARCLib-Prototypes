@@ -1,9 +1,12 @@
 package cz.cas.lib.arclib.api;
 
 
+import cz.cas.lib.arclib.domain.Report;
+import cz.cas.lib.arclib.exception.BadArgument;
 import cz.cas.lib.arclib.exception.ExporterException;
 import cz.cas.lib.arclib.service.ExportFormat;
-import cz.cas.lib.arclib.service.ReportService;
+import cz.cas.lib.arclib.service.ExporterService;
+import cz.cas.lib.arclib.store.ReportStore;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,41 +21,47 @@ import java.util.Map;
 @RequestMapping("/api/report")
 public class ReportApi {
 
-    private ReportService service;
+    private ReportStore store;
+    private ExporterService exporter;
 
     @RequestMapping(value = "/{reportId}/{format}", method = RequestMethod.GET)
-    public void getReport(@PathVariable("reportId") String reportId, @PathVariable("format") ExportFormat format, @RequestParam Map<String, String> params, HttpServletResponse response) throws IOException, ExporterException {
+    public void getReport(@PathVariable("reportId") String reportId, @PathVariable("format") String format, @RequestParam Map<String, String> params, HttpServletResponse response) throws IOException, ExporterException {
         response.setStatus(200);
-        switch (format) {
-            case PDF:
+        switch (format.toUpperCase()) {
+            case "PDF":
                 response.setContentType("application/pdf");
                 break;
-            case CSV:
+            case "CSV":
                 response.setContentType("text/csv");
                 break;
-            case XLSX:
+            case "XLSX":
                 response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
                 break;
-            case HTML:
+            case "HTML":
                 response.setContentType("text/html");
                 break;
             default:
-                throw new IllegalArgumentException("Unsupported export format");
+                throw new BadArgument("Unsupported export format");
         }
-        String reportName = service.report(reportId, format, params, response.getOutputStream());
-        response.addHeader("Content-Disposition", "attachment; filename=" + reportName + "_" + LocalDate.now().toString());
+        Report r = store.find(reportId);
+        response.addHeader("Content-Disposition", "attachment; filename=" + r.getName() + "_" + LocalDate.now().toString()+"."+format.toLowerCase());
+        exporter.export(r, ExportFormat.valueOf(format.toUpperCase()), params, response.getOutputStream());
     }
 
     @RequestMapping(method = RequestMethod.POST)
     public String save(@RequestParam("template") MultipartFile template, @RequestParam("name") String name) throws IOException {
         try (InputStream is = template.getInputStream()) {
-            return service.saveReport(name, template.getInputStream());
+            return store.saveReport(name, template.getInputStream());
         }
     }
 
     @Inject
-    public void setReportService(ReportService service) {
-        this.service = service;
+    public void setReportStore(ReportStore store) {
+        this.store = store;
     }
 
+    @Inject
+    public void setExporter(ExporterService exporter) {
+        this.exporter = exporter;
+    }
 }
