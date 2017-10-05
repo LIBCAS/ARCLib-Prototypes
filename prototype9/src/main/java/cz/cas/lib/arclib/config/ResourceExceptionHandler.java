@@ -1,7 +1,9 @@
 package cz.cas.lib.arclib.config;
 
-import cz.cas.lib.arclib.exception.*;
+import cz.cas.lib.arclib.exception.BadArgument;
+import cz.cas.lib.arclib.exception.MissingObject;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -19,44 +21,23 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ControllerAdvice
 public class ResourceExceptionHandler {
 
-    @ResponseStatus(value = HttpStatus.NOT_FOUND)
     @ExceptionHandler(MissingObject.class)
-    public void missingObject() {
-
+    public ResponseEntity missingObject(Exception e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.toString());
     }
 
-    @ResponseStatus(value = HttpStatus.NOT_FOUND)
-    @ExceptionHandler(MissingAttribute.class)
-    public void missingAttribute() {
-    }
-
-    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(InvalidAttribute.class)
-    public void invalidAttribute() {
-    }
-
-    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     @ExceptionHandler(BadArgument.class)
-    public void badArgument() {
-    }
-
-    @ResponseStatus(value = HttpStatus.FORBIDDEN)
-    @ExceptionHandler(ForbiddenObject.class)
-    public void forbiddenObject() {
-    }
-
-    @ResponseStatus(value = HttpStatus.FORBIDDEN)
-    @ExceptionHandler(ForbiddenOperation.class)
-    public void forbiddenOperation() {
-    }
-
-    @ResponseStatus(value = HttpStatus.CONFLICT)
-    @ExceptionHandler(ConflictObject.class)
-    public void conflictException() {
+    public ResponseEntity badArgument(Exception e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.toString());
     }
 
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     @ExceptionHandler(BindException.class)
     public void bindException() {
+    }
+
+    @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(IllegalArgumentException.class)
+    public void illegalArgumentException() {
     }
 }

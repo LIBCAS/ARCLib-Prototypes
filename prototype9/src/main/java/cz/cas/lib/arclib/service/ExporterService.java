@@ -1,9 +1,9 @@
 package cz.cas.lib.arclib.service;
 
 import cz.cas.lib.arclib.domain.Report;
-import cz.cas.lib.arclib.exception.ExporterException;
+import cz.cas.lib.arclib.exception.BadArgument;
 import cz.cas.lib.arclib.exception.GeneralException;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.export.HtmlExporter;
 import net.sf.jasperreports.engine.export.JRCsvExporter;
@@ -22,23 +22,36 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Slf4j
 @Service
+@Log4j
 public class ExporterService {
 
     private DataSource ds;
 
-    public void export(Report report, ExportFormat format, Map<String, String> customParams, OutputStream os) throws IOException, ExporterException {
+    /**
+     * Exports report to specified format and fill given {@link OutputStream} with it
+     * @param report {@link Report entity}
+     * @param format file format to which export
+     * @param customParams parameters used to override default parameter values
+     * @param os {@link OutputStream} to be filled with exported file
+     */
+    public void export(Report report, ExportFormat format, Map<String, String> customParams, OutputStream os) throws IOException {
         JasperPrint jasperPrint;
         JasperReport jasperReport = (JasperReport) report.getCompiledObject();
+        log.info(String.format("Exporting: %s to: %s",report.getName(),format.toString()));
         try {
             jasperPrint = JasperFillManager.fillReport(jasperReport, parseParams(customParams, jasperReport), ds.getConnection());
-        } catch (SQLException e) {
-            throw new GeneralException("Error occurred during database access.", e);
-        } catch (JRException e) {
-            throw new GeneralException("Error occurred during report template filling.", e);
+        } catch (SQLException ex) {
+            String e = "Error occurred during database access.";
+            log.error(e);
+            throw new GeneralException(e,ex);
+        } catch (JRException ex) {
+            String e = "Error occurred during report template filling.";
+            log.error(e);
+            throw new GeneralException(e,ex);
         }
         Exporter exporter;
+        log.info("Preparing exporter");
         switch (format) {
             case PDF:
                 exporter = getPdfExporter();
@@ -61,6 +74,7 @@ public class ExporterService {
         }
         exporter.setExporterInput(new SimpleExporterInput(jasperPrint));
         try {
+            log.info("Exporting");
             exporter.exportReport();
         } catch (JRException e) {
             throw new GeneralException("Export to " + format + " failed.", e);
@@ -98,30 +112,36 @@ public class ExporterService {
         return new HtmlExporter();
     }
 
-    private Map<String, Object> parseParams(Map<String, String> customParams, JasperReport report) throws ExporterException {
+    private Map<String, Object> parseParams(Map<String, String> customParams, JasperReport report) {
+        log.debug("Parsing parameters");
         Map<String, Object> parsedParams = new HashMap<>();
         List<JRParameter> reportParams = new ArrayList<>();
         for (JRParameter reportParam : report.getParameters()) {
             if (!reportParam.isSystemDefined())
                 reportParams.add(reportParam);
         }
-
         for (String paramName : customParams.keySet()) {
             boolean found = false;
             for (int i = 0; i < reportParams.size(); i++) {
                 if (reportParams.get(i).getName().equals(paramName)) {
-                    parsedParams.put(paramName, parseValue(reportParams.get(i).getValueClassName(), customParams.get(paramName)));
+                    String paramClassName = reportParams.get(i).getValueClassName();
+                    parsedParams.put(paramName, parseValue(paramClassName, customParams.get(paramName)));
                     found = true;
+                    log.debug(String.format("Param: %s:%s",paramName,paramClassName));
                     break;
                 }
             }
-            if (!found)
-                throw new ExporterException("Parameter '" + paramName + "' not defined in report template.");
+            if (!found){
+                String e = String.format("Parameter: %s not defined in report template.",paramName);
+                log.warn(e);
+                throw new BadArgument(e);
+            }
         }
         return parsedParams;
     }
 
-    private Object parseValue(String className, String value) throws ExporterException {
+    private Object parseValue(String className, String value) {
+        try{
         switch (className) {
             case "java.lang.String":
                 return value;
@@ -138,7 +158,13 @@ public class ExporterService {
             case "java.lang.Boolean":
                 return Boolean.parseBoolean(value);
             default:
-                throw new ExporterException("Unsupported parameter type " + className);
+                String e = String.format("Unsupported parameter type: %s",className);
+                log.error(e);
+                throw new IllegalArgumentException(e);
+        }}catch (NumberFormatException ex){
+            String e = String.format("Can't parse: %s as: %s type",value,className);
+            log.warn(e);
+            throw new BadArgument(e);
         }
     }
 
