@@ -3,6 +3,7 @@ package cz.cas.lib.arclib.api;
 
 import cz.cas.lib.arclib.domain.Report;
 import cz.cas.lib.arclib.exception.BadArgument;
+import cz.cas.lib.arclib.exception.MissingObject;
 import cz.cas.lib.arclib.service.ExportFormat;
 import cz.cas.lib.arclib.service.ExporterService;
 import cz.cas.lib.arclib.store.ReportStore;
@@ -16,6 +17,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
 import java.util.Map;
+import java.util.UUID;
+
+import static cz.cas.lib.arclib.util.Utils.checked;
 
 @RestController
 @RequestMapping("/api/report")
@@ -27,16 +31,16 @@ public class ReportApi {
 
     /**
      * Find report template by ID and exports it to specified format.
+     *
      * @param reportId
      * @param format   output format, one of CSV, XLSX, HTML, PDF
      * @param params   Query string with parameters used to override default parameters values which are specified inside
      *                 template itself. If given parameter is not defined within template or the value can not be parsed
      *                 API returns BAD_REQUEST (400). Boolean parameter value should be in string form i.e. true/false
-     *
      */
     @RequestMapping(value = "/{reportId}/{format}", method = RequestMethod.GET)
     public void getReport(@PathVariable("reportId") String reportId, @PathVariable("format") String format, @RequestParam Map<String, String> params, HttpServletResponse response) throws IOException {
-        response.setStatus(200);
+        checkUUID(reportId);
         switch (format.toUpperCase()) {
             case "PDF":
                 response.setContentType("application/pdf");
@@ -56,7 +60,10 @@ public class ReportApi {
                 throw new BadArgument(e);
         }
         Report r = store.find(reportId);
+        if (r == null)
+            throw new MissingObject(Report.class, reportId);
         response.addHeader("Content-Disposition", "attachment; filename=" + r.getName() + "_" + LocalDate.now().toString() + "." + format.toLowerCase());
+        response.setStatus(200);
         exporter.export(r, ExportFormat.valueOf(format.toUpperCase()), params, response.getOutputStream());
     }
 
@@ -77,6 +84,7 @@ public class ReportApi {
      * <li>java.lang.Boolean</li>
      * </ul>
      * Boolean parameter value should be in string form i.e. true/false
+     *
      * @param name     template name
      * @param template template file
      * @return
@@ -86,6 +94,10 @@ public class ReportApi {
         try (InputStream is = template.getInputStream()) {
             return store.saveReport(name, template.getInputStream());
         }
+    }
+
+    private void checkUUID(String id) {
+        checked(() -> UUID.fromString(id), () -> new BadArgument(id));
     }
 
     @Inject

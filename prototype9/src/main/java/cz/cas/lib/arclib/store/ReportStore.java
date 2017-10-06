@@ -3,12 +3,15 @@ package cz.cas.lib.arclib.store;
 import cz.cas.lib.arclib.domain.QReport;
 import cz.cas.lib.arclib.domain.Report;
 import cz.cas.lib.arclib.exception.BadArgument;
+import cz.cas.lib.arclib.exception.ConflictObject;
 import cz.cas.lib.arclib.exception.GeneralException;
 import lombok.extern.log4j.Log4j;
 import net.sf.jasperreports.engine.*;
 import org.apache.commons.io.IOUtils;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.PersistenceException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,7 +60,16 @@ public class ReportStore extends DomainStore<Report, QReport> {
             validateParameter(param);
         }
         template = new ByteArrayInputStream(templateBytes);
-        return save(new Report(name, IOUtils.toString(template, StandardCharsets.UTF_8), compiledReport)).getId();
+        String id;
+        try {
+            id = save(new Report(name, IOUtils.toString(template, StandardCharsets.UTF_8), compiledReport)).getId();
+        } catch (PersistenceException e) {
+            if (e.getCause() instanceof ConstraintViolationException)
+                throw new ConflictObject(Report.class, name);
+            else
+                throw e;
+        }
+        return id;
     }
 
     private void validateParameter(JRParameter param) {

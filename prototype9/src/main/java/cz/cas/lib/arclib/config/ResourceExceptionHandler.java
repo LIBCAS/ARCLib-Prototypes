@@ -1,6 +1,7 @@
 package cz.cas.lib.arclib.config;
 
 import cz.cas.lib.arclib.exception.BadArgument;
+import cz.cas.lib.arclib.exception.ConflictObject;
 import cz.cas.lib.arclib.exception.MissingObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,13 +32,18 @@ public class ResourceExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.toString());
     }
 
+    @ExceptionHandler(ConflictObject.class)
+    public ResponseEntity conflictException(Exception e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.toString());
+    }
+
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     @ExceptionHandler(BindException.class)
     public void bindException() {
     }
 
-    @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(IllegalArgumentException.class)
-    public void illegalArgumentException() {
+    public ResponseEntity illegalArgumentException(Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.toString());
     }
 }

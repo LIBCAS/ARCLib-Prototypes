@@ -22,6 +22,13 @@ public class Report extends DomainObject implements Serializable {
     public Report() {
     }
 
+    public Report(String id, String name, String template, byte[] compiled) {
+        this.name = name;
+        this.template = template;
+        this.compiled = compiled;
+        this.id = id;
+    }
+
     public Report(String name, String template, Object compiled) {
         this.name = name;
         this.template = template;
