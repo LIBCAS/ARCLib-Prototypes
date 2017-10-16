@@ -1,2 +1,0 @@
-solr:
-  endpoint: http://localhost:8983/solr/arclib_xml

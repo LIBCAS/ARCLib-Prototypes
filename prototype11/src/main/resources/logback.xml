@@ -1,0 +1,15 @@
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/base.document"/>
+    <appender name="ARCLIB" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%boldGreen(%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n)</pattern>
+            <charset>utf8</charset>
+        </encoder>
+    </appender>
+    <logger name="cz.cas.lib.arclib" level="TRACE" additivity="false">
+        <appender-ref ref="ARCLIB"/>
+    </logger>
+    <logger name="org.springframework.data.solr.core" level="DEBUG" additivity="false">
+        <appender-ref ref="ARCLIB"/>
+    </logger>
+</configuration>

@@ -1,10 +1,17 @@
 package cz.cas.lib.arclib.solr;
 
-import cz.cas.lib.arclib.config.IndexFieldConfig;
+import cz.cas.lib.arclib.exception.BadArgument;
+import cz.cas.lib.arclib.index.Filter;
+import cz.cas.lib.arclib.index.IndexFieldConfig;
+import cz.cas.lib.arclib.index.IndexStore;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
+import org.springframework.data.domain.Page;
+import org.springframework.data.solr.UncategorizedSolrException;
+import org.springframework.data.solr.core.SolrTemplate;
+import org.springframework.data.solr.core.query.SimpleFilterQuery;
+import org.springframework.data.solr.core.query.SimpleQuery;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -24,48 +31,77 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class SolrService {
-    private SolrClient solrClient;
+public class SolrStore implements IndexStore {
 
-    public void createIndex(String sipId, int xmlVersion, String arclibXml, Set<IndexFieldConfig> indexFieldConfigs) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException, SolrServerException, TransformerException {
+    private SolrTemplate solrTemplate;
+
+    @Inject private ArclibXmlRepository arclibXmlRepository;
+
+    @SneakyThrows
+    public void createIndex(String sipId, int xmlVersion, String arclibXml) {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
         Document xml;
         try {
             xml = factory.newDocumentBuilder().parse(new ByteArrayInputStream(arclibXml.getBytes()));
         } catch (ParserConfigurationException | SAXException | IOException e) {
-            log.error("Error during parsing XML document");
+            log.error("Error during parsing of XML document");
             throw e;
         }
         XPath xpath = getXpathWithNamespaceContext();
+
+        ArclibXmlDocument solrArclibXmlDocument = new ArclibXmlDocument();
+        Map<String, Object> attributes = new HashMap<>();
+
         SolrInputDocument doc = new SolrInputDocument();
-        for (IndexFieldConfig conf : indexFieldConfigs) {
+        for (IndexFieldConfig conf : getFieldsConfig()) {
             NodeList fields = (NodeList) xpath.evaluate(conf.getXpath(), xml, XPathConstants.NODESET);
             for (int i = 0; i < fields.getLength(); i++) {
                 if (conf.isFullText()) {
-                    doc.addField(conf.getFieldName(),nodeToString(fields.item(i)));
-                } else
-                    doc.addField(conf.getFieldName(), fields.item(i).getTextContent());
+                    attributes.put(conf.getFieldName(), nodeToString(fields.item(i)));
+                } else {
+                    attributes.put(conf.getFieldName(), fields.item(i).getTextContent());
+                }
             }
         }
-        doc.addField("sip_id", sipId);
-        doc.addField("version", xmlVersion);
-        doc.addField("document", arclibXml);
-        solrClient.add(doc);
-        solrClient.commit();
+        solrArclibXmlDocument.setId(sipId + "_" + xmlVersion);
+        solrArclibXmlDocument.setDocument(arclibXml);
+        solrArclibXmlDocument.setAttributes(attributes);
+        arclibXmlRepository.save(solrArclibXmlDocument);
     }
 
-    private static XPath getXpathWithNamespaceContext() {
+    public List<String> findAll(List<Filter> filter) {
+        SimpleQuery query = new SimpleQuery(SolrQueryBuilder.nopQuery());
+        query.addProjectionOnField("id");
+        if (filter.size() > 0)
+            query.addFilterQuery(new SimpleFilterQuery(SolrQueryBuilder.buildFilters(filter)));
+        log.info("searching for documents");
+        Page<ArclibXmlDocument> page;
+        try{
+            page = solrTemplate.query(query, ArclibXmlDocument.class);
+        }catch(UncategorizedSolrException ex){
+            if(ex.getMessage() != null && ex.getMessage().contains("undefined field"))
+                throw new BadArgument("query contains undefined field");
+            throw ex;
+        }
+        List<String> ids = page.getContent().stream().map(ArclibXmlDocument::getId).collect(Collectors.toList());
+        ids.stream().forEach(id -> log.info("found doc with id: " + id));
+        return ids;
+    }
+
+    private XPath getXpathWithNamespaceContext() {
         XPath xpath = XPathFactory.newInstance().newXPath();
         xpath.setNamespaceContext(new NamespaceContext() {
             public String getNamespaceURI(String prefix) {
@@ -97,7 +133,7 @@ public class SolrService {
         return xpath;
     }
 
-    private static String nodeToString(Node node)
+    private String nodeToString(Node node)
             throws TransformerException {
         StringWriter buf = new StringWriter();
         Transformer xform = TransformerFactory.newInstance().newTransformer();
@@ -107,7 +143,7 @@ public class SolrService {
     }
 
     @Inject
-    public void setSolrClient(SolrClient solrClient) {
-        this.solrClient = solrClient;
+    public void setSolrTemplate(SolrTemplate solrTemplate) {
+        this.solrTemplate = solrTemplate;
     }
 }

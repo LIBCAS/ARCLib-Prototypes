@@ -1,4 +1,4 @@
-package cz.cas.lib.arclib.config;
+package cz.cas.lib.arclib.index;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
