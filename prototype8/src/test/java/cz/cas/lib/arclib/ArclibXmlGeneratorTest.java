@@ -80,7 +80,7 @@ public class ArclibXmlGeneratorTest extends DbTest {
         store.save(profile);
 
         String arclibXml = generator.generateArclibXml(SIP_PATH, profile.getId());
-        assertThat(arclibXml, is("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<arclibXml><mets><metsHdr><METS:agent ROLE=\"CREATOR\" TYPE=\"ORGANIZATION\"> \r\n\t\t\t<METS:name>Exon s.r.o.</METS:name>\r\n\t\t</METS:agent>\r\n</metsHdr></mets></arclibXml>"));
+        assertThat(arclibXml, is("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<arclibXml><mets><metsHdr><METS:agent ROLE=\"CREATOR\" TYPE=\"ORGANIZATION\">\r\n\t\t\t<METS:name>Exon s.r.o.</METS:name>\r\n\t\t</METS:agent>\r\n</metsHdr></mets></arclibXml>"));
     }
 
     @Test
@@ -96,7 +96,7 @@ public class ArclibXmlGeneratorTest extends DbTest {
 
         String arclibXml = generator.generateArclibXml(SIP_PATH, profile.getId());
         assertThat(arclibXml, is(
-                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<arclibXml><mets><METS:metsHdr CREATEDATE=\"2013-01-22T10:55:20Z\" ID=\"kpw01169310\" LASTMODDATE=\"2013-01-22T10:55:20Z\" RECORDSTATUS=\"COMPLETE\">\r\n\t\t<METS:agent ROLE=\"CREATOR\" TYPE=\"ORGANIZATION\"> \r\n\t\t\t<METS:name>Exon s.r.o.</METS:name>\r\n\t\t</METS:agent>\r\n\t\t<METS:agent ROLE=\"ARCHIVIST\" TYPE=\"ORGANIZATION\"> \r\n\t\t\t<METS:name>ZLG001</METS:name>\r\n\t\t</METS:agent>\r\n\t</METS:metsHdr>\r\n</mets></arclibXml>"
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<arclibXml><mets><METS:metsHdr CREATEDATE=\"2013-01-22T10:55:20Z\" ID=\"kpw01169310\" LASTMODDATE=\"2013-01-22T10:55:20Z\" RECORDSTATUS=\"COMPLETE\">\r\n\t\t<METS:agent ROLE=\"CREATOR\" TYPE=\"ORGANIZATION\">\r\n\t\t\t<METS:name>Exon s.r.o.</METS:name>\r\n\t\t</METS:agent>\r\n\t\t<METS:agent ROLE=\"ARCHIVIST\" TYPE=\"ORGANIZATION\">\r\n\t\t\t<METS:name>ZLG001</METS:name>\r\n\t\t</METS:agent>\r\n\t</METS:metsHdr>\r\n</mets></arclibXml>"
 
         ));
     }
