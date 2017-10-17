@@ -18,7 +18,6 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -75,16 +74,5 @@ public class ValidationChecker {
         XPath xPath = XPathFactory.newInstance().newXPath();
 
         return (NodeList) xPath.compile(expression).evaluate(doc, XPathConstants.NODESET);
-    }
-
-    /**
-     * Checks whether the file at the path exists
-     *
-     * @param path path to the file
-     * @return true if the file exists, false otherwise
-     */
-    public static boolean fileExists(String path) {
-        File file = new File(path);
-        return file.exists();
     }
 }
