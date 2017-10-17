@@ -82,6 +82,12 @@ public class Utils {
         }
     }
 
+    public static <U, T extends RuntimeException> void ne(U o1, U o2, Supplier<T> supplier) {
+        if (Objects.equals(o1, o2)) {
+            throw supplier.get();
+        }
+    }
+
     public static <T> Map<String, T> asMap(String key, T value) {
         return Collections.singletonMap(key, value);
     }
