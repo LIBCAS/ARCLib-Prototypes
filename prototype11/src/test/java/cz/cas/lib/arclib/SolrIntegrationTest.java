@@ -39,7 +39,7 @@ public class SolrIntegrationTest implements ApiTest {
 
     private static final String CMD = SystemUtils.IS_OS_WINDOWS ? "solr.cmd" : "solr";
     private static final int XML_VERSION = 11;
-    private static final String TEST_FIELD_NAME = "root_objid";
+    private static final String TEST_FIELD_NAME = "objid";
     private static final String TEST_FIELD_VALUE = "TEST_OBJ_ID";
     private static final String ENDPOINT = "http://localhost:8983/solr/arclib_xml";
 

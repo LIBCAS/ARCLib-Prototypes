@@ -14,31 +14,21 @@ import org.springframework.data.solr.core.query.SimpleFilterQuery;
 import org.springframework.data.solr.core.query.SimpleQuery;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import javax.inject.Inject;
-import javax.xml.XMLConstants;
-import javax.xml.namespace.NamespaceContext;
+import javax.xml.bind.DatatypeConverter;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathFactory;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.StringWriter;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Calendar;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -61,25 +51,42 @@ public class SolrStore implements IndexStore {
             throw e;
         }
         XPath xpath = getXpathWithNamespaceContext();
-
         ArclibXmlDocument solrArclibXmlDocument = new ArclibXmlDocument();
-        Map<String, Object> attributes = new HashMap<>();
 
         SolrInputDocument doc = new SolrInputDocument();
         for (IndexFieldConfig conf : getFieldsConfig()) {
             NodeList fields = (NodeList) xpath.evaluate(conf.getXpath(), xml, XPathConstants.NODESET);
             for (int i = 0; i < fields.getLength(); i++) {
-                if (conf.isFullText()) {
-                    attributes.put(conf.getFieldName(), nodeToString(fields.item(i)));
-                } else {
-                    attributes.put(conf.getFieldName(), fields.item(i).getTextContent());
+                switch (conf.getFieldType()) {
+                    case DATETIME:
+                        Calendar parsedDate = DatatypeConverter.parseDateTime(fields.item(i).getTextContent());
+                        String parsedDateTimeString = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(parsedDate.toInstant().atZone(ZoneId.systemDefault())) + "Z";
+                        solrArclibXmlDocument.addAttribute(conf.getFieldName(), parsedDateTimeString);
+                        break;
+                    case DATE:
+                        parsedDate = DatatypeConverter.parseDate(fields.item(i).getTextContent());
+                        String parsedDateString = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(parsedDate.toInstant().atZone(ZoneId.systemDefault())) + "Z";
+                        solrArclibXmlDocument.addAttribute(conf.getFieldName(), parsedDateString);
+                        break;
+                    case TIME:
+                        throw new UnsupportedOperationException();
+                    default:
+                        if (conf.isFullText()) {
+                            solrArclibXmlDocument.addAttribute(conf.getFieldName(), nodeToString(fields.item(i)));
+                        } else {
+                            solrArclibXmlDocument.addAttribute(conf.getFieldName(), fields.item(i).getTextContent());
+                        }
                 }
             }
         }
         solrArclibXmlDocument.setId(sipId + "_" + xmlVersion);
         solrArclibXmlDocument.setDocument(arclibXml);
-        solrArclibXmlDocument.setAttributes(attributes);
-        arclibXmlRepository.save(solrArclibXmlDocument);
+        try {
+            arclibXmlRepository.save(solrArclibXmlDocument);
+        } catch (UncategorizedSolrException ex) {
+            log.error(ex.getMessage());
+            throw ex;
+        }
     }
 
     public List<String> findAll(List<Filter> filter) {
@@ -89,57 +96,16 @@ public class SolrStore implements IndexStore {
             query.addFilterQuery(new SimpleFilterQuery(SolrQueryBuilder.buildFilters(filter)));
         log.info("searching for documents");
         Page<ArclibXmlDocument> page;
-        try{
+        try {
             page = solrTemplate.query(query, ArclibXmlDocument.class);
-        }catch(UncategorizedSolrException ex){
-            if(ex.getMessage() != null && ex.getMessage().contains("undefined field"))
+        } catch (UncategorizedSolrException ex) {
+            if (ex.getMessage() != null && ex.getMessage().contains("undefined field"))
                 throw new BadArgument("query contains undefined field");
             throw ex;
         }
         List<String> ids = page.getContent().stream().map(ArclibXmlDocument::getId).collect(Collectors.toList());
         ids.stream().forEach(id -> log.info("found doc with id: " + id));
         return ids;
-    }
-
-    private XPath getXpathWithNamespaceContext() {
-        XPath xpath = XPathFactory.newInstance().newXPath();
-        xpath.setNamespaceContext(new NamespaceContext() {
-            public String getNamespaceURI(String prefix) {
-                if (prefix == null) {
-                    throw new IllegalArgumentException("No prefix provided!");
-                } else if (prefix.equals("METS")) {
-                    return "http://www.loc.gov/METS/";
-                } else if (prefix.equals("oai_dc")) {
-                    return "dc";
-                } else if (prefix.equals("premis")) {
-                    return "http://www.loc.gov/premis/v3";
-                } else if (prefix.equals("ARCLib")) {
-                    return "https://www.google.cz";
-                } else {
-                    return XMLConstants.NULL_NS_URI;
-                }
-            }
-
-            public String getPrefix(String namespaceURI) {
-                // Not needed in this context.
-                return null;
-            }
-
-            public Iterator getPrefixes(String namespaceURI) {
-                // Not needed in this context.
-                return null;
-            }
-        });
-        return xpath;
-    }
-
-    private String nodeToString(Node node)
-            throws TransformerException {
-        StringWriter buf = new StringWriter();
-        Transformer xform = TransformerFactory.newInstance().newTransformer();
-        xform.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-        xform.transform(new DOMSource(node), new StreamResult(buf));
-        return (buf.toString());
     }
 
     @Inject

@@ -46,6 +46,12 @@
       <filter class="solr.LowerCaseFilterFactory"/>
     </analyzer>
   </fieldType>
+  <fieldType name="lowercases" class="solr.TextField" multiValued="true" positionIncrementGap="100">
+    <analyzer>
+      <tokenizer class="solr.KeywordTokenizerFactory"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+    </analyzer>
+  </fieldType>
   <fieldType name="pdate" class="solr.DatePointField" docValues="true"/>
   <fieldType name="pdates" class="solr.DatePointField" docValues="true" multiValued="true"/>
   <fieldType name="pdouble" class="solr.DoublePointField" docValues="true"/>
@@ -413,39 +419,33 @@
       <tokenizer class="solr.WhitespaceTokenizerFactory"/>
     </analyzer>
   </fieldType>
-
 </types>
 <fields>
 <field name="_version_" type="plong" multiValued="false"/>
 <field name="_text_" type="text_general" stored="false"/>
-<field name="id" type="string" multiValued="false" required="true"/>
+<field name="id" type="lowercase" multiValued="false" required="true"/>
 <field name="document" type="text_general"/>
-<field name="root_label" type="text_general"/>
-<field name="root_type" type="text_general"/>
-<field name="root_objid" type="text_general"/>
-<field name="dc_coverage" type="text_general"/>
-<field name="dc_creator" type="text_general"/>
-<field name="dc_date" type="text_general"/>
-<field name="dc_description" type="text_general"/>
-<field name="dc_format" type="text_general"/>
-<field name="dc_identifier" type="text_general"/>
-<field name="dc_publisher" type="text_general"/>
-<field name="dc_source" type="text_general"/>
-<field name="dc_title" type="text_general"/>
-<field name="dc_type" type="text_general"/>
-<field name="device_name" type="text_general"/>
-<field name="device_file_count" type="text_general"/>
+<field name="label" type="text_general"/>
+<field name="type" type="lowercase"/>
+<field name="objid" type="lowercase"/>
+<field name="format" type="lowercases"/>
+<field name="format_file_count" type="pints"/>
+<field name="format_identification" type="text_general"/>
+<field name="device_id" type="lowercases"/>
+<field name="device_file_count" type="pints"/>
 <field name="event_outcome" type="text_general"/>
-<field name="event_agent" type="text_general"/>
+<field name="event_agent_id" type="lowercases"/>
 <field name="event_detail" type="text_general"/>
-<field name="event_type" type="text_general"/>
-<field name="event_date" type="text_general"/>
-<field name="event_id" type="text_general"/>
-<field name="arcevent_type" type="text_general"/>
-<field name="arcevent_name" type="text_general"/>
-<field name="arcevent_date" type="text_general"/>
+<field name="event_type" type="lowercases"/>
+<field name="event_date" type="pdates"/>
+<field name="event_id" type="lowercases"/>
+<field name="arc_event_type" type="lowercases"/>
+<field name="arc_event_agent_id" type="lowercases"/>
+<field name="arc_event_date" type="pdates"/>
+<field name="arc_event_count" type="pints"/>
 <field name="event_ingestion" type="text_general"/>
 <field name="event_validation" type="text_general"/>
+<dynamicField name="*_str" type="strings"/>
 </fields>
 </schema>
 
