@@ -24,3 +24,16 @@ Some prototypes need aditional configuration:
 **prototype 6**
 
 * path to the directory with the binary of DROID must be added to PATH
+
+**prototype 11**
+
+* Solr 7.0.1 has to be installed
+* **solr** command has to be added to PATH variable
+* port **8983** should be available for Solr
+* after Solr instalation execute:
+```
+solr start
+solr create -c arclib_xml
+solr stop -all
+```
+* copy **standalone.conf** and **schema.xml** from **config** folder to *solrhome*/server/solr/arclib_xml/conf
