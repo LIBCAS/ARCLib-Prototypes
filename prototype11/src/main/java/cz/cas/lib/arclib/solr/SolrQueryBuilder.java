@@ -16,6 +16,9 @@ import static cz.cas.lib.arclib.Utils.normalize;
 public class SolrQueryBuilder {
 
     public static Criteria buildFilters(List<Filter> filters) {
+        if (filters == null || filters.isEmpty()) {
+            return Criteria.where("id");
+        }
         List<Criteria> queries = filters.stream()
                 .map(SolrQueryBuilder::buildFilter)
                 .filter(Objects::nonNull)
@@ -79,17 +82,11 @@ public class SolrQueryBuilder {
         }
     }
 
-    public static Criteria andQueryInternal(List<Criteria> filters) {
-        return filters.stream()
-                .reduce(nopQuery(), Criteria::and);
-    }
-
     /**
      * Builds an IN query.
      * <p>
      * <p>
-     * Tests if the attribute of an instance is found in provided {@link Set} of values. If the {@link Set}
-     * is empty, then this query is silently ignored.
+     * Tests if the attribute of an instance is found in provided {@link Set} of values.
      * </p>
      * <p>
      * Used internally in {@link SolrStore#findAll(List<Filter>)} or in custom search methods in inheriting classes.
@@ -100,19 +97,14 @@ public class SolrQueryBuilder {
      * @return Solr query builder
      */
     public static Criteria inQuery(String name, Set<?> values) {
-        if (!values.isEmpty()) {
-            return Criteria.where(name).in(values);
-        } else {
-            return nopQuery();
-        }
+        return Criteria.where(name).in(values);
     }
 
     /**
      * Builds a NOT IN query.
      * <p>
      * <p>
-     * Tests if the attribute of an instance is not found in provided {@link Set} of values. If the {@link Set}
-     * is empty, then this query is silently ignored.
+     * Tests if the attribute of an instance is not found in provided {@link Set} of values.
      * </p>
      * <p>
      * Used internally in {@link SolrStore#findAll(List<Filter>)} or in custom search methods in inheriting classes.
@@ -123,11 +115,7 @@ public class SolrQueryBuilder {
      * @return Solr query builder
      */
     public static Criteria notInQuery(String name, Set<?> values) {
-        if (!values.isEmpty()) {
-            return Criteria.where(name).in(values).notOperator();
-        } else {
-            return nopQuery();
-        }
+        return Criteria.where(name).in(values).notOperator();
     }
 
     /**
@@ -197,7 +185,7 @@ public class SolrQueryBuilder {
      * <p>
      * <p>
      * Tests if the attribute of an instance is greater than the specified value. Applicable to number and date
-     * attributes.
+     * fields.
      * </p>
      * <p>
      * Used internally in {@link SolrStore#findAll(List<Filter>)} or in custom search methods in inheriting classes.
@@ -216,7 +204,7 @@ public class SolrQueryBuilder {
      * <p>
      * <p>
      * Tests if the attribute of an instance is less than the specified value. Applicable to number and date
-     * attributes.
+     * fields.
      * </p>
      * <p>
      * Used internally in {@link SolrStore#findAll(List<Filter>)} or in custom search methods in inheriting classes.
@@ -235,7 +223,7 @@ public class SolrQueryBuilder {
      * <p>
      * <p>
      * Tests if the attribute of an instance is greater than or equal to the specified value. Applicable to number
-     * and date attributes.
+     * and date fields.
      * </p>
      * <p>
      * Used internally in {@link SolrStore#findAll(List<Filter>)} or in custom search methods in inheriting classes.
@@ -254,7 +242,7 @@ public class SolrQueryBuilder {
      * <p>
      * <p>
      * Tests if the attribute of an instance is less than or equal to the specified value. Applicable to number
-     * and date attributes.
+     * and date fields.
      * </p>
      * <p>
      * Used internally in {@link SolrStore#findAll(List<Filter>)} or in custom search methods in inheriting classes.
@@ -266,22 +254,6 @@ public class SolrQueryBuilder {
      */
     public static Criteria lteQuery(String name, String value) {
         return Criteria.where(name).lessThanEqual(value);
-    }
-
-    /**
-     * Builds a dummy query, which does nothing.
-     * <p>
-     * <p>
-     * Should be used instead of conditionally skipping query building.
-     * </p>
-     * <p>
-     * Used internally in {@link SolrStore#findAll(List<Filter>)} or in custom search methods in inheriting classes.
-     * </p>
-     *
-     * @return Solr query builder
-     */
-    public static Criteria nopQuery() {
-        return Criteria.where("id");
     }
 
     /**
@@ -336,8 +308,13 @@ public class SolrQueryBuilder {
         List<Criteria> builders = filters.stream()
                 .map(SolrQueryBuilder::buildFilter)
                 .collect(Collectors.toList());
-
         return orQueryInternal(builders);
+    }
+
+    public static Criteria orQueryInternal(List<Criteria> filters) {
+        if (filters.isEmpty())
+            throw new IllegalArgumentException();
+        return filters.stream().skip(1).reduce(filters.get(0), Criteria::or);
     }
 
     /**
@@ -354,12 +331,12 @@ public class SolrQueryBuilder {
         List<Criteria> builders = filters.stream()
                 .map(SolrQueryBuilder::buildFilter)
                 .collect(Collectors.toList());
-
         return andQueryInternal(builders);
     }
 
-    public static Criteria orQueryInternal(List<Criteria> filters) {
-        return filters.stream()
-                .reduce(nopQuery(), Criteria::or);
+    public static Criteria andQueryInternal(List<Criteria> filters) {
+        if (filters.isEmpty())
+            throw new IllegalArgumentException();
+        return filters.stream().skip(1).reduce(filters.get(0), Criteria::and);
     }
 }

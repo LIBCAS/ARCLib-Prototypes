@@ -21,44 +21,45 @@ import java.util.Set;
 @SolrDocument(solrCoreName = "arclib_xml")
 public class ArclibXmlDocument {
 
+    /**
+     * ID of document is id of SIP followed by underscore and XML version number.
+     */
     @Field
     @Indexed
     private String id;
 
+    /**
+     * The whole document is indexed as fulltext.
+     */
     @Field
     @Indexed
     private String document;
 
+    /**
+     * Fields of AIP XML which has to be indexed.
+     */
     @Field("*")
     @Indexed
     @Dynamic
-    private Map<String, Object> attributes = new HashMap<>();
+    private Map<String, Object> fields = new HashMap<>();
 
-    public void addAttribute(String attributeKey, Object newAttributeValue) {
-        if (attributes.containsKey(attributeKey)) {
-            Object oldAttrValue = attributes.get(attributeKey);
+    /**
+     * Adds field with its value to Solr document. If the field already exists values are stored in list.
+     * @param fieldKey
+     * @param newFieldValue
+     */
+    public void addField(String fieldKey, Object newFieldValue) {
+        if (fields.containsKey(fieldKey)) {
+            Object oldAttrValue = fields.get(fieldKey);
             if (oldAttrValue instanceof Set)
-                ((HashSet) oldAttrValue).add(newAttributeValue);
+                ((HashSet) oldAttrValue).add(newFieldValue);
             else {
-                Set<Object> attributeValues = new HashSet<>();
-                attributeValues.add(attributes.get(attributeKey));
-                attributeValues.add(newAttributeValue);
-                attributes.put(attributeKey, attributeValues);
+                Set<Object> fieldValues = new HashSet<>();
+                fieldValues.add(fields.get(fieldKey));
+                fieldValues.add(newFieldValue);
+                fields.put(fieldKey, fieldValues);
             }
         } else
-            attributes.put(attributeKey, newAttributeValue);
-    }
-
-    public void replaceAttribute(String attributeKey, Object oldAttributeValue, Object newAttributeValue) {
-        if (attributes.containsKey(attributeKey)) {
-            Object oldAttrValue = attributes.get(attributeKey);
-            if (oldAttrValue instanceof Set) {
-                Set<Object> attributeValues = ((HashSet) oldAttrValue);
-                attributeValues.remove(oldAttributeValue);
-                attributeValues.add(newAttributeValue);
-                return;
-            }
-        }
-        attributes.put(attributeKey, newAttributeValue);
+            fields.put(fieldKey, newFieldValue);
     }
 }

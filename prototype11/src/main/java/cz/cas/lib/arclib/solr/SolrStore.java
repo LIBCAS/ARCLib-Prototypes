@@ -10,6 +10,7 @@ import org.apache.solr.common.SolrInputDocument;
 import org.springframework.data.domain.Page;
 import org.springframework.data.solr.UncategorizedSolrException;
 import org.springframework.data.solr.core.SolrTemplate;
+import org.springframework.data.solr.core.query.Criteria;
 import org.springframework.data.solr.core.query.SimpleFilterQuery;
 import org.springframework.data.solr.core.query.SimpleQuery;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ import javax.xml.xpath.XPathConstants;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.List;
@@ -37,7 +39,7 @@ public class SolrStore implements IndexStore {
 
     private SolrTemplate solrTemplate;
 
-    @Inject private ArclibXmlRepository arclibXmlRepository;
+    private ArclibXmlRepository arclibXmlRepository;
 
     @SneakyThrows
     public void createIndex(String sipId, int xmlVersion, String arclibXml) {
@@ -56,28 +58,39 @@ public class SolrStore implements IndexStore {
         SolrInputDocument doc = new SolrInputDocument();
         for (IndexFieldConfig conf : getFieldsConfig()) {
             NodeList fields = (NodeList) xpath.evaluate(conf.getXpath(), xml, XPathConstants.NODESET);
+
             for (int i = 0; i < fields.getLength(); i++) {
-                switch (conf.getFieldType()) {
-                    case DATETIME:
-                        Calendar parsedDate = DatatypeConverter.parseDateTime(fields.item(i).getTextContent());
-                        String parsedDateTimeString = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(parsedDate.toInstant().atZone(ZoneId.systemDefault())) + "Z";
-                        solrArclibXmlDocument.addAttribute(conf.getFieldName(), parsedDateTimeString);
-                        break;
-                    case DATE:
-                        parsedDate = DatatypeConverter.parseDate(fields.item(i).getTextContent());
-                        String parsedDateString = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(parsedDate.toInstant().atZone(ZoneId.systemDefault())) + "Z";
-                        solrArclibXmlDocument.addAttribute(conf.getFieldName(), parsedDateString);
-                        break;
-                    case TIME:
-                        throw new UnsupportedOperationException();
-                    default:
-                        if (conf.isFullText()) {
-                            solrArclibXmlDocument.addAttribute(conf.getFieldName(), nodeToString(fields.item(i)));
-                        } else {
-                            solrArclibXmlDocument.addAttribute(conf.getFieldName(), fields.item(i).getTextContent());
-                        }
+                try {
+                    switch (conf.getFieldType()) {
+                        case DATETIME:
+                            Calendar parsedDate = DatatypeConverter.parseDateTime(fields.item(i).getTextContent());
+                            String parsedDateTimeString = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(parsedDate.toInstant().atZone(ZoneId.systemDefault()));
+                            solrArclibXmlDocument.addField(conf.getFieldName(), parsedDateTimeString);
+                            break;
+                        case DATE:
+                            parsedDate = DatatypeConverter.parseDate(fields.item(i).getTextContent());
+                            String parsedDateString = DateTimeFormatter.ISO_LOCAL_DATE.format(parsedDate.toInstant().atZone(ZoneId.systemDefault()));
+                            solrArclibXmlDocument.addField(conf.getFieldName(), parsedDateString);
+                            break;
+                        case TIME:
+                            ZonedDateTime time = DatatypeConverter.parseTime(fields.item(i).getTextContent()).toInstant().atZone(ZoneId.systemDefault());
+                            long parsedTime = time.getHour() * 60 * 60 * 1000 + time.getMinute() * 60 * 1000 + time.getSecond() * 1000;
+                            solrArclibXmlDocument.addField(conf.getFieldName(), parsedTime);
+                            break;
+                        default:
+                            if (conf.isFullText()) {
+                                solrArclibXmlDocument.addField(conf.getFieldName(), nodeToString(fields.item(i)));
+                            } else {
+                                solrArclibXmlDocument.addField(conf.getFieldName(), fields.item(i).getTextContent());
+                            }
+                    }
+                } catch (IllegalArgumentException | NullPointerException parsingEx) {
+                    String msg = String.format("Could not parse %s as %s", fields.item(i).getTextContent(), conf.getFieldType());
+                    log.error(msg);
+                    throw new BadArgument(msg);
                 }
             }
+
         }
         solrArclibXmlDocument.setId(sipId + "_" + xmlVersion);
         solrArclibXmlDocument.setDocument(arclibXml);
@@ -90,7 +103,7 @@ public class SolrStore implements IndexStore {
     }
 
     public List<String> findAll(List<Filter> filter) {
-        SimpleQuery query = new SimpleQuery(SolrQueryBuilder.nopQuery());
+        SimpleQuery query = new SimpleQuery(Criteria.where("id"));
         query.addProjectionOnField("id");
         if (filter.size() > 0)
             query.addFilterQuery(new SimpleFilterQuery(SolrQueryBuilder.buildFilters(filter)));
@@ -99,8 +112,11 @@ public class SolrStore implements IndexStore {
         try {
             page = solrTemplate.query(query, ArclibXmlDocument.class);
         } catch (UncategorizedSolrException ex) {
-            if (ex.getMessage() != null && ex.getMessage().contains("undefined field"))
-                throw new BadArgument("query contains undefined field");
+            if (ex.getMessage() != null && ex.getMessage().contains("undefined field")){
+                String msg = "query contains undefined field";
+                log.error(msg);
+                throw new BadArgument(msg);
+            }
             throw ex;
         }
         List<String> ids = page.getContent().stream().map(ArclibXmlDocument::getId).collect(Collectors.toList());
@@ -112,4 +128,7 @@ public class SolrStore implements IndexStore {
     public void setSolrTemplate(SolrTemplate solrTemplate) {
         this.solrTemplate = solrTemplate;
     }
+
+    @Inject
+    public void setArclibXmlRepository(ArclibXmlRepository arclibXmlRepository){this.arclibXmlRepository = arclibXmlRepository;}
 }

@@ -18,7 +18,7 @@ public enum FilterOperation {
      * Greater than.
      * <p>
      * <p>
-     * Applicable to number or date attributes.
+     * Applicable to number or date fields.
      * </p>
      */
     GT,
@@ -27,7 +27,7 @@ public enum FilterOperation {
      * Less than.
      * <p>
      * <p>
-     * Applicable to number or date attributes.
+     * Applicable to number or date fields.
      * </p>
      */
     LT,
@@ -36,7 +36,7 @@ public enum FilterOperation {
      * Greater than or equals.
      * <p>
      * <p>
-     * Applicable to number or date attributes.
+     * Applicable to number or date fields.
      * </p>
      */
     GTE,
@@ -45,7 +45,7 @@ public enum FilterOperation {
      * Less than or equals.
      * <p>
      * <p>
-     * Applicable to number or date attributes.
+     * Applicable to number or date fields.
      * </p>
      */
     LTE,
@@ -54,7 +54,7 @@ public enum FilterOperation {
      * Starts with.
      * <p>
      * <p>
-     * Applicable to string attributes.
+     * Applicable to string fields.
      * </p>
      */
     STARTWITH,
@@ -63,7 +63,7 @@ public enum FilterOperation {
      * Ends with.
      * <p>
      * <p>
-     * Applicable to string attributes.
+     * Applicable to string fields.
      * </p>
      */
     ENDWITH,
@@ -72,7 +72,7 @@ public enum FilterOperation {
      * Contains.
      * <p>
      * <p>
-     * Applicable to string attributes.
+     * Applicable to string fields.
      * </p>
      */
     CONTAINS,
@@ -99,7 +99,7 @@ public enum FilterOperation {
      * Is not set
      * <p>
      * <p>
-     * Applicable to all attributes.
+     * Applicable to all fields.
      * </p>
      */
     IS_NULL,
@@ -108,7 +108,7 @@ public enum FilterOperation {
      * Is set
      * <p>
      * <p>
-     * Applicable to all attributes.
+     * Applicable to all fields.
      * </p>
      */
     NOT_NULL,

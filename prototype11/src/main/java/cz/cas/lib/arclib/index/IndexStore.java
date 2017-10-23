@@ -23,12 +23,29 @@ import java.util.Set;
 
 public interface IndexStore {
 
+    /**
+     * Creates index. {@link FieldType#TIME} are stored as count of milliseconds.
+     *
+     * @throws cz.cas.lib.arclib.exception.BadArgument if the value of {@link FieldType#TIME}, {@link FieldType#DATE} or {@link FieldType#DATETIME} field can't be parsed.
+     */
     void createIndex(String sipId, int xmlVersion, String arclibXml);
 
+    /**
+     * Finds documents.
+     *
+     * @return list of IDs of documents
+     * @throws cz.cas.lib.arclib.exception.BadArgument if query contains field undefined in Solr schema.
+     */
     List<String> findAll(List<Filter> filter);
 
+    /**
+     * Load configuration from a CSV file defining ARCLib XML.
+     *
+     * @return Set with config object for each index field.
+     * @throws IOException
+     */
     default Set<IndexFieldConfig> getFieldsConfig() throws IOException {
-        List<String> fieldsDefinitions = Files.readAllLines(Paths.get("src/test/resources/fieldDefinitions.csv"));
+        List<String> fieldsDefinitions = Files.readAllLines(Paths.get("src/main/resources/fieldDefinitions.csv"));
         Set<IndexFieldConfig> fieldConfigs = new HashSet<>();
         for (String line :
                 fieldsDefinitions.subList(1, fieldsDefinitions.size())) {
@@ -36,11 +53,16 @@ public interface IndexStore {
             if (arr.length != 8)
                 throw new IllegalArgumentException(String.format("fieldDefinitions.csv can't contain row with empty column: %s", line));
             if (!arr[5].equals("fulltext") && !arr[5].equals("atribut"))
-                fieldConfigs.add(new IndexFieldConfig(arr[5], arr[6], arr[7], "N".equals(arr[2])));
+                fieldConfigs.add(new IndexFieldConfig(arr[5], arr[6], arr[7], "N" .equals(arr[2])));
         }
         return fieldConfigs;
     }
 
+    /**
+     * Creates namespace aware Xpath. Namespace URI must match URIs in ARCLib XMl file.
+     *
+     * @return namespace aware XPath
+     */
     default XPath getXpathWithNamespaceContext() {
         XPath xpath = XPathFactory.newInstance().newXPath();
         xpath.setNamespaceContext(new NamespaceContext() {
@@ -73,6 +95,13 @@ public interface IndexStore {
         return xpath;
     }
 
+    /**
+     * Converts XML node to String.
+     *
+     * @param node
+     * @return
+     * @throws TransformerException
+     */
     default String nodeToString(Node node)
             throws TransformerException {
         StringWriter buf = new StringWriter();
