@@ -459,7 +459,7 @@
         <field name="device_file_count" type="pints"/>
         <field name="event_outcome" type="plongs"/>
         <field name="event_agent_id" type="lowercases"/>
-        <field name="event_detail" type="text_general"/>
+        <field name="event_detail" type="dateranges"/>
         <field name="event_type" type="lowercases"/>
         <field name="event_date" type="dateranges"/>
         <field name="event_id" type="lowercases"/>
