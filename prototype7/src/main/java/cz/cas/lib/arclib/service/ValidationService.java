@@ -25,7 +25,10 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -121,17 +124,18 @@ public class ValidationService {
                         XPathConstants.NODESET);
         for (int i = 0; i< nodes.getLength(); i++) {
             Element element = (Element) nodes.item(i);
-            String relativePath = element.getElementsByTagName("filePath").item(0).getTextContent();
+            String filePath = element.getElementsByTagName("filePath").item(0).getTextContent();
             String schema = element.getElementsByTagName("schema").item(0).getTextContent();
 
-            String absolutePath = sipPath + relativePath;
+            String absoluteFilePath = sipPath + filePath;
 
             try {
-                ValidationChecker.validateWithXMLSchema(absolutePath, schema);
+                ValidationChecker.validateWithXMLSchema(new FileInputStream(absoluteFilePath), new InputStream[] {
+                        new ByteArrayInputStream(schema.getBytes(StandardCharsets.UTF_8.name()))});
             } catch (GeneralException e) {
-                log.info("Validation of SIP with profile " + validationProfileId + " failed. File at \"" + relativePath + "\" is not " +
+                log.info("Validation of SIP with profile " + validationProfileId + " failed. File at \"" + filePath + "\" is not " +
                         "valid against its corresponding schema.");
-                throw new SchemaValidationError(relativePath, schema, e.getMessage());
+                throw new SchemaValidationError(filePath, schema, e.getMessage());
             }
         }
     }
@@ -159,11 +163,11 @@ public class ValidationService {
             Element element = (Element) nodes.item(i);
 
             String filePath = element.getElementsByTagName("filePath").item(0).getTextContent();
-            String absolutePath = sipPath + filePath;
+            String absoluteFilePath = sipPath + filePath;
 
             String expression = element.getElementsByTagName("xPath").item(0).getTextContent();
 
-            String actualValue =  ValidationChecker.findWithXPath(absolutePath, expression).item(0).getTextContent();
+            String actualValue =  ValidationChecker.findWithXPath(new FileInputStream(absoluteFilePath), expression).item(0).getTextContent();
 
             Node valueElement = element.getElementsByTagName("value").item(0);
             if (valueElement != null) {
@@ -172,7 +176,7 @@ public class ValidationService {
                 if (!expectedValue.equals(actualValue)) {
                     log.info("Validation of SIP with profile " + validationProfileId + " failed. Expected value of node at path \"" +
                             expression + "\" is " + expectedValue + ". Actual value is " + actualValue + ".");
-                    throw new WrongNodeValue(expectedValue, actualValue, absolutePath, expression);                }
+                    throw new WrongNodeValue(expectedValue, actualValue, absoluteFilePath, expression);                }
             } else {
                 //compare with regex
                 Node regexElement = element.getElementsByTagName("regex").item(0);
@@ -182,7 +186,7 @@ public class ValidationService {
                 if (!m.matches()) {
                     log.info("Validation of SIP with profile " + validationProfileId + " failed. Value " + actualValue + " of node at " +
                             "path \"" + expression + "\" does not match regex " + regex + ".");
-                    throw new InvalidNodeValue(regex, actualValue, absolutePath, expression);                }
+                    throw new InvalidNodeValue(regex, actualValue, absoluteFilePath, expression);                }
             }
         }
     }

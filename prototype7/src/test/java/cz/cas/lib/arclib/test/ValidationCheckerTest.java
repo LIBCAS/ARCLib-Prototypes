@@ -1,10 +1,8 @@
 package cz.cas.lib.arclib.test;
 
-import cz.cas.lib.arclib.service.ValidationChecker;
 import cz.cas.lib.arclib.exception.general.GeneralException;
+import cz.cas.lib.arclib.service.ValidationChecker;
 import cz.cas.lib.arclib.test.helper.ThrowableAssertion;
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
 import org.junit.Test;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -12,8 +10,9 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.URL;
+import java.io.InputStream;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -25,32 +24,38 @@ public class ValidationCheckerTest {
 
     @Test
     public void validationSchemaCheckSuccess() throws IOException, SAXException {
-        URL url = getClass().getResource("/validationProfileSchema.xsd");
-        String xsd = Resources.toString(url, Charsets.UTF_8);
+        String xsdPath = getClass().getResource("/validationProfileSchema.xsd").getPath();
 
-        ValidationChecker.validateWithXMLSchema(getClass().getResource("/validationProfileMixedChecks.xml").getPath(), xsd);
+        String validationProfilePath = getClass().getResource("/validationProfileMixedChecks.xml").getPath();
+
+        ValidationChecker.validateWithXMLSchema(new FileInputStream(validationProfilePath), new InputStream[]{new FileInputStream
+                (xsdPath)});
     }
 
     @Test
     public void validationSchemaCheckInvalidXml() throws IOException, SAXException {
-        URL url = getClass().getResource("/validationProfileSchema.xsd");
-        String xsd = Resources.toString(url, Charsets.UTF_8);
-        ThrowableAssertion.assertThrown(() -> ValidationChecker.validateWithXMLSchema(getClass().getResource
-                ("/validationProfileInvalidProfile.xml").getPath(), xsd)).isInstanceOf(GeneralException.class);
+        String xsdPath = getClass().getResource("/validationProfileSchema.xsd").getPath();
+
+        String validationProfilePath = getClass().getResource("/validationProfileInvalidProfile.xml").getPath();
+
+        ThrowableAssertion.assertThrown(() -> ValidationChecker.validateWithXMLSchema(new FileInputStream(validationProfilePath),
+                new InputStream[]{new FileInputStream(xsdPath)})).isInstanceOf(GeneralException.class);
     }
 
     @Test
     public void validationSchemaCheckInvalidXsd() throws IOException, SAXException {
-        URL url = getClass().getResource("/schemaInvalid.xsd");
-        String xsd = Resources.toString(url, Charsets.UTF_8);
-        ThrowableAssertion.assertThrown(() -> ValidationChecker.validateWithXMLSchema(getClass().getResource
-                ("/validationProfileMixedChecks.xml").getPath(), xsd)).isInstanceOf(SAXException.class);
+        String xsdPath = getClass().getResource("/schemaInvalid.xsd").getPath();
+
+        String validationProfilePath = getClass().getResource("/validationProfileMixedChecks.xml").getPath();
+
+        ThrowableAssertion.assertThrown(() -> ValidationChecker.validateWithXMLSchema(new FileInputStream(validationProfilePath),
+                new InputStream[]{new FileInputStream(xsdPath)})).isInstanceOf(SAXException.class);
     }
 
     @Test
     public void xPathCheckExistentNode() throws SAXException, ParserConfigurationException, XPathExpressionException, IOException {
-        NodeList nodeList = ValidationChecker.findWithXPath(getClass().getResource("/validationProfileMixedChecks.xml").getPath(),
-                "/profile/rule");
+        String pathToValidationProfile = getClass().getResource("/validationProfileMixedChecks.xml").getPath();
+        NodeList nodeList = ValidationChecker.findWithXPath(new FileInputStream(pathToValidationProfile),"/profile/rule");
 
         assertThat(nodeList.getLength(), is(4));
 
@@ -63,7 +68,8 @@ public class ValidationCheckerTest {
     @Test
     public void xPathCheckNonexistentNodeTest() throws SAXException, ParserConfigurationException, XPathExpressionException,
             IOException {
-        NodeList nodeList = ValidationChecker.findWithXPath(getClass().getResource("/validationProfileMixedChecks.xml").getPath(),
+        String pathToValidationProfile = getClass().getResource("/validationProfileMixedChecks.xml").getPath();
+        NodeList nodeList = ValidationChecker.findWithXPath(new FileInputStream(pathToValidationProfile),
                 "/profile/nonExistentTag");
 
         assertThat(nodeList.getLength(), is(0));
