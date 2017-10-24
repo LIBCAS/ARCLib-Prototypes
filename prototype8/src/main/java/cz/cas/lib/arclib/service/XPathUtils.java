@@ -2,6 +2,7 @@ package cz.cas.lib.arclib.service;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dom4j.InvalidXPathException;
+import org.dom4j.Node;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -15,6 +16,7 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 public class XPathUtils {
 

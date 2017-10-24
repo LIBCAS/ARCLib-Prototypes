@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema elementFormDefault="qualified" targetNamespace="http://www.arclib.lib.cas.cz" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="profile">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="simpleMapping" maxOccurs="unbounded" minOccurs="0" type="simpleMappingType"/>
+                <xs:element name="aggregationMapping" maxOccurs="unbounded" minOccurs="0" type="aggregationMappingType"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="simpleMappingType">
+        <xs:sequence>
+            <xs:element name="source">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="rootDirPath" type="xs:string"/>
+                        <xs:element name="fileRegex" type="xs:string"/>
+                        <xs:element name="xPath" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="destination">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="xPath" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="aggregationMappingType">
+        <xs:sequence>
+            <xs:element name="source">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="rootDirPath" type="xs:string"/>
+                        <xs:element name="fileRegex" type="xs:string"/>
+                        <xs:element name="xPath" maxOccurs="unbounded" type="xPathType"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="destination">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="xPath" type="xs:string"/>
+                        <xs:element name="aggregation" minOccurs="0" type="aggregationType"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="xPathType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="destElemName"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <xs:complexType name="aggregationType">
+        <xs:attribute name="type">
+            <xs:simpleType>
+                <xs:restriction>
+                    <xs:enumeration value="count"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="destElemName"/>
+    </xs:complexType>
+
+</xs:schema>

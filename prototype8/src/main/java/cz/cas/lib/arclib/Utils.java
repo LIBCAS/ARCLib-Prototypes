@@ -5,9 +5,18 @@ import cz.cas.lib.arclib.exception.general.GeneralException;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -42,6 +51,21 @@ public class Utils {
                 throw supplier.get();
             }
         }
+    }
+
+    public static InputStream stringToInputStream(String text) throws UnsupportedEncodingException {
+        return new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8.name()));
+    }
+
+    public static String nodeToString(org.w3c.dom.Node node) throws TransformerException {
+        StringWriter sw = new StringWriter();
+
+        Transformer t = TransformerFactory.newInstance().newTransformer();
+        t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+        t.setOutputProperty(OutputKeys.INDENT, "yes");
+        t.transform(new DOMSource(node), new StreamResult(sw));
+
+        return sw.toString();
     }
 
     public static <T extends DomainObject> List<T> sortByIdList(List<String> ids, Iterable<T> objects) {
@@ -136,5 +160,38 @@ public class Utils {
         } else {
             return null;
         }
+    }
+
+    public static class Pair<L,R> {
+        private L l;
+        private R r;
+        public Pair(L l, R r){
+            this.l = l;
+            this.r = r;
+        }
+        public L getL(){ return l; }
+        public R getR(){ return r; }
+        public void setL(L l){ this.l = l; }
+        public void setR(R r){ this.r = r; }
+    }
+
+    public static File[] listFilesMatchingRegex(File root, String regex) throws FileNotFoundException {
+        if (!root.isDirectory()) {
+            throw new IllegalArgumentException(root + " is no directory.");
+        }
+        final Pattern p = Pattern.compile(regex); // careful: could also throw an exception!
+        return root.listFiles(file -> p.matcher(file.getName()).matches());
+    }
+
+    public static List<String> readLinesOfFileToList(File file) throws IOException {
+        List<String> lines = new ArrayList<>();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                lines.add(line);
+            }
+        }
+        return lines;
     }
 }

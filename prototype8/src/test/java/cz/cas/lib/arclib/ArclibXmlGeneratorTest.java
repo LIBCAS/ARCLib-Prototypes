@@ -15,7 +15,6 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
@@ -42,16 +41,17 @@ public class ArclibXmlGeneratorTest extends DbTest {
     }
 
     @Test
-    public void generateArclibXmlAttributeMapping() throws IOException, SAXException, ParserConfigurationException, XPathExpressionException, TransformerException {
+    public void generateArclibXmlAttributeMapping() throws IOException, SAXException, ParserConfigurationException,
+            XPathExpressionException, TransformerException {
         SipProfile profile = new SipProfile();
-        String sipProfileXml = Resources.toString(this.getClass().getResource("/sipProfileAttributeMapping.xml"), StandardCharsets.UTF_8);
+        String sipProfileXml = Resources.toString(this.getClass().getResource(
+                "/testData/sipProfiles/simpleMappings/sipProfileAttributeMapping.xml"), StandardCharsets.UTF_8);
         profile.setXml(sipProfileXml);
 
         store.save(profile);
 
         String arclibXml = generator.generateArclibXml(SIP_PATH, profile.getId());
-        assertThat(arclibXml, is(
-                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<arclibXml LABEL=\"Z dějin malenovického hradu , [1953]\"/>"));
+        assertThat(arclibXml, is("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<mets LABEL=\"Z dějin malenovického hradu , [1953]\"/>"));
     }
 
     @Test
@@ -59,13 +59,16 @@ public class ArclibXmlGeneratorTest extends DbTest {
             IOException,
             TransformerException {
         SipProfile profile = new SipProfile();
-        String sipProfileXml = Resources.toString(this.getClass().getResource("/sipProfileMultipleElementsMapping.xml"), StandardCharsets.UTF_8);
+        String sipProfileXml = Resources.toString(this.getClass().getResource(
+                "/testData/sipProfiles/simpleMappings/sipProfileMultipleElementsMapping.xml"), StandardCharsets.UTF_8);
         profile.setXml(sipProfileXml);
 
         store.save(profile);
 
         String arclibXml = generator.generateArclibXml(SIP_PATH, profile.getId());
-        assertThat(arclibXml, is("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<arclibXml><mets><metsHdr><agent><METS:name>Exon s.r.o.</METS:name>\r\n</agent><agent><METS:name>ZLG001</METS:name>\r\n</agent></metsHdr></mets></arclibXml>"));
+        assertThat(arclibXml, is("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<mets><metsHdr><agent><METS:name>Exon s.r.o" +
+                ".</METS:name>\r\n</agent><agent><METS:name>ZLG001</METS:name>\r\n</agent></metsHdr></mets>"));
     }
 
     @Test
@@ -73,14 +76,19 @@ public class ArclibXmlGeneratorTest extends DbTest {
             IOException,
             TransformerException {
         SipProfile profile = new SipProfile();
-        String sipProfileXml = Resources.toString(this.getClass().getResource("/sipProfileElementAtPositionMapping.xml"), StandardCharsets
+        String sipProfileXml = Resources.toString(this.getClass().getResource(
+                "/testData/sipProfiles/simpleMappings/sipProfileElementAtPositionMapping.xml"), StandardCharsets
                 .UTF_8);
         profile.setXml(sipProfileXml);
 
         store.save(profile);
 
         String arclibXml = generator.generateArclibXml(SIP_PATH, profile.getId());
-        assertThat(arclibXml, is("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<arclibXml><mets><metsHdr><METS:agent ROLE=\"CREATOR\" TYPE=\"ORGANIZATION\"> \r\n\t\t\t<METS:name>Exon s.r.o.</METS:name>\r\n\t\t</METS:agent>\r\n</metsHdr></mets></arclibXml>"));
+        assertThat(arclibXml, is("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<mets><metsHdr><METS:agent ROLE=\"CREATOR\" TYPE=\"ORGANIZATION\"> \r\n" +
+                "\t\t\t<METS:name>Exon s.r.o.</METS:name>\r\n" +
+                "\t\t</METS:agent>\r\n" +
+                "</metsHdr></mets>"));
     }
 
     @Test
@@ -88,7 +96,8 @@ public class ArclibXmlGeneratorTest extends DbTest {
             IOException,
             TransformerException {
         SipProfile profile = new SipProfile();
-        String sipProfileXml = Resources.toString(this.getClass().getResource("/sipProfileNestedElementMapping.xml"), StandardCharsets
+        String sipProfileXml = Resources.toString(this.getClass().getResource(
+                "/testData/sipProfiles/simpleMappings/sipProfileNestedElementMapping.xml"), StandardCharsets
                 .UTF_8);
         profile.setXml(sipProfileXml);
 
@@ -96,8 +105,16 @@ public class ArclibXmlGeneratorTest extends DbTest {
 
         String arclibXml = generator.generateArclibXml(SIP_PATH, profile.getId());
         assertThat(arclibXml, is(
-                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<arclibXml><mets><METS:metsHdr CREATEDATE=\"2013-01-22T10:55:20Z\" ID=\"kpw01169310\" LASTMODDATE=\"2013-01-22T10:55:20Z\" RECORDSTATUS=\"COMPLETE\">\r\n\t\t<METS:agent ROLE=\"CREATOR\" TYPE=\"ORGANIZATION\"> \r\n\t\t\t<METS:name>Exon s.r.o.</METS:name>\r\n\t\t</METS:agent>\r\n\t\t<METS:agent ROLE=\"ARCHIVIST\" TYPE=\"ORGANIZATION\"> \r\n\t\t\t<METS:name>ZLG001</METS:name>\r\n\t\t</METS:agent>\r\n\t</METS:metsHdr>\r\n</mets></arclibXml>"
-
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                        "<mets><METS:metsHdr CREATEDATE=\"2013-01-22T10:55:20Z\" ID=\"kpw01169310\" LASTMODDATE=\"2013-01-22T10:55:20Z\" RECORDSTATUS=\"COMPLETE\">\r\n" +
+                        "\t\t<METS:agent ROLE=\"CREATOR\" TYPE=\"ORGANIZATION\"> \r\n" +
+                        "\t\t\t<METS:name>Exon s.r.o.</METS:name>\r\n" +
+                        "\t\t</METS:agent>\r\n" +
+                        "\t\t<METS:agent ROLE=\"ARCHIVIST\" TYPE=\"ORGANIZATION\"> \r\n" +
+                        "\t\t\t<METS:name>ZLG001</METS:name>\r\n" +
+                        "\t\t</METS:agent>\r\n" +
+                        "\t</METS:metsHdr>\r\n" +
+                        "</mets>"
         ));
     }
 
@@ -106,26 +123,20 @@ public class ArclibXmlGeneratorTest extends DbTest {
             IOException,
             TransformerException {
         SipProfile profile = new SipProfile();
-        String sipProfileXml = Resources.toString(this.getClass().getResource("/sipProfileMultipleMappings.xml"), StandardCharsets.UTF_8);
+        String sipProfileXml = Resources.toString(this.getClass().getResource(
+                "/testData/sipProfiles/sipProfileMultipleMappings.xml"), StandardCharsets.UTF_8);
         profile.setXml(sipProfileXml);
 
         store.save(profile);
 
         String arclibXml = generator.generateArclibXml(SIP_PATH, profile.getId());
-        assertThat(arclibXml, is("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<arclibXml LABEL=\"Z dějin malenovického hradu , [1953]\"><mets><METS:metsHdr CREATEDATE=\"2013-01-22T10:55:20Z\" ID=\"kpw01169310\">\r\n<METS:agent ROLE=\"CREATOR\" TYPE=\"INDIVIDUAL\"> \r\n<METS:name>Administrator</METS:name>\r\n</METS:agent>\r\n</METS:metsHdr>\r\n</mets></arclibXml>"));
-    }
-
-    @Test
-    public void generateArclibXmlMissingFile() throws SAXException, ParserConfigurationException, XPathExpressionException,
-            IOException,
-            TransformerException {
-        SipProfile profile = new SipProfile();
-        String sipProfileXml = Resources.toString(this.getClass().getResource("/sipProfileMissingFile.xml"), StandardCharsets.UTF_8);
-        profile.setXml(sipProfileXml);
-
-        store.save(profile);
-
-        assertThrown(() -> generator.generateArclibXml(SIP_PATH, profile.getId())).isInstanceOf(FileNotFoundException.class);
+        assertThat(arclibXml, is("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<mets LABEL=\"Z dějin malenovického hradu , [1953]\"><amdSec><techMD><mdWrap><xmlData><devices><format><fileFormat><fileFormat>image/tiff<fileFormat/><fileCount>8<fileCount/></fileFormat></format></devices></xmlData></mdWrap><mdWrap><xmlData><devices><format><fileFormat><fileFormat>image/jp2<fileFormat/><fileCount>8<fileCount/></fileFormat></format></devices></xmlData></mdWrap></techMD></amdSec><METS:metsHdr CREATEDATE=\"2013-01-22T10:55:20Z\" ID=\"kpw01169310\">\r\n" +
+                "<METS:agent ROLE=\"CREATOR\" TYPE=\"INDIVIDUAL\"> \r\n" +
+                "<METS:name>Administrator</METS:name>\r\n" +
+                "</METS:agent>\r\n" +
+                "</METS:metsHdr>\r\n" +
+                "</mets>"));
     }
 
     @Test
@@ -141,17 +152,62 @@ public class ArclibXmlGeneratorTest extends DbTest {
 
         store.save(profile);
 
-        assertThrown(() -> generator.generateArclibXml("%@#@%@!", profile.getId())).isInstanceOf(FileNotFoundException.class);
+        assertThrown(() -> generator.generateArclibXml("%@#@%@!", profile.getId())).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     public void generateArclibInvalidXPath() throws IOException {
         SipProfile profile = new SipProfile();
-        String sipProfileXml = Resources.toString(this.getClass().getResource("/sipProfileInvalidXPath.xml"), StandardCharsets.UTF_8);
+        String sipProfileXml = Resources.toString(this.getClass().getResource(
+                "/testData/sipProfiles/simpleMappings/sipProfileInvalidXPath.xml"), StandardCharsets.UTF_8);
         profile.setXml(sipProfileXml);
 
         store.save(profile);
 
         assertThrown(() -> generator.generateArclibXml(SIP_PATH, profile.getId())).isInstanceOf(InvalidXPathException.class);
+    }
+
+    @Test
+    public void generateArclibFormatCount() throws IOException, SAXException, ParserConfigurationException, XPathExpressionException,
+            TransformerException {
+        SipProfile profile = new SipProfile();
+        String sipProfileXml = Resources.toString(this.getClass().getResource(
+                "/testData/sipProfiles/aggregationMappings/sipProfileFormatCount.xml"), StandardCharsets.UTF_8);
+        profile.setXml(sipProfileXml);
+
+        store.save(profile);
+
+        String arclibXml = generator.generateArclibXml(SIP_PATH, profile.getId());
+        assertThat(arclibXml, is("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<mets><amdSec><techMD><mdWrap><xmlData><devices><format><fileFormat><fileFormat>image/tiff<fileFormat/><fileCount>8<fileCount/></fileFormat></format></devices></xmlData></mdWrap><mdWrap><xmlData><devices><format><fileFormat><fileFormat>image/jp2<fileFormat/><fileCount>8<fileCount/></fileFormat></format></devices></xmlData></mdWrap></techMD></amdSec></mets>"));
+    }
+
+    @Test
+    public void generateArclibDeviceCount() throws IOException, SAXException, ParserConfigurationException, XPathExpressionException,
+            TransformerException {
+        SipProfile profile = new SipProfile();
+        String sipProfileXml = Resources.toString(this.getClass().getResource(
+                "/testData/sipProfiles/aggregationMappings/sipProfileDeviceCount.xml"), StandardCharsets.UTF_8);
+        profile.setXml(sipProfileXml);
+
+        store.save(profile);
+
+        String arclibXml = generator.generateArclibXml(SIP_PATH, profile.getId());
+        assertThat(arclibXml, is("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<mets><amdSec><techMD><mdWrap><xmlData><devices><device><deviceId>321008<deviceId/><fileCount>8<fileCount/></device></devices></xmlData></mdWrap></techMD></amdSec></mets>"));
+    }
+
+    @Test
+    public void generateArclibEventCount() throws IOException, SAXException, ParserConfigurationException, XPathExpressionException,
+            TransformerException {
+        SipProfile profile = new SipProfile();
+        String sipProfileXml = Resources.toString(this.getClass().getResource(
+                "/testData/sipProfiles/aggregationMappings/sipProfileEventCount.xml"), StandardCharsets.UTF_8);
+        profile.setXml(sipProfileXml);
+
+        store.save(profile);
+
+        String arclibXml = generator.generateArclibXml(SIP_PATH, profile.getId());
+        assertThat(arclibXml, is("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<mets><amdSec><digiprovMD><mdWrap><xmlData><eventAgents><eventAgent><date>2012-10-02T14:55:07Z<date/><agentName>Recognition Server<agentName/><eventType>migration<eventType/><eventCount>192<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:55:06Z<date/><agentName>Recognition Server<agentName/><eventType>migration<eventType/><eventCount>192<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:55:08Z<date/><agentName>Recognition Server<agentName/><eventType>migration<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2013-01-11T14:17:34Z<date/><agentName>Recognition Server<agentName/><eventType>migration<eventType/><eventCount>64<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:43Z<date/><agentName>Recognition Server<agentName/><eventType>migration<eventType/><eventCount>64<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:44Z<date/><agentName>Recognition Server<agentName/><eventType>migration<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:47Z<date/><agentName>Recognition Server<agentName/><eventType>migration<eventType/><eventCount>64<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:48Z<date/><agentName>Recognition Server<agentName/><eventType>migration<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:45Z<date/><agentName>Recognition Server<agentName/><eventType>migration<eventType/><eventCount>64<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:46Z<date/><agentName>Recognition Server<agentName/><eventType>migration<eventType/><eventCount>64<eventCount/></eventAgent><eventAgent><date>2013-01-11T14:17:33Z<date/><agentName>Recognition Server<agentName/><eventType>migration<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2013-01-11T14:17:32Z<date/><agentName>Recognition Server<agentName/><eventType>migration<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2013-01-11T14:17:31Z<date/><agentName>Recognition Server<agentName/><eventType>migration<eventType/><eventCount>192<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:55:07Z<date/><agentName>CopiBook RGB+<agentName/><eventType>migration<eventType/><eventCount>192<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:55:06Z<date/><agentName>CopiBook RGB+<agentName/><eventType>migration<eventType/><eventCount>192<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:55:08Z<date/><agentName>CopiBook RGB+<agentName/><eventType>migration<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2013-01-11T14:17:34Z<date/><agentName>CopiBook RGB+<agentName/><eventType>migration<eventType/><eventCount>64<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:43Z<date/><agentName>CopiBook RGB+<agentName/><eventType>migration<eventType/><eventCount>64<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:44Z<date/><agentName>CopiBook RGB+<agentName/><eventType>migration<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:47Z<date/><agentName>CopiBook RGB+<agentName/><eventType>migration<eventType/><eventCount>64<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:48Z<date/><agentName>CopiBook RGB+<agentName/><eventType>migration<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:45Z<date/><agentName>CopiBook RGB+<agentName/><eventType>migration<eventType/><eventCount>64<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:46Z<date/><agentName>CopiBook RGB+<agentName/><eventType>migration<eventType/><eventCount>64<eventCount/></eventAgent><eventAgent><date>2013-01-11T14:17:33Z<date/><agentName>CopiBook RGB+<agentName/><eventType>migration<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2013-01-11T14:17:32Z<date/><agentName>CopiBook RGB+<agentName/><eventType>migration<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2013-01-11T14:17:31Z<date/><agentName>CopiBook RGB+<agentName/><eventType>migration<eventType/><eventCount>192<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:55:07Z<date/><agentName>BookRestorer<agentName/><eventType>migration<eventType/><eventCount>192<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:55:06Z<date/><agentName>BookRestorer<agentName/><eventType>migration<eventType/><eventCount>192<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:55:08Z<date/><agentName>BookRestorer<agentName/><eventType>migration<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2013-01-11T14:17:34Z<date/><agentName>BookRestorer<agentName/><eventType>migration<eventType/><eventCount>64<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:43Z<date/><agentName>BookRestorer<agentName/><eventType>migration<eventType/><eventCount>64<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:44Z<date/><agentName>BookRestorer<agentName/><eventType>migration<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:47Z<date/><agentName>BookRestorer<agentName/><eventType>migration<eventType/><eventCount>64<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:48Z<date/><agentName>BookRestorer<agentName/><eventType>migration<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:45Z<date/><agentName>BookRestorer<agentName/><eventType>migration<eventType/><eventCount>64<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:46Z<date/><agentName>BookRestorer<agentName/><eventType>migration<eventType/><eventCount>64<eventCount/></eventAgent><eventAgent><date>2013-01-11T14:17:33Z<date/><agentName>BookRestorer<agentName/><eventType>migration<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2013-01-11T14:17:32Z<date/><agentName>BookRestorer<agentName/><eventType>migration<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2013-01-11T14:17:31Z<date/><agentName>BookRestorer<agentName/><eventType>migration<eventType/><eventCount>192<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:55:07Z<date/><agentName>Recognition Server<agentName/><eventType>capture<eventType/><eventCount>384<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:55:06Z<date/><agentName>Recognition Server<agentName/><eventType>capture<eventType/><eventCount>384<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:55:08Z<date/><agentName>Recognition Server<agentName/><eventType>capture<eventType/><eventCount>256<eventCount/></eventAgent><eventAgent><date>2013-01-11T14:17:34Z<date/><agentName>Recognition Server<agentName/><eventType>capture<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:43Z<date/><agentName>Recognition Server<agentName/><eventType>capture<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:44Z<date/><agentName>Recognition Server<agentName/><eventType>capture<eventType/><eventCount>256<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:47Z<date/><agentName>Recognition Server<agentName/><eventType>capture<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:48Z<date/><agentName>Recognition Server<agentName/><eventType>capture<eventType/><eventCount>256<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:45Z<date/><agentName>Recognition Server<agentName/><eventType>capture<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:46Z<date/><agentName>Recognition Server<agentName/><eventType>capture<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2013-01-11T14:17:33Z<date/><agentName>Recognition Server<agentName/><eventType>capture<eventType/><eventCount>256<eventCount/></eventAgent><eventAgent><date>2013-01-11T14:17:32Z<date/><agentName>Recognition Server<agentName/><eventType>capture<eventType/><eventCount>256<eventCount/></eventAgent><eventAgent><date>2013-01-11T14:17:31Z<date/><agentName>Recognition Server<agentName/><eventType>capture<eventType/><eventCount>384<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:55:07Z<date/><agentName>CopiBook RGB+<agentName/><eventType>capture<eventType/><eventCount>384<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:55:06Z<date/><agentName>CopiBook RGB+<agentName/><eventType>capture<eventType/><eventCount>384<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:55:08Z<date/><agentName>CopiBook RGB+<agentName/><eventType>capture<eventType/><eventCount>256<eventCount/></eventAgent><eventAgent><date>2013-01-11T14:17:34Z<date/><agentName>CopiBook RGB+<agentName/><eventType>capture<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:43Z<date/><agentName>CopiBook RGB+<agentName/><eventType>capture<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:44Z<date/><agentName>CopiBook RGB+<agentName/><eventType>capture<eventType/><eventCount>256<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:47Z<date/><agentName>CopiBook RGB+<agentName/><eventType>capture<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:48Z<date/><agentName>CopiBook RGB+<agentName/><eventType>capture<eventType/><eventCount>256<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:45Z<date/><agentName>CopiBook RGB+<agentName/><eventType>capture<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:46Z<date/><agentName>CopiBook RGB+<agentName/><eventType>capture<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2013-01-11T14:17:33Z<date/><agentName>CopiBook RGB+<agentName/><eventType>capture<eventType/><eventCount>256<eventCount/></eventAgent><eventAgent><date>2013-01-11T14:17:32Z<date/><agentName>CopiBook RGB+<agentName/><eventType>capture<eventType/><eventCount>256<eventCount/></eventAgent><eventAgent><date>2013-01-11T14:17:31Z<date/><agentName>CopiBook RGB+<agentName/><eventType>capture<eventType/><eventCount>384<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:55:07Z<date/><agentName>BookRestorer<agentName/><eventType>capture<eventType/><eventCount>384<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:55:06Z<date/><agentName>BookRestorer<agentName/><eventType>capture<eventType/><eventCount>384<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:55:08Z<date/><agentName>BookRestorer<agentName/><eventType>capture<eventType/><eventCount>256<eventCount/></eventAgent><eventAgent><date>2013-01-11T14:17:34Z<date/><agentName>BookRestorer<agentName/><eventType>capture<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:43Z<date/><agentName>BookRestorer<agentName/><eventType>capture<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:44Z<date/><agentName>BookRestorer<agentName/><eventType>capture<eventType/><eventCount>256<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:47Z<date/><agentName>BookRestorer<agentName/><eventType>capture<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:48Z<date/><agentName>BookRestorer<agentName/><eventType>capture<eventType/><eventCount>256<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:45Z<date/><agentName>BookRestorer<agentName/><eventType>capture<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2012-10-02T14:58:46Z<date/><agentName>BookRestorer<agentName/><eventType>capture<eventType/><eventCount>128<eventCount/></eventAgent><eventAgent><date>2013-01-11T14:17:33Z<date/><agentName>BookRestorer<agentName/><eventType>capture<eventType/><eventCount>256<eventCount/></eventAgent><eventAgent><date>2013-01-11T14:17:32Z<date/><agentName>BookRestorer<agentName/><eventType>capture<eventType/><eventCount>256<eventCount/></eventAgent><eventAgent><date>2013-01-11T14:17:31Z<date/><agentName>BookRestorer<agentName/><eventType>capture<eventType/><eventCount>384<eventCount/></eventAgent></eventAgents></xmlData></mdWrap></digiprovMD></amdSec></mets>"));
     }
 }
