@@ -16,7 +16,7 @@ import java.net.URL;
 
 import static cz.cas.lib.arclib.helper.ThrowableAssertion.assertThrown;
 
-public class ArclibXmlValidationTest {
+public class ArclibXmlValidatorTest {
 
     private static String VALIDATION_CHECKS = "arclibXmlValidationChecks.txt";
 

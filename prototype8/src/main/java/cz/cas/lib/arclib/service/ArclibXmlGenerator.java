@@ -53,6 +53,8 @@ public class ArclibXmlGenerator {
      */
     public String generateArclibXml(String sipPath, String sipProfileId)
             throws ParserConfigurationException, TransformerException, SAXException, XPathExpressionException, IOException {
+        log.info("Generating ARCLib XML for SIP at path " + sipPath + " using SIP profile with ID " + sipProfileId + ".");
+
         SipProfile sipProfile = store.find(sipProfileId);
         notNull(sipProfile, () -> new MissingObject(SipProfile.class, sipProfileId));
 
@@ -75,6 +77,7 @@ public class ArclibXmlGenerator {
         nodesToCreate.forEach(pair -> {
             String xPath = pair.getL();
             String value = pair.getR();
+
             XmlBuilder.addNode(arclibXml, xPath, value);
         });
 

@@ -1,6 +1,8 @@
 package cz.cas.lib.arclib.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.dom4j.Document;
+import org.dom4j.Element;
 import org.dom4j.Node;
 
 import java.util.List;
@@ -16,15 +18,15 @@ public class XmlBuilder {
      * @return the created Node
      */
 
-    public static Node addNode(org.dom4j.Document doc, String targetXPath, String value) {
+    public static Node addNode(Document doc, String targetXPath, String value) {
         log.info("adding Node: " + targetXPath + " -> " + value);
 
         String elementName = XPathUtils.getChildElementName(targetXPath);
         String parentXPath = XPathUtils.getParentXPath(targetXPath);
 
         //add value as text to the root element and return
-        if (parentXPath == "/") {
-            org.dom4j.Element rootElement = doc.getRootElement();
+        if (("/").equals(parentXPath)) {
+            Element rootElement = doc.getRootElement();
             if (value != null) {
                 rootElement.addText(value);
             }
@@ -38,7 +40,7 @@ public class XmlBuilder {
 
         //add value as attribute to the parent node and return
         if (elementName.startsWith("@")) {
-            return ((org.dom4j.Element) parentNode).addAttribute(elementName.substring(1), value);
+            return ((Element) parentNode).addAttribute(elementName.substring(1), value);
         }
 
         // create younger siblings if needed
@@ -48,12 +50,12 @@ public class XmlBuilder {
             // how many to create = (index wanted - existing - 1 to account for the new element we will create)
             int nodesToCreate = childIndex - nodelist.size() - 1;
             for (int i = 0; i < nodesToCreate; i++) {
-                ((org.dom4j.Element) parentNode).addElement(elementName);
+                ((Element) parentNode).addElement(elementName);
             }
         }
 
         //add new element to the parent node
-        org.dom4j.Element created = ((org.dom4j.Element) parentNode).addElement(elementName);
+        Element created = ((Element) parentNode).addElement(elementName);
         if (null != value) {
             created.addText(value);
         }

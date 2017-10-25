@@ -2,6 +2,7 @@ package cz.cas.lib.arclib.service;
 
 import cz.cas.lib.arclib.Utils;
 import cz.cas.lib.arclib.exception.MissingNode;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -25,7 +26,7 @@ import java.util.List;
 
 import static cz.cas.lib.arclib.Utils.readLinesOfFileToList;
 
-
+@Slf4j
 @Service
 public class ArclibXmlValidator {
 
@@ -47,16 +48,22 @@ public class ArclibXmlValidator {
      * @throws ParserConfigurationException
      */
     public void validateArclibXml(String xml) throws IOException, XPathExpressionException, SAXException, ParserConfigurationException {
+        log.info("Starting validation of ARCLib XML.");
+
         List<String> xPaths = readLinesOfFileToList(arclibXmlValidationChecks.getFile());
         for (String xPath : xPaths) {
             checkNodeExists(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8.name())), xPath);
         }
+
+        log.info("Validation with checks for existences of specified nodes succeeded.");
 
         InputStream[] xsdSchemas = new InputStream[]{
                 arclibXmlSchema.getInputStream(),
                 metsSchema.getInputStream(),
                 premisSchema.getInputStream()};
         ArclibXmlValidator.validateWithXMLSchema(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8.name())), xsdSchemas);
+
+        log.info("Validation with XML schema succeeded.");
     }
 
     /**
@@ -74,6 +81,7 @@ public class ArclibXmlValidator {
         NodeList withXPath = XPathUtils.findWithXPath(xml, xPath);
 
         Utils.ne(withXPath.getLength(), 0, () -> new MissingNode(xPath));
+        log.info("Check for existence of node at " + xPath + " succeeded.");
     }
 
     /**

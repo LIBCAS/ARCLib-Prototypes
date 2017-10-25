@@ -40,6 +40,9 @@ public class ArclibXmlGeneratorTest extends DbTest {
         generator.setStore(store);
     }
 
+    /**
+     * Tests that the attribute is created at the destination xPath
+     */
     @Test
     public void generateArclibXmlAttributeMapping() throws IOException, SAXException, ParserConfigurationException,
             XPathExpressionException, TransformerException {
@@ -54,6 +57,9 @@ public class ArclibXmlGeneratorTest extends DbTest {
         assertThat(arclibXml, is("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<mets LABEL=\"Z dějin malenovického hradu , [1953]\"/>"));
     }
 
+    /**
+     * Tests that multiple elements have been created at the destination xpath when there are multiple elements at the source xpath
+     */
     @Test
     public void generateArclibXmlMultipleElementsMapping() throws SAXException, ParserConfigurationException, XPathExpressionException,
             IOException,
@@ -71,6 +77,9 @@ public class ArclibXmlGeneratorTest extends DbTest {
                 ".</METS:name>\r\n</agent><agent><METS:name>ZLG001</METS:name>\r\n</agent></metsHdr></mets>"));
     }
 
+    /**
+     * Tests that only single element has been created at the destination xPath when specifying the position of the source element
+     */
     @Test
     public void generateArclibXmlElementAtPositionMapping() throws SAXException, ParserConfigurationException, XPathExpressionException,
             IOException,
@@ -91,6 +100,9 @@ public class ArclibXmlGeneratorTest extends DbTest {
                 "</metsHdr></mets>"));
     }
 
+    /**
+     * Tests that also the child elements have been created at the destination xpath when the source element is nested
+     */
     @Test
     public void generateArclibXmlNestedElementMapping() throws SAXException, ParserConfigurationException, XPathExpressionException,
             IOException,
@@ -118,6 +130,9 @@ public class ArclibXmlGeneratorTest extends DbTest {
         ));
     }
 
+    /**
+     * Tests that multiple mappings in a SIP profile are supported
+     */
     @Test
     public void generateArclibXmlMultipleMappings() throws SAXException, ParserConfigurationException, XPathExpressionException,
             IOException,
@@ -139,11 +154,17 @@ public class ArclibXmlGeneratorTest extends DbTest {
                 "</mets>"));
     }
 
+    /**
+     * Tests that the {@link MissingObject} exception is thrown when the specified sip profile does not exist
+     */
     @Test
     public void generateArclibXmlNonExistentProfile() {
         assertThrown(() -> generator.generateArclibXml(SIP_PATH, "A%#$@")).isInstanceOf(MissingObject.class);
     }
 
+    /**
+     * Tests that the {@link IllegalArgumentException} exception is thrown when the SIP package at the specified path does not exist
+     */
     @Test
     public void generateArclibXmlNonExistentSip() throws IOException {
         SipProfile profile = new SipProfile();
@@ -155,6 +176,9 @@ public class ArclibXmlGeneratorTest extends DbTest {
         assertThrown(() -> generator.generateArclibXml("%@#@%@!", profile.getId())).isInstanceOf(IllegalArgumentException.class);
     }
 
+    /**
+     * Tests that the {@link InvalidXPathException} exception is thrown when the SIP profile contains an invalid xpath
+     */
     @Test
     public void generateArclibInvalidXPath() throws IOException {
         SipProfile profile = new SipProfile();
@@ -167,8 +191,11 @@ public class ArclibXmlGeneratorTest extends DbTest {
         assertThrown(() -> generator.generateArclibXml(SIP_PATH, profile.getId())).isInstanceOf(InvalidXPathException.class);
     }
 
+    /**
+     * Tests the aggregation mapping for generation of the <i>ARCLIB:format</i> element.
+     */
     @Test
-    public void generateArclibFormatCount() throws IOException, SAXException, ParserConfigurationException, XPathExpressionException,
+    public void generateArclibFormat() throws IOException, SAXException, ParserConfigurationException, XPathExpressionException,
             TransformerException {
         SipProfile profile = new SipProfile();
         String sipProfileXml = Resources.toString(this.getClass().getResource(
@@ -182,8 +209,11 @@ public class ArclibXmlGeneratorTest extends DbTest {
                 "<mets><amdSec><techMD><mdWrap><xmlData><devices><format><fileFormat><fileFormat>image/tiff<fileFormat/><fileCount>8<fileCount/></fileFormat></format></devices></xmlData></mdWrap><mdWrap><xmlData><devices><format><fileFormat><fileFormat>image/jp2<fileFormat/><fileCount>8<fileCount/></fileFormat></format></devices></xmlData></mdWrap></techMD></amdSec></mets>"));
     }
 
+    /**
+     * Tests the aggregation mapping for generation of the <i>ARCLIB:device</i> element.
+     */
     @Test
-    public void generateArclibDeviceCount() throws IOException, SAXException, ParserConfigurationException, XPathExpressionException,
+    public void generateArclibDevice() throws IOException, SAXException, ParserConfigurationException, XPathExpressionException,
             TransformerException {
         SipProfile profile = new SipProfile();
         String sipProfileXml = Resources.toString(this.getClass().getResource(
@@ -197,8 +227,11 @@ public class ArclibXmlGeneratorTest extends DbTest {
                 "<mets><amdSec><techMD><mdWrap><xmlData><devices><device><deviceId>321008<deviceId/><fileCount>8<fileCount/></device></devices></xmlData></mdWrap></techMD></amdSec></mets>"));
     }
 
+    /**
+     * Tests the aggregation mapping for generation of the <i>ARCLIB:eventAgent</i> element.
+     */
     @Test
-    public void generateArclibEventCount() throws IOException, SAXException, ParserConfigurationException, XPathExpressionException,
+    public void generateArclibEventAgent() throws IOException, SAXException, ParserConfigurationException, XPathExpressionException,
             TransformerException {
         SipProfile profile = new SipProfile();
         String sipProfileXml = Resources.toString(this.getClass().getResource(
