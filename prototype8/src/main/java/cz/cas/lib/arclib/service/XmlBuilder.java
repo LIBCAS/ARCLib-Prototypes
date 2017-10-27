@@ -1,5 +1,6 @@
 package cz.cas.lib.arclib.service;
 
+import cz.cas.lib.arclib.exception.general.BadArgument;
 import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Document;
 import org.dom4j.Element;
@@ -27,6 +28,9 @@ public class XmlBuilder {
         //add value as text to the root element and return
         if (("/").equals(parentXPath)) {
             Element rootElement = doc.getRootElement();
+            //the root on the xpath is different from the root of the document
+            if (!rootElement.getName().equals(elementName)) throw new BadArgument(targetXPath);
+
             if (value != null) {
                 rootElement.addText(value);
             }

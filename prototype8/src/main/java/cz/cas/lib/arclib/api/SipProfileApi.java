@@ -16,7 +16,7 @@ import static cz.cas.lib.arclib.Utils.eq;
 import static cz.cas.lib.arclib.Utils.notNull;
 
 @RestController
-@RequestMapping("/api/validation_profile")
+@RequestMapping("/api/sip_profile")
 public class SipProfileApi {
     @Getter
     private SipProfileStore store;

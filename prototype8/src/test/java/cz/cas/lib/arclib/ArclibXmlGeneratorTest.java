@@ -168,7 +168,8 @@ public class ArclibXmlGeneratorTest extends DbTest {
     @Test
     public void generateArclibXmlNonExistentSip() throws IOException {
         SipProfile profile = new SipProfile();
-        String sipProfileXml = Resources.toString(this.getClass().getResource("/sipProfileMissingFile.xml"), StandardCharsets.UTF_8);
+        String sipProfileXml = Resources.toString(this.getClass().getResource
+                ("/testData/sipProfiles/simpleMappings/sipProfileAttributeMapping.xml"), StandardCharsets.UTF_8);
         profile.setXml(sipProfileXml);
 
         store.save(profile);

@@ -36,4 +36,4 @@ arclib:
   arclibXmlValidationChecks: classpath:arclibXmlValidationChecks.txt
   arclibXmlSchema: classpath:xmlSchemas/arclib.xsd
   metsSchema: classpath:xmlSchemas/mets.xsd
-  premisSchema: classpath:premis-v2-2.xsd
+  premisSchema: classpath:xmlSchemas/premis-v2-2.xsd
