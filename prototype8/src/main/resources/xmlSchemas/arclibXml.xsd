@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<xsd:schema targetNamespace="http://arclib.lib.cas.cz/ARCLIB_XSD"
-            xmlns="http://arclib.lib.cas.cz/ARCLIB_XSD"
+<xsd:schema targetNamespace="http://arclib.lib.cas.cz/ARCLIB_XML"
+            xmlns="http://arclib.lib.cas.cz/ARCLIB_XML"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             xmlns:premis="http://www.loc.gov/premis/v3"
             elementFormDefault="qualified">

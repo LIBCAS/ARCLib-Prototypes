@@ -1,4 +1,4 @@
-<profile xmlns="http://www.arclib.lib.cas.cz">
+<profile xmlns="http://www.arclib.lib.cas.cz/SIP_PROFILE">
     <simpleMapping>
         <source>
             <rootDirPath>/</rootDirPath>

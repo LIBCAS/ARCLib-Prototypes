@@ -34,6 +34,6 @@ camunda:
 arclib:
   workspace: workspace
   arclibXmlValidationChecks: classpath:arclibXmlValidationChecks.txt
-  arclibXmlSchema: classpath:xmlSchemas/arclib.xsd
+  arclibXmlSchema: classpath:xmlSchemas/arclibXml.xsd
   metsSchema: classpath:xmlSchemas/mets.xsd
   premisSchema: classpath:xmlSchemas/premis-v2-2.xsd

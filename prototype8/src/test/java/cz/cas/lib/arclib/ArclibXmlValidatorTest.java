@@ -25,7 +25,7 @@ public class ArclibXmlValidatorTest {
     private static String INVALID_ARCLIB_XML_INVALID_TAG = "testResources/arclibXmls/invalidArclibXmlInvalidTag.xml";
 
 
-    private static String ARCLIB_SCHEMA = "xmlSchemas/arclib.xsd";
+    private static String ARCLIB_SCHEMA = "xmlSchemas/arclibXml.xsd";
     private static String METS_SCHEMA = "xmlSchemas/mets.xsd";
     private static String PREMIS_SCHEMA = "xmlSchemas/premis-v2-2.xsd";
 
