@@ -1,0 +1,15 @@
+<profile xmlns="http://www.arclib.lib.cas.cz">
+    <aggregationMapping>
+        <source>
+            <rootDirPath>/amdSec</rootDirPath>
+            <fileRegex>^AMD.*xml$</fileRegex>
+            <xPath destElemName="eventType">/mets/amdSec/digiprovMD/mdWrap/xmlData/event/eventType</xPath>
+            <xPath destElemName="agentName">/mets/amdSec/digiprovMD/mdWrap/xmlData/agent/agentName</xPath>
+            <xPath destElemName="date">/mets/amdSec/digiprovMD/mdWrap/xmlData/event/eventDateTime</xPath>
+        </source>
+        <destination>
+            <xPath>/mets/amdSec/digiprovMD/mdWrap/xmlData/eventAgents/eventAgent</xPath>
+            <aggregation type="count" destElemName="eventCount"/>
+        </destination>
+    </aggregationMapping>
+</profile>

@@ -48,7 +48,7 @@ public class ArclibXmlGeneratorTest extends DbTest {
             XPathExpressionException, TransformerException {
         SipProfile profile = new SipProfile();
         String sipProfileXml = Resources.toString(this.getClass().getResource(
-                "/testData/sipProfiles/simpleMappings/sipProfileAttributeMapping.xml"), StandardCharsets.UTF_8);
+                "/testResources/sipProfiles/simpleMappings/sipProfileAttributeMapping.xml"), StandardCharsets.UTF_8);
         profile.setXml(sipProfileXml);
 
         store.save(profile);
@@ -66,7 +66,7 @@ public class ArclibXmlGeneratorTest extends DbTest {
             TransformerException {
         SipProfile profile = new SipProfile();
         String sipProfileXml = Resources.toString(this.getClass().getResource(
-                "/testData/sipProfiles/simpleMappings/sipProfileMultipleElementsMapping.xml"), StandardCharsets.UTF_8);
+                "/testResources/sipProfiles/simpleMappings/sipProfileMultipleElementsMapping.xml"), StandardCharsets.UTF_8);
         profile.setXml(sipProfileXml);
 
         store.save(profile);
@@ -86,7 +86,7 @@ public class ArclibXmlGeneratorTest extends DbTest {
             TransformerException {
         SipProfile profile = new SipProfile();
         String sipProfileXml = Resources.toString(this.getClass().getResource(
-                "/testData/sipProfiles/simpleMappings/sipProfileElementAtPositionMapping.xml"), StandardCharsets
+                "/testResources/sipProfiles/simpleMappings/sipProfileElementAtPositionMapping.xml"), StandardCharsets
                 .UTF_8);
         profile.setXml(sipProfileXml);
 
@@ -109,7 +109,7 @@ public class ArclibXmlGeneratorTest extends DbTest {
             TransformerException {
         SipProfile profile = new SipProfile();
         String sipProfileXml = Resources.toString(this.getClass().getResource(
-                "/testData/sipProfiles/simpleMappings/sipProfileNestedElementMapping.xml"), StandardCharsets
+                "/testResources/sipProfiles/simpleMappings/sipProfileNestedElementMapping.xml"), StandardCharsets
                 .UTF_8);
         profile.setXml(sipProfileXml);
 
@@ -139,7 +139,7 @@ public class ArclibXmlGeneratorTest extends DbTest {
             TransformerException {
         SipProfile profile = new SipProfile();
         String sipProfileXml = Resources.toString(this.getClass().getResource(
-                "/testData/sipProfiles/sipProfileMultipleMappings.xml"), StandardCharsets.UTF_8);
+                "/testResources/sipProfiles/sipProfileMultipleMappings.xml"), StandardCharsets.UTF_8);
         profile.setXml(sipProfileXml);
 
         store.save(profile);
@@ -169,7 +169,7 @@ public class ArclibXmlGeneratorTest extends DbTest {
     public void generateArclibXmlNonExistentSip() throws IOException {
         SipProfile profile = new SipProfile();
         String sipProfileXml = Resources.toString(this.getClass().getResource
-                ("/testData/sipProfiles/simpleMappings/sipProfileAttributeMapping.xml"), StandardCharsets.UTF_8);
+                ("/testResources/sipProfiles/simpleMappings/sipProfileAttributeMapping.xml"), StandardCharsets.UTF_8);
         profile.setXml(sipProfileXml);
 
         store.save(profile);
@@ -184,7 +184,7 @@ public class ArclibXmlGeneratorTest extends DbTest {
     public void generateArclibInvalidXPath() throws IOException {
         SipProfile profile = new SipProfile();
         String sipProfileXml = Resources.toString(this.getClass().getResource(
-                "/testData/sipProfiles/simpleMappings/sipProfileInvalidXPath.xml"), StandardCharsets.UTF_8);
+                "/testResources/sipProfiles/simpleMappings/sipProfileInvalidXPath.xml"), StandardCharsets.UTF_8);
         profile.setXml(sipProfileXml);
 
         store.save(profile);
@@ -200,7 +200,7 @@ public class ArclibXmlGeneratorTest extends DbTest {
             TransformerException {
         SipProfile profile = new SipProfile();
         String sipProfileXml = Resources.toString(this.getClass().getResource(
-                "/testData/sipProfiles/aggregationMappings/sipProfileFormatCount.xml"), StandardCharsets.UTF_8);
+                "/testResources/sipProfiles/aggregationMappings/sipProfileFormatCount.xml"), StandardCharsets.UTF_8);
         profile.setXml(sipProfileXml);
 
         store.save(profile);
@@ -218,7 +218,7 @@ public class ArclibXmlGeneratorTest extends DbTest {
             TransformerException {
         SipProfile profile = new SipProfile();
         String sipProfileXml = Resources.toString(this.getClass().getResource(
-                "/testData/sipProfiles/aggregationMappings/sipProfileDeviceCount.xml"), StandardCharsets.UTF_8);
+                "/testResources/sipProfiles/aggregationMappings/sipProfileDeviceCount.xml"), StandardCharsets.UTF_8);
         profile.setXml(sipProfileXml);
 
         store.save(profile);
@@ -236,7 +236,7 @@ public class ArclibXmlGeneratorTest extends DbTest {
             TransformerException {
         SipProfile profile = new SipProfile();
         String sipProfileXml = Resources.toString(this.getClass().getResource(
-                "/testData/sipProfiles/aggregationMappings/sipProfileEventCount.xml"), StandardCharsets.UTF_8);
+                "/testResources/sipProfiles/aggregationMappings/sipProfileEventCount.xml"), StandardCharsets.UTF_8);
         profile.setXml(sipProfileXml);
 
         store.save(profile);

@@ -1,0 +1,13 @@
+<profile xmlns="http://www.arclib.lib.cas.cz">
+    <aggregationMapping>
+        <source>
+            <rootDirPath>/amdSec</rootDirPath>
+            <fileRegex>^AMD.*xml$</fileRegex>
+            <xPath destElemName="fileFormat">/mets/amdSec/techMD/mdWrap/xmlData/mix/BasicDigitalObjectInformation/FormatDesignation/formatName</xPath>
+        </source>
+        <destination>
+            <xPath>/mets/amdSec/techMD/mdWrap[@MDTYPE='OTHER']/xmlData/devices/format/fileFormat</xPath>
+            <aggregation type="count" destElemName="fileCount"/>
+        </destination>
+    </aggregationMapping>
+</profile>

@@ -20,9 +20,9 @@ public class ArclibXmlValidatorTest {
 
     private static String VALIDATION_CHECKS = "arclibXmlValidationChecks.txt";
 
-    private static String ARCLIB_XML = "testData/arclibXmls/arclibXml.xml";
-    private static String INVALID_ARCLIB_XML_MISSING_METS_HDR = "testData/arclibXmls/invalidArclibXmlMissingMetsHdr.xml";
-    private static String INVALID_ARCLIB_XML_INVALID_TAG = "testData/arclibXmls/invalidArclibXmlInvalidTag.xml";
+    private static String ARCLIB_XML = "testResources/arclibXmls/arclibXml.xml";
+    private static String INVALID_ARCLIB_XML_MISSING_METS_HDR = "testResources/arclibXmls/invalidArclibXmlMissingMetsHdr.xml";
+    private static String INVALID_ARCLIB_XML_INVALID_TAG = "testResources/arclibXmls/invalidArclibXmlInvalidTag.xml";
 
 
     private static String ARCLIB_SCHEMA = "xmlSchemas/arclib.xsd";

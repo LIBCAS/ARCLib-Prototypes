@@ -1,0 +1,33 @@
+<profile xmlns="http://www.arclib.lib.cas.cz">
+    <simpleMapping>
+        <source>
+            <rootDirPath>/</rootDirPath>
+            <fileRegex>METS_KPW01169310.xml</fileRegex>
+            <xPath>/mets/@LABEL</xPath>
+        </source>
+        <destination>
+            <xPath>/mets/@LABEL</xPath>
+        </destination>
+    </simpleMapping>
+    <simpleMapping>
+        <source>
+            <rootDirPath>/amdSec</rootDirPath>
+            <fileRegex>AMD_METS_KPW01169310_0001.xml</fileRegex>
+            <xPath>/mets/metsHdr</xPath>
+        </source>
+        <destination>
+            <xPath>/mets</xPath>
+        </destination>
+    </simpleMapping>
+    <aggregationMapping>
+        <source>
+            <rootDirPath>/amdSec</rootDirPath>
+            <fileRegex>^AMD.*xml$</fileRegex>
+            <xPath destElemName="fileFormat">/mets/amdSec/techMD/mdWrap/xmlData/mix/BasicDigitalObjectInformation/FormatDesignation/formatName</xPath>
+        </source>
+        <destination>
+            <xPath>/mets/amdSec/techMD/mdWrap[@MDTYPE='OTHER']/xmlData/devices/format/fileFormat</xPath>
+            <aggregation type="count" destElemName="fileCount"/>
+        </destination>
+    </aggregationMapping>
+</profile>
