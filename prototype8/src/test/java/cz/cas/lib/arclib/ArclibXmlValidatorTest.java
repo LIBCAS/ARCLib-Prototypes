@@ -1,6 +1,5 @@
 package cz.cas.lib.arclib;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import cz.cas.lib.arclib.exception.MissingNode;
 import cz.cas.lib.arclib.service.ArclibXmlValidator;
@@ -11,6 +10,7 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
 
@@ -44,7 +44,7 @@ public class ArclibXmlValidatorTest {
     @Test
     public void validateArclibXmlSuccess() throws IOException, XPathExpressionException, SAXException, ParserConfigurationException {
         URL arclibXml = Resources.getResource(ARCLIB_XML);
-        validator.validateArclibXml(Resources.toString(arclibXml, Charsets.UTF_8));
+        validator.validateArclibXml(new ByteArrayInputStream(Resources.toByteArray(arclibXml)));
     }
 
     /**
@@ -54,7 +54,8 @@ public class ArclibXmlValidatorTest {
     public void validateArclibXmlWithValidatorMissingNode() throws IOException, XPathExpressionException, SAXException,
             ParserConfigurationException {
         URL arclibXml = Resources.getResource(INVALID_ARCLIB_XML_MISSING_METS_HDR);
-        assertThrown(() -> validator.validateArclibXml(Resources.toString(arclibXml, Charsets.UTF_8))).isInstanceOf(MissingNode.class);
+        assertThrown(() -> validator.validateArclibXml(new ByteArrayInputStream(Resources.toByteArray(arclibXml)))).isInstanceOf
+                (MissingNode.class);
     }
 
     /**
@@ -64,6 +65,7 @@ public class ArclibXmlValidatorTest {
     public void validateArclibXmlWithValidatorInvalidTag() throws IOException, XPathExpressionException, SAXException,
             ParserConfigurationException {
         URL arclibXml = Resources.getResource(INVALID_ARCLIB_XML_INVALID_TAG);
-        assertThrown(() -> validator.validateArclibXml(Resources.toString(arclibXml, Charsets.UTF_8))).isInstanceOf(SAXException.class);
+        assertThrown(() -> validator.validateArclibXml(new ByteArrayInputStream(Resources.toByteArray(arclibXml)))).isInstanceOf
+                (SAXException.class);
     }
 }

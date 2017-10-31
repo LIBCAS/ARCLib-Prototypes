@@ -21,7 +21,6 @@ import javax.xml.xpath.XPathExpressionException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static cz.cas.lib.arclib.Utils.readLinesOfFileToList;
@@ -47,21 +46,24 @@ public class ArclibXmlValidator {
      * @throws SAXException
      * @throws ParserConfigurationException
      */
-    public void validateArclibXml(String xml) throws IOException, XPathExpressionException, SAXException, ParserConfigurationException {
+    public void validateArclibXml(ByteArrayInputStream xml) throws IOException, XPathExpressionException, SAXException,
+            ParserConfigurationException {
         log.info("Starting validation of ARCLib XML.");
 
         List<String> xPaths = readLinesOfFileToList(arclibXmlValidationChecks.getFile());
         for (String xPath : xPaths) {
-            checkNodeExists(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8.name())), xPath);
+            xml.reset();
+            checkNodeExists(xml, xPath);
         }
 
         log.info("Validation with checks for existences of specified nodes succeeded.");
 
+        xml.reset();
         InputStream[] xsdSchemas = new InputStream[]{
                 arclibXmlSchema.getInputStream(),
                 metsSchema.getInputStream(),
                 premisSchema.getInputStream()};
-        ArclibXmlValidator.validateWithXMLSchema(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8.name())), xsdSchemas);
+        ArclibXmlValidator.validateWithXMLSchema(xml, xsdSchemas);
 
         log.info("Validation with XML schema succeeded.");
     }

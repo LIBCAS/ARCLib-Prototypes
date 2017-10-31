@@ -16,4 +16,8 @@ public class MissingNode extends GeneralException {
                 "xpath=" + xPath +
                 '}';
     }
+
+    public String getxPath() {
+        return xPath;
+    }
 }
