@@ -66,19 +66,19 @@ public class DroidFormatIdentifierTest {
     public void analyzeRightExtensionsIdentifiedTest() throws IOException, InterruptedException {
         Map<String, List<String>> result = formatIdentifier.analyze(SIP_ID);
 
-        String filePath1 = ("/METS_KPW01169310.xml");
+        String filePath1 = ("file://METS_KPW01169310.xml");
         assertThat(result.get(filePath1), contains("fmt/101"));
 
-        String filePath2 = ("/desktop.ini");
+        String filePath2 = ("file://desktop.ini");
         assertThat(result.get(filePath2), contains("x-fmt/421"));
 
-        String filePath3 = ("/KPW01169310.md5");
+        String filePath3 = ("file://KPW01169310.md5");
         assertThat(result.get(filePath3), contains("fmt/993"));
 
-        String filePath4 = ("/TXT/TXT_KPW01169310_0002.TXT");
+        String filePath4 = ("file://TXT/TXT_KPW01169310_0002.TXT");
         assertThat(result.get(filePath4), contains("x-fmt/111"));
 
-        String filePath5 = ("/userCopy/UC_KPW01169310_0001.JP2");
+        String filePath5 = ("file://userCopy/UC_KPW01169310_0001.JP2");
         assertThat(result.get(filePath5), contains("x-fmt/392"));
     }
 
