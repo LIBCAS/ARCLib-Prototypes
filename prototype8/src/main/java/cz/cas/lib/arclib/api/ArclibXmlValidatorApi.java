@@ -21,6 +21,17 @@ public class ArclibXmlValidatorApi {
     @Getter
     private ArclibXmlValidator validator;
 
+    /**
+     * Validates ARCLib XML.
+     * In case the ARCLib XML is not valid, a corresponding exception is thrown.
+     *
+     * @param xml ARCLib XML to validate
+     *
+     * @throws SAXException
+     * @throws ParserConfigurationException
+     * @throws XPathExpressionException
+     * @throws IOException
+     */
     @RequestMapping(value = "/validate", method = RequestMethod.POST)
     public void validateArclibXml(@RequestParam("xml") MultipartFile xml)
             throws SAXException, ParserConfigurationException, XPathExpressionException, IOException {

@@ -24,6 +24,19 @@ public class ArclibXmlGeneratorApi {
     @Getter
     private ArclibXmlGenerator generator;
 
+    /**
+     * Generates ARCLib XML from the SIP package using SIP profile.
+     *
+     * @param sipPath path to the SIP package
+     * @param sipProfileId id of the SIP profile
+     * @param response response with the ARCLib XML
+     *
+     * @throws ParserConfigurationException
+     * @throws IOException
+     * @throws SAXException
+     * @throws XPathExpressionException
+     * @throws TransformerException
+     */
     @RequestMapping(value = "/generate", method = RequestMethod.PUT)
     public void generateArclibXml(
             @RequestParam("sipPath") String sipPath, @RequestParam("sipProfileId") String sipProfileId, HttpServletResponse response)
