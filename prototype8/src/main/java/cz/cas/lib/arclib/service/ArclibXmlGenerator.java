@@ -61,7 +61,7 @@ public class ArclibXmlGenerator {
         String sipProfileXml = sipProfile.getXml();
         notNull(sipProfileXml, () -> new InvalidAttribute(sipProfile, "xml", null));
 
-        Document arclibXml = DocumentHelper.createDocument(DocumentHelper.createElement(ROOT));
+        Document arclibXmlDoc = DocumentHelper.createDocument(DocumentHelper.createElement(ROOT));
         List<Pair<String, String>> nodesToCreate = new ArrayList<>();
 
         NodeList aggregationMappingNodes = XPathUtils.findWithXPath(stringToInputStream(sipProfileXml), AGGREGATION_MAPPING_ELEMENTS_X_PATH);
@@ -78,10 +78,14 @@ public class ArclibXmlGenerator {
             String xPath = pair.getL();
             String value = pair.getR();
 
-            XmlBuilder.addNode(arclibXml, xPath, value);
+            XmlBuilder.addNode(arclibXmlDoc, xPath, value);
         });
 
-        return arclibXml.asXML().replace("&lt;", "<").replace("&gt;", ">");
+        String arclibXml = arclibXmlDoc.asXML().replace("&lt;", "<").replace("&gt;", ">");
+
+        log.info("Generated ARCLib XLM: \n" + arclibXml);
+
+        return arclibXml;
     }
 
     /**
