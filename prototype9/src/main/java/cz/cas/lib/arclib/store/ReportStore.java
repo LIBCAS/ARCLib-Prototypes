@@ -65,7 +65,7 @@ public class ReportStore extends DomainStore<Report, QReport> {
             id = save(new Report(name, IOUtils.toString(template, StandardCharsets.UTF_8), compiledReport)).getId();
         } catch (PersistenceException e) {
             if (e.getCause() instanceof ConstraintViolationException)
-                throw new ConflictObject(Report.class, name);
+                throw new ConflictObject("Duplicate name of template:" + name);
             else
                 throw e;
         }
