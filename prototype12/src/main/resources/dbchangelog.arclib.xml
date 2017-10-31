@@ -20,11 +20,8 @@
             <column name="last_return_code" type="int"/>
             <column name="name" type="nvarchar(255)"/>
             <column name="timing" type="nvarchar(255)"/>
-            <column name="script" type="nclob"/>
+            <column name="script_path" type="nclob"/>
             <column name="active" type="boolean"/>
         </createTable>
-    </changeSet>
-    <changeSet id="2" author="hochla">
-        <renameColumn tableName="arclib_job" oldColumnName="script" newColumnName="scriptPath"/>
     </changeSet>
 </databaseChangeLog>
