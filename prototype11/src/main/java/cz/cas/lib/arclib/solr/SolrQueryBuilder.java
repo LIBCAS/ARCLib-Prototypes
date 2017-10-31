@@ -30,7 +30,7 @@ public class SolrQueryBuilder {
         String value = sanitizeFilterValue(filter.getValue());
         FilterOperation operation = filter.getOperation();
         if (operation == null) {
-            throw new BadArgument("operation");
+            throw new BadArgument("operation not specified: "+filter);
         }
         if (value == null
                 && operation != FilterOperation.AND
@@ -38,7 +38,7 @@ public class SolrQueryBuilder {
                 && operation != FilterOperation.NOT_NULL
                 && operation != FilterOperation.IS_NULL
                 && operation != FilterOperation.NEGATE) {
-            throw new BadArgument("value");
+            throw new BadArgument("value not specified: "+filter);
         }
         String normalizedValue = normalize(value);
         switch (operation) {
