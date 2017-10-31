@@ -47,7 +47,8 @@ public class DroidFormatIdentifier implements FormatIdentifier {
 
         Path profileResultsPath = Paths.get(workspace).resolve(sipId + ".droid");
 
-        getDroidSignatureFileVersion();
+        getDroidSignatureFilesVersions().forEach(sigFileVers ->
+                log.info("Signature file: " + sigFileVers));
 
         runProfile(pathToSip, profileResultsPath);
 
@@ -68,7 +69,7 @@ public class DroidFormatIdentifier implements FormatIdentifier {
      * @throws InterruptedException
      * @throws IOException
      */
-    protected List<String> getDroidSignatureFileVersion() throws InterruptedException, IOException {
+    protected List<String> getDroidSignatureFilesVersions() throws InterruptedException, IOException {
         ProcessBuilder pb = new ProcessBuilder(CMD, "-x");
         Process p = pb.start();
         p.waitFor();
@@ -79,7 +80,6 @@ public class DroidFormatIdentifier implements FormatIdentifier {
 
         String line = br.readLine();
         while (line != null) {
-            log.info(line);
             signatureFileNames.add(line);
             line = br.readLine();
         }
@@ -146,16 +146,16 @@ public class DroidFormatIdentifier implements FormatIdentifier {
             String line = br.readLine();
             String[] header = line.split(cvsSplitBy);
 
-            //from the first line of the CSV get the index of the the parsed column and the index of the column with file path
             int filePathColumnIndex = -1;
             int parsedColumnIndex = -1;
             int methodColumnIndex = -1;
 
+            //from the first line of the CSV get the index of the the parsed column and the index of the column with file path
             for (int i = 0; (i < header.length); i++) {
                 //remove double quotes
                 header[i] = header[i].replace("\"", "");
 
-                if (header[i].equals(CsvResultColumn.FILE_PATH.name())) {
+                if (header[i].equals(CsvResultColumn.URI.name())) {
                     filePathColumnIndex = i;
                 }
                 if (header[i].equals(parsedColumn.name())) {
@@ -166,26 +166,26 @@ public class DroidFormatIdentifier implements FormatIdentifier {
                 }
             }
 
-            String[] list;
+            String[] items;
             //from the following lines parse the respective column values
             while ((line = br.readLine()) != null) {
-                list = line.split(cvsSplitBy);
+                items = line.split(cvsSplitBy);
 
-                String parsedColumnValue = list[parsedColumnIndex].replace("\"", "");
+                String parsedColumnValue = items[parsedColumnIndex].replace("\"", "");
 
                 if (parsedColumnValue.startsWith(" ")) {
-                    parsedColumnValue = list[parsedColumnIndex + 1].replace("\"", "");
+                    parsedColumnValue = items[parsedColumnIndex + 1].replace("\"", "");
                 }
 
-                String filePath = list[filePathColumnIndex];
+                String filePath = items[filePathColumnIndex];
                 //remove double quotes
                 filePath = filePath.replace("\"", "");
-                //replace backslashes with slashes
-                filePath = filePath.replace("\\", "/");
                 //trim the path to SIP package to get a relative file path instead of the absolute file path
-                filePath = filePath.substring(pathToSip.toAbsolutePath().toString().length());
+                String pathToSipStr = pathToSip.toAbsolutePath().toString().replace("\\", "/");
+                filePath = filePath.replaceAll(pathToSipStr, "");
 
-                String methodColumnValue = list[methodColumnIndex].replace("\"", "");
+                //remove double quotes
+                String methodColumnValue = items[methodColumnIndex].replace("\"", "");
 
                 List<String> values = filePathsToParsedColumnValues.get(filePath);
                 if (values == null) {
