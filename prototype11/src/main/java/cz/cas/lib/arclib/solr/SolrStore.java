@@ -31,6 +31,8 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -112,8 +114,9 @@ public class SolrStore implements IndexStore {
         try {
             page = solrTemplate.query(query, ArclibXmlDocument.class);
         } catch (UncategorizedSolrException ex) {
-            if (ex.getMessage() != null && ex.getMessage().contains("undefined field")){
-                String msg = "query contains undefined field";
+            Matcher matcher = Pattern.compile(".+ undefined field (.+)").matcher(ex.getMessage());
+            if (matcher.find()) {
+                String msg = "query contains undefined field: " + matcher.group(1);
                 log.error(msg);
                 throw new BadArgument(msg);
             }
@@ -130,5 +133,7 @@ public class SolrStore implements IndexStore {
     }
 
     @Inject
-    public void setArclibXmlRepository(ArclibXmlRepository arclibXmlRepository){this.arclibXmlRepository = arclibXmlRepository;}
+    public void setArclibXmlRepository(ArclibXmlRepository arclibXmlRepository) {
+        this.arclibXmlRepository = arclibXmlRepository;
+    }
 }

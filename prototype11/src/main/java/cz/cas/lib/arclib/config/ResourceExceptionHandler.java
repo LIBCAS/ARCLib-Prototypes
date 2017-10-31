@@ -19,10 +19,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @ControllerAdvice
 public class ResourceExceptionHandler {
-    
-    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+
     @ExceptionHandler(BadArgument.class)
-    public void badArgument() {
+    public ResponseEntity conflictException(Exception e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.toString());
     }
 
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
