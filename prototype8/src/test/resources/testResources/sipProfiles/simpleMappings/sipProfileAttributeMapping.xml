@@ -6,7 +6,7 @@
             <xPath>/mets/@LABEL</xPath>
         </source>
         <destination>
-            <xPath>/mets/@LABEL</xPath>
+            <xPath>/METS:mets/@LABEL</xPath>
         </destination>
     </simpleMapping>
 </profile>

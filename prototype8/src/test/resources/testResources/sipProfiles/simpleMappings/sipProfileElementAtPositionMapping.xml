@@ -6,7 +6,7 @@
             <xPath>/mets/metsHdr/agent[1]</xPath>
         </source>
         <destination>
-            <xPath>/mets/metsHdr</xPath>
+            <xPath>/METS:mets/METS:metsHdr/METS:agent</xPath>
         </destination>
     </simpleMapping>
 </profile>

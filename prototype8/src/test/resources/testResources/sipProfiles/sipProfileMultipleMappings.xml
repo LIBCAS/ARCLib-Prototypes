@@ -1,24 +1,4 @@
 <profile xmlns="http://www.arclib.lib.cas.cz/SIP_PROFILE">
-    <simpleMapping>
-        <source>
-            <rootDirPath>/</rootDirPath>
-            <fileRegex>METS_KPW01169310.xml</fileRegex>
-            <xPath>/mets/@LABEL</xPath>
-        </source>
-        <destination>
-            <xPath>/mets/@LABEL</xPath>
-        </destination>
-    </simpleMapping>
-    <simpleMapping>
-        <source>
-            <rootDirPath>/amdSec</rootDirPath>
-            <fileRegex>AMD_METS_KPW01169310_0001.xml</fileRegex>
-            <xPath>/mets/metsHdr</xPath>
-        </source>
-        <destination>
-            <xPath>/mets</xPath>
-        </destination>
-    </simpleMapping>
     <aggregationMapping>
         <source>
             <rootDirPath>/amdSec</rootDirPath>
@@ -26,8 +6,31 @@
             <xPath destElemName="fileFormat">/mets/amdSec/techMD/mdWrap/xmlData/mix/BasicDigitalObjectInformation/FormatDesignation/formatName</xPath>
         </source>
         <destination>
-            <xPath>/mets/amdSec/techMD/mdWrap[@MDTYPE='OTHER']/xmlData/devices/format/fileFormat</xPath>
+            <xPath>/METS:mets/METS:amdSec/METS:techMD/METS:mdWrap[@MDTYPE='OTHER']/METS:xmlData/devices/format/fileFormat</xPath>
             <aggregation type="count" destElemName="fileCount"/>
         </destination>
     </aggregationMapping>
+
+    <simpleMapping>
+        <source>
+            <rootDirPath>/</rootDirPath>
+            <fileRegex>METS_KPW01169310.xml</fileRegex>
+            <xPath>/mets/@LABEL</xPath>
+        </source>
+        <destination>
+            <xPath>/METS:mets/@LABEL</xPath>
+        </destination>
+    </simpleMapping>
+
+    <simpleMapping>
+        <source>
+            <rootDirPath>/amdSec</rootDirPath>
+            <fileRegex>AMD_METS_KPW01169310_0001.xml</fileRegex>
+            <xPath>/mets/metsHdr</xPath>
+        </source>
+        <destination>
+            <xPath>/METS:mets/METS:metsHdr</xPath>
+        </destination>
+    </simpleMapping>
+
 </profile>

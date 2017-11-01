@@ -7,6 +7,8 @@ import cz.cas.lib.arclib.store.SipProfileStore;
 import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
+import org.dom4j.Namespace;
+import org.dom4j.QName;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -39,6 +41,14 @@ public class ArclibXmlGenerator {
 
     private static final String COUNT = "#@!count!@#";
 
+    private static Map<String, String> uris = new HashMap<>();
+
+    static {
+        uris.put("METS", "http://www.loc.gov/METS/");
+        uris.put("ARCLIB", "http://arclib.lib.cas.cz/ARCLIB_XML");
+        uris.put("PREMIS", "http://www.loc.gov/premis/v3");
+    }
+
     /**
      * Generates ARCLib XML from SIP using the SIP profile
      *
@@ -61,7 +71,9 @@ public class ArclibXmlGenerator {
         String sipProfileXml = sipProfile.getXml();
         notNull(sipProfileXml, () -> new InvalidAttribute(sipProfile, "xml", null));
 
-        Document arclibXmlDoc = DocumentHelper.createDocument(DocumentHelper.createElement(ROOT));
+        Document arclibXmlDoc = DocumentHelper.createDocument();
+        arclibXmlDoc.addElement(new QName(ROOT, Namespace.get("METS", uris.get("METS"))));
+
         List<Pair<String, String>> nodesToCreate = new ArrayList<>();
 
         NodeList aggregationMappingNodes = XPathUtils.findWithXPath(stringToInputStream(sipProfileXml), AGGREGATION_MAPPING_ELEMENTS_X_PATH);
@@ -74,12 +86,14 @@ public class ArclibXmlGenerator {
             nodesToCreateBySimpleMapping((Element) simpleMappingNodes.item(i), sipPath).forEach(nodesToCreate::add);
         }
 
-        nodesToCreate.forEach(pair -> {
+        XmlBuilder xmlBuilder = new XmlBuilder(uris);
+
+        for (Pair<String, String> pair : nodesToCreate) {
             String xPath = pair.getL();
             String value = pair.getR();
 
-            XmlBuilder.addNode(arclibXmlDoc, xPath, value);
-        });
+            xmlBuilder.addNode(arclibXmlDoc, xPath, value);
+        }
 
         String arclibXml = arclibXmlDoc.asXML().replace("&lt;", "<").replace("&gt;", ">");
 
@@ -113,6 +127,11 @@ public class ArclibXmlGenerator {
         String sourceXPath = sourceElement.getElementsByTagName("xPath").item(0).getTextContent();
 
         String destXPath = destinationElement.getElementsByTagName("xPath").item(0).getTextContent();
+
+        //if the part of the XPath after the last slash does not specify an attribute, trim this part
+        if (!destXPath.contains("@")) {
+            destXPath = destXPath.substring(0, destXPath.lastIndexOf("/"));
+        }
 
         List<Pair<String, String>> destinationXPathsToValues = new ArrayList<>();
 
@@ -183,13 +202,13 @@ public class ArclibXmlGenerator {
 
                 if (name.equals(COUNT)) {
                     if (aggregationType.equals("count")) {
-                        return "<" + aggregationElemName + ">" + value + "<" + aggregationElemName + "/>";
+                        return "<" + aggregationElemName + ">" + value + "</" + aggregationElemName + ">";
                     } else {
                         return "";
                     }
                 }
 
-                return "<" + name + ">" + value + "<" + name + "/>";
+                return "<" + name + ">" + value + "</" + name + ">";
             }).collect(Collectors.joining());
             destinationXPathsToValues.add(new Pair(destXPath, elementGroupValue));
 

@@ -8,7 +8,7 @@
             <xPath destElemName="date">/mets/amdSec/digiprovMD/mdWrap/xmlData/event/eventDateTime</xPath>
         </source>
         <destination>
-            <xPath>/mets/amdSec/digiprovMD/mdWrap/xmlData/eventAgents/eventAgent</xPath>
+            <xPath>/METS:mets/METS:amdSec/METS:digiprovMD/METS:mdWrap/METS:xmlData/eventAgents/eventAgent</xPath>
             <aggregation type="count" destElemName="eventCount"/>
         </destination>
     </aggregationMapping>

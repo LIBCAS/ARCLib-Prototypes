@@ -4,8 +4,8 @@
     <xs:element name="profile">
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="simpleMapping" maxOccurs="unbounded" minOccurs="0" type="simpleMappingType"/>
                 <xs:element name="aggregationMapping" maxOccurs="unbounded" minOccurs="0" type="aggregationMappingType"/>
+                <xs:element name="simpleMapping" maxOccurs="unbounded" minOccurs="0" type="simpleMappingType"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
