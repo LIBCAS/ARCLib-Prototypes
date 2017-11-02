@@ -1,12 +1,12 @@
 <profile xmlns="http://www.arclib.lib.cas.cz/SIP_PROFILE">
-    <simpleMapping>
+    <mapping>
         <source>
             <rootDirPath>/</rootDirPath>
             <fileRegex>METS_KPW01169310.xml</fileRegex>
-            <xPath>/mets/metsHdr/agent/name</xPath>
+            <xPath>/mets/metsHdr</xPath>
         </source>
         <destination>
-            <xPath>/METS:mets/METS:metsHdr/METS:agent/name</xPath>
+            <xPath>/METS:mets/METS:metsHdr</xPath>
         </destination>
-    </simpleMapping>
+    </mapping>
 </profile>

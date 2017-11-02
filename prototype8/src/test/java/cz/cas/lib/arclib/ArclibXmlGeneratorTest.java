@@ -10,12 +10,14 @@ import cz.cas.lib.arclib.store.SipProfileStore;
 import org.dom4j.InvalidXPathException;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.core.io.ClassPathResource;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 
 import static cz.cas.lib.arclib.helper.ThrowableAssertion.assertThrown;
@@ -26,6 +28,8 @@ public class ArclibXmlGeneratorTest extends DbTest {
 
     private static final String SIP_ID = "KPW01169310";
     private static final String SIP_PATH = "../SIP_packages/" + SIP_ID;
+
+    private static String VALIDATION_CHECKS = "xmlSchemas/sipProfile.xsd";
 
     private ArclibXmlGenerator generator;
     private SipProfileStore store;
@@ -38,6 +42,12 @@ public class ArclibXmlGeneratorTest extends DbTest {
 
         generator = new ArclibXmlGenerator();
         generator.setStore(store);
+        generator.setUris("http://www.loc.gov/METS/",
+                "http://arclib.lib.cas.cz/ARCLIB_XML",
+                "http://www.loc.gov/premis/v3"
+        );
+        generator.setSipProfileSchema(new ClassPathResource(VALIDATION_CHECKS));
+
     }
 
     /**
@@ -48,7 +58,7 @@ public class ArclibXmlGeneratorTest extends DbTest {
             XPathExpressionException, TransformerException {
         SipProfile profile = new SipProfile();
         String sipProfileXml = Resources.toString(this.getClass().getResource(
-                "/testResources/sipProfiles/simpleMappings/sipProfileAttributeMapping.xml"), StandardCharsets.UTF_8);
+                "/testResources/sipProfiles/sipProfileAttributeMapping.xml"), StandardCharsets.UTF_8);
         profile.setXml(sipProfileXml);
 
         store.save(profile);
@@ -66,13 +76,13 @@ public class ArclibXmlGeneratorTest extends DbTest {
             TransformerException {
         SipProfile profile = new SipProfile();
         String sipProfileXml = Resources.toString(this.getClass().getResource(
-                "/testResources/sipProfiles/simpleMappings/sipProfileMultipleElementsMapping.xml"), StandardCharsets.UTF_8);
+                "/testResources/sipProfiles/sipProfileMultipleElementsMapping.xml"), StandardCharsets.UTF_8);
         profile.setXml(sipProfileXml);
 
         store.save(profile);
 
         String arclibXml = generator.generateArclibXml(SIP_PATH, profile.getId());
-        assertThat(arclibXml, is("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<METS:mets xmlns:METS=\"http://www.loc.gov/METS/\"><METS:metsHdr><METS:agent><METS:name>Exon s.r.o.</METS:name>\r\n</METS:agent><METS:agent><METS:name>ZLG001</METS:name>\r\n</METS:agent></METS:metsHdr></METS:mets>"));
+        assertThat(arclibXml, is("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<METS:mets xmlns:METS=\"http://www.loc.gov/METS/\"><METS:metsHdr xmlns:METS=\"http://arclib.lib.cas.cz/ARCLIB_XML\"><METS:agent><METS:name>ZLG001</METS:name>\r\n</METS:agent></METS:metsHdr><METS:metsHdr xmlns:METS=\"http://arclib.lib.cas.cz/ARCLIB_XML\"><METS:agent><METS:name>Exon s.r.o.</METS:name>\r\n</METS:agent></METS:metsHdr></METS:mets>"));
     }
 
     /**
@@ -84,14 +94,14 @@ public class ArclibXmlGeneratorTest extends DbTest {
             TransformerException {
         SipProfile profile = new SipProfile();
         String sipProfileXml = Resources.toString(this.getClass().getResource(
-                "/testResources/sipProfiles/simpleMappings/sipProfileElementAtPositionMapping.xml"), StandardCharsets
+                "/testResources/sipProfiles/sipProfileElementAtPositionMapping.xml"), StandardCharsets
                 .UTF_8);
         profile.setXml(sipProfileXml);
 
         store.save(profile);
 
         String arclibXml = generator.generateArclibXml(SIP_PATH, profile.getId());
-        assertThat(arclibXml, is("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<METS:mets xmlns:METS=\"http://www.loc.gov/METS/\"><METS:metsHdr><METS:agent ROLE=\"CREATOR\" TYPE=\"ORGANIZATION\"> \r\n\t\t\t<METS:name>Exon s.r.o.</METS:name>\r\n\t\t</METS:agent>\r\n</METS:metsHdr></METS:mets>"));
+        assertThat(arclibXml, is("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<METS:mets xmlns:METS=\"http://www.loc.gov/METS/\"><METS:metsHdr xmlns:METS=\"http://arclib.lib.cas.cz/ARCLIB_XML\"><METS:agent ROLE=\"CREATOR\" TYPE=\"ORGANIZATION\"> \r\n\t\t\t<METS:name>Exon s.r.o.</METS:name>\r\n\t\t</METS:agent>\r\n</METS:metsHdr></METS:mets>"));
     }
 
     /**
@@ -103,7 +113,7 @@ public class ArclibXmlGeneratorTest extends DbTest {
             TransformerException {
         SipProfile profile = new SipProfile();
         String sipProfileXml = Resources.toString(this.getClass().getResource(
-                "/testResources/sipProfiles/simpleMappings/sipProfileNestedElementMapping.xml"), StandardCharsets
+                "/testResources/sipProfiles/sipProfileNestedElementMapping.xml"), StandardCharsets
                 .UTF_8);
         profile.setXml(sipProfileXml);
 
@@ -129,7 +139,7 @@ public class ArclibXmlGeneratorTest extends DbTest {
         store.save(profile);
 
         String arclibXml = generator.generateArclibXml(SIP_PATH, profile.getId());
-        assertThat(arclibXml, is("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<METS:mets xmlns:METS=\"http://www.loc.gov/METS/\" LABEL=\"Z dějin malenovického hradu , [1953]\"><METS:amdSec><METS:techMD><METS:mdWrap><METS:xmlData><devices><format><fileFormat><fileFormat>image/tiff</fileFormat><fileCount>8</fileCount></fileFormat></format></devices></METS:xmlData></METS:mdWrap><METS:mdWrap><METS:xmlData><devices><format><fileFormat><fileFormat>image/jp2</fileFormat><fileCount>8</fileCount></fileFormat></format></devices></METS:xmlData></METS:mdWrap></METS:techMD></METS:amdSec><METS:metsHdr CREATEDATE=\"2013-01-22T10:55:20Z\" ID=\"kpw01169310\">\r\n<METS:agent ROLE=\"CREATOR\" TYPE=\"INDIVIDUAL\"> \r\n<METS:name>Administrator</METS:name>\r\n</METS:agent>\r\n</METS:metsHdr>\r\n</METS:mets>"));
+        assertThat(arclibXml, is("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<METS:mets xmlns:METS=\"http://www.loc.gov/METS/\" LABEL=\"Z dějin malenovického hradu , [1953]\"><METS:metsHdr CREATEDATE=\"2013-01-22T10:55:20Z\" ID=\"kpw01169310\">\r\n<METS:agent ROLE=\"CREATOR\" TYPE=\"INDIVIDUAL\"> \r\n<METS:name>Administrator</METS:name>\r\n</METS:agent>\r\n</METS:metsHdr>\r\n</METS:mets>"));
     }
 
     /**
@@ -147,7 +157,7 @@ public class ArclibXmlGeneratorTest extends DbTest {
     public void generateArclibXmlNonExistentSip() throws IOException {
         SipProfile profile = new SipProfile();
         String sipProfileXml = Resources.toString(this.getClass().getResource
-                ("/testResources/sipProfiles/simpleMappings/sipProfileAttributeMapping.xml"), StandardCharsets.UTF_8);
+                ("/testResources/sipProfiles/sipProfileAttributeMapping.xml"), StandardCharsets.UTF_8);
         profile.setXml(sipProfileXml);
 
         store.save(profile);
@@ -162,46 +172,12 @@ public class ArclibXmlGeneratorTest extends DbTest {
     public void generateArclibInvalidXPath() throws IOException {
         SipProfile profile = new SipProfile();
         String sipProfileXml = Resources.toString(this.getClass().getResource(
-                "/testResources/sipProfiles/simpleMappings/sipProfileInvalidXPath.xml"), StandardCharsets.UTF_8);
+                "/testResources/sipProfiles/sipProfileInvalidXPath.xml"), StandardCharsets.UTF_8);
         profile.setXml(sipProfileXml);
 
         store.save(profile);
 
         assertThrown(() -> generator.generateArclibXml(SIP_PATH, profile.getId())).isInstanceOf(InvalidXPathException.class);
-    }
-
-    /**
-     * Tests the aggregation mapping for generation of the <i>ARCLIB:format</i> element.
-     */
-    @Test
-    public void generateArclibFormat() throws IOException, SAXException, ParserConfigurationException, XPathExpressionException,
-            TransformerException {
-        SipProfile profile = new SipProfile();
-        String sipProfileXml = Resources.toString(this.getClass().getResource(
-                "/testResources/sipProfiles/aggregationMappings/sipProfileFormatCount.xml"), StandardCharsets.UTF_8);
-        profile.setXml(sipProfileXml);
-
-        store.save(profile);
-
-        String arclibXml = generator.generateArclibXml(SIP_PATH, profile.getId());
-        assertThat(arclibXml, is("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<METS:mets xmlns:METS=\"http://www.loc.gov/METS/\"><METS:amdSec><METS:techMD><METS:mdWrap><METS:xmlData><devices><format><fileFormat><fileFormat>image/tiff</fileFormat><fileCount>8</fileCount></fileFormat></format></devices></METS:xmlData></METS:mdWrap><METS:mdWrap><METS:xmlData><devices><format><fileFormat><fileFormat>image/jp2</fileFormat><fileCount>8</fileCount></fileFormat></format></devices></METS:xmlData></METS:mdWrap></METS:techMD></METS:amdSec></METS:mets>"));
-    }
-
-    /**
-     * Tests the aggregation mapping for generation of the <i>ARCLIB:device</i> element.
-     */
-    @Test
-    public void generateArclibDevice() throws IOException, SAXException, ParserConfigurationException, XPathExpressionException,
-            TransformerException {
-        SipProfile profile = new SipProfile();
-        String sipProfileXml = Resources.toString(this.getClass().getResource(
-                "/testResources/sipProfiles/aggregationMappings/sipProfileDeviceCount.xml"), StandardCharsets.UTF_8);
-        profile.setXml(sipProfileXml);
-
-        store.save(profile);
-
-        String arclibXml = generator.generateArclibXml(SIP_PATH, profile.getId());
-        assertThat(arclibXml, is("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<METS:mets xmlns:METS=\"http://www.loc.gov/METS/\"><METS:amdSec><METS:techMD><METS:mdWrap><METS:xmlData><devices><device><deviceId>321008</deviceId><fileCount>8</fileCount></device></devices></METS:xmlData></METS:mdWrap></METS:techMD></METS:amdSec></METS:mets>"));
     }
 
     /**
@@ -212,12 +188,12 @@ public class ArclibXmlGeneratorTest extends DbTest {
             TransformerException {
         SipProfile profile = new SipProfile();
         String sipProfileXml = Resources.toString(this.getClass().getResource(
-                "/testResources/sipProfiles/aggregationMappings/sipProfileEventCount.xml"), StandardCharsets.UTF_8);
+                "/testResources/sipProfiles/sipProfileEventCount.xml"), StandardCharsets.UTF_8);
         profile.setXml(sipProfileXml);
 
         store.save(profile);
 
         String arclibXml = generator.generateArclibXml(SIP_PATH, profile.getId());
-        assertThat(arclibXml, is("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<METS:mets xmlns:METS=\"http://www.loc.gov/METS/\"><METS:amdSec><METS:digiprovMD><METS:mdWrap><METS:xmlData><eventAgents><eventAgent><date>2012-10-02T14:55:07Z</date><agentName>Recognition Server</agentName><eventType>migration</eventType><eventCount>192</eventCount></eventAgent><eventAgent><date>2012-10-02T14:55:06Z</date><agentName>Recognition Server</agentName><eventType>migration</eventType><eventCount>192</eventCount></eventAgent><eventAgent><date>2012-10-02T14:55:08Z</date><agentName>Recognition Server</agentName><eventType>migration</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2013-01-11T14:17:34Z</date><agentName>Recognition Server</agentName><eventType>migration</eventType><eventCount>64</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:43Z</date><agentName>Recognition Server</agentName><eventType>migration</eventType><eventCount>64</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:44Z</date><agentName>Recognition Server</agentName><eventType>migration</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:47Z</date><agentName>Recognition Server</agentName><eventType>migration</eventType><eventCount>64</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:48Z</date><agentName>Recognition Server</agentName><eventType>migration</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:45Z</date><agentName>Recognition Server</agentName><eventType>migration</eventType><eventCount>64</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:46Z</date><agentName>Recognition Server</agentName><eventType>migration</eventType><eventCount>64</eventCount></eventAgent><eventAgent><date>2013-01-11T14:17:33Z</date><agentName>Recognition Server</agentName><eventType>migration</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2013-01-11T14:17:32Z</date><agentName>Recognition Server</agentName><eventType>migration</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2013-01-11T14:17:31Z</date><agentName>Recognition Server</agentName><eventType>migration</eventType><eventCount>192</eventCount></eventAgent><eventAgent><date>2012-10-02T14:55:07Z</date><agentName>CopiBook RGB+</agentName><eventType>migration</eventType><eventCount>192</eventCount></eventAgent><eventAgent><date>2012-10-02T14:55:06Z</date><agentName>CopiBook RGB+</agentName><eventType>migration</eventType><eventCount>192</eventCount></eventAgent><eventAgent><date>2012-10-02T14:55:08Z</date><agentName>CopiBook RGB+</agentName><eventType>migration</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2013-01-11T14:17:34Z</date><agentName>CopiBook RGB+</agentName><eventType>migration</eventType><eventCount>64</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:43Z</date><agentName>CopiBook RGB+</agentName><eventType>migration</eventType><eventCount>64</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:44Z</date><agentName>CopiBook RGB+</agentName><eventType>migration</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:47Z</date><agentName>CopiBook RGB+</agentName><eventType>migration</eventType><eventCount>64</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:48Z</date><agentName>CopiBook RGB+</agentName><eventType>migration</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:45Z</date><agentName>CopiBook RGB+</agentName><eventType>migration</eventType><eventCount>64</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:46Z</date><agentName>CopiBook RGB+</agentName><eventType>migration</eventType><eventCount>64</eventCount></eventAgent><eventAgent><date>2013-01-11T14:17:33Z</date><agentName>CopiBook RGB+</agentName><eventType>migration</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2013-01-11T14:17:32Z</date><agentName>CopiBook RGB+</agentName><eventType>migration</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2013-01-11T14:17:31Z</date><agentName>CopiBook RGB+</agentName><eventType>migration</eventType><eventCount>192</eventCount></eventAgent><eventAgent><date>2012-10-02T14:55:07Z</date><agentName>BookRestorer</agentName><eventType>migration</eventType><eventCount>192</eventCount></eventAgent><eventAgent><date>2012-10-02T14:55:06Z</date><agentName>BookRestorer</agentName><eventType>migration</eventType><eventCount>192</eventCount></eventAgent><eventAgent><date>2012-10-02T14:55:08Z</date><agentName>BookRestorer</agentName><eventType>migration</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2013-01-11T14:17:34Z</date><agentName>BookRestorer</agentName><eventType>migration</eventType><eventCount>64</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:43Z</date><agentName>BookRestorer</agentName><eventType>migration</eventType><eventCount>64</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:44Z</date><agentName>BookRestorer</agentName><eventType>migration</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:47Z</date><agentName>BookRestorer</agentName><eventType>migration</eventType><eventCount>64</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:48Z</date><agentName>BookRestorer</agentName><eventType>migration</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:45Z</date><agentName>BookRestorer</agentName><eventType>migration</eventType><eventCount>64</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:46Z</date><agentName>BookRestorer</agentName><eventType>migration</eventType><eventCount>64</eventCount></eventAgent><eventAgent><date>2013-01-11T14:17:33Z</date><agentName>BookRestorer</agentName><eventType>migration</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2013-01-11T14:17:32Z</date><agentName>BookRestorer</agentName><eventType>migration</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2013-01-11T14:17:31Z</date><agentName>BookRestorer</agentName><eventType>migration</eventType><eventCount>192</eventCount></eventAgent><eventAgent><date>2012-10-02T14:55:07Z</date><agentName>Recognition Server</agentName><eventType>capture</eventType><eventCount>384</eventCount></eventAgent><eventAgent><date>2012-10-02T14:55:06Z</date><agentName>Recognition Server</agentName><eventType>capture</eventType><eventCount>384</eventCount></eventAgent><eventAgent><date>2012-10-02T14:55:08Z</date><agentName>Recognition Server</agentName><eventType>capture</eventType><eventCount>256</eventCount></eventAgent><eventAgent><date>2013-01-11T14:17:34Z</date><agentName>Recognition Server</agentName><eventType>capture</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:43Z</date><agentName>Recognition Server</agentName><eventType>capture</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:44Z</date><agentName>Recognition Server</agentName><eventType>capture</eventType><eventCount>256</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:47Z</date><agentName>Recognition Server</agentName><eventType>capture</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:48Z</date><agentName>Recognition Server</agentName><eventType>capture</eventType><eventCount>256</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:45Z</date><agentName>Recognition Server</agentName><eventType>capture</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:46Z</date><agentName>Recognition Server</agentName><eventType>capture</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2013-01-11T14:17:33Z</date><agentName>Recognition Server</agentName><eventType>capture</eventType><eventCount>256</eventCount></eventAgent><eventAgent><date>2013-01-11T14:17:32Z</date><agentName>Recognition Server</agentName><eventType>capture</eventType><eventCount>256</eventCount></eventAgent><eventAgent><date>2013-01-11T14:17:31Z</date><agentName>Recognition Server</agentName><eventType>capture</eventType><eventCount>384</eventCount></eventAgent><eventAgent><date>2012-10-02T14:55:07Z</date><agentName>CopiBook RGB+</agentName><eventType>capture</eventType><eventCount>384</eventCount></eventAgent><eventAgent><date>2012-10-02T14:55:06Z</date><agentName>CopiBook RGB+</agentName><eventType>capture</eventType><eventCount>384</eventCount></eventAgent><eventAgent><date>2012-10-02T14:55:08Z</date><agentName>CopiBook RGB+</agentName><eventType>capture</eventType><eventCount>256</eventCount></eventAgent><eventAgent><date>2013-01-11T14:17:34Z</date><agentName>CopiBook RGB+</agentName><eventType>capture</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:43Z</date><agentName>CopiBook RGB+</agentName><eventType>capture</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:44Z</date><agentName>CopiBook RGB+</agentName><eventType>capture</eventType><eventCount>256</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:47Z</date><agentName>CopiBook RGB+</agentName><eventType>capture</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:48Z</date><agentName>CopiBook RGB+</agentName><eventType>capture</eventType><eventCount>256</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:45Z</date><agentName>CopiBook RGB+</agentName><eventType>capture</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:46Z</date><agentName>CopiBook RGB+</agentName><eventType>capture</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2013-01-11T14:17:33Z</date><agentName>CopiBook RGB+</agentName><eventType>capture</eventType><eventCount>256</eventCount></eventAgent><eventAgent><date>2013-01-11T14:17:32Z</date><agentName>CopiBook RGB+</agentName><eventType>capture</eventType><eventCount>256</eventCount></eventAgent><eventAgent><date>2013-01-11T14:17:31Z</date><agentName>CopiBook RGB+</agentName><eventType>capture</eventType><eventCount>384</eventCount></eventAgent><eventAgent><date>2012-10-02T14:55:07Z</date><agentName>BookRestorer</agentName><eventType>capture</eventType><eventCount>384</eventCount></eventAgent><eventAgent><date>2012-10-02T14:55:06Z</date><agentName>BookRestorer</agentName><eventType>capture</eventType><eventCount>384</eventCount></eventAgent><eventAgent><date>2012-10-02T14:55:08Z</date><agentName>BookRestorer</agentName><eventType>capture</eventType><eventCount>256</eventCount></eventAgent><eventAgent><date>2013-01-11T14:17:34Z</date><agentName>BookRestorer</agentName><eventType>capture</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:43Z</date><agentName>BookRestorer</agentName><eventType>capture</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:44Z</date><agentName>BookRestorer</agentName><eventType>capture</eventType><eventCount>256</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:47Z</date><agentName>BookRestorer</agentName><eventType>capture</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:48Z</date><agentName>BookRestorer</agentName><eventType>capture</eventType><eventCount>256</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:45Z</date><agentName>BookRestorer</agentName><eventType>capture</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2012-10-02T14:58:46Z</date><agentName>BookRestorer</agentName><eventType>capture</eventType><eventCount>128</eventCount></eventAgent><eventAgent><date>2013-01-11T14:17:33Z</date><agentName>BookRestorer</agentName><eventType>capture</eventType><eventCount>256</eventCount></eventAgent><eventAgent><date>2013-01-11T14:17:32Z</date><agentName>BookRestorer</agentName><eventType>capture</eventType><eventCount>256</eventCount></eventAgent><eventAgent><date>2013-01-11T14:17:31Z</date><agentName>BookRestorer</agentName><eventType>capture</eventType><eventCount>384</eventCount></eventAgent></eventAgents></METS:xmlData></METS:mdWrap></METS:digiprovMD></METS:amdSec></METS:mets>"));
+        assertThat(arclibXml, is("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<METS:mets xmlns:METS=\"http://www.loc.gov/METS/\"><METS:amdSec xmlns:METS=\"http://arclib.lib.cas.cz/ARCLIB_XML\"><METS:digiprovMD><METS:mdWrap><METS:xmlData><ARCLIB:eventAgents xmlns:ARCLIB=\"http://arclib.lib.cas.cz/ARCLIB_XML\"><ARCLIB:eventAgent><premis:eventType>capture</premis:eventType>\r\n</ARCLIB:eventAgent></ARCLIB:eventAgents></METS:xmlData></METS:mdWrap></METS:digiprovMD></METS:amdSec><METS:amdSec xmlns:METS=\"http://arclib.lib.cas.cz/ARCLIB_XML\"><METS:digiprovMD><METS:mdWrap><METS:xmlData><ARCLIB:eventAgents xmlns:ARCLIB=\"http://arclib.lib.cas.cz/ARCLIB_XML\"><ARCLIB:eventAgent><premis:eventType>migration</premis:eventType>\r\n</ARCLIB:eventAgent></ARCLIB:eventAgents></METS:xmlData></METS:mdWrap></METS:digiprovMD></METS:amdSec></METS:mets>"));
     }
 }

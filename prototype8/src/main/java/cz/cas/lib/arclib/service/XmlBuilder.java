@@ -23,7 +23,7 @@ import static cz.cas.lib.arclib.Utils.nodeToString;
 
 @Slf4j
 public class XmlBuilder {
-    private Map uris;
+    private Map<String, String> uris;
 
     /**
      * Constructor for XmlBuilder
@@ -112,7 +112,7 @@ public class XmlBuilder {
         }
 
         //add new element to the parent node
-        Element created = ((Element) parentNode).addElement(elementName);
+        Element created = ((Element) parentNode).addElement(elementName, uris.get("ARCLIB"));
         if (null != value) {
             created.addText(value);
         }

@@ -94,7 +94,7 @@ public class ArclibXmlValidator {
      * @throws SAXException if the XSD schema is invalid
      * @throws IOException  if the XML at the specified path is missing
      */
-    private static void validateWithXMLSchema(InputStream xml, InputStream[] schemas) throws IOException, SAXException {
+    public static void validateWithXMLSchema(InputStream xml, InputStream[] schemas) throws IOException, SAXException {
         SchemaFactory factory =
                 SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 

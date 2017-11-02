@@ -1,17 +1,5 @@
 <profile xmlns="http://www.arclib.lib.cas.cz/SIP_PROFILE">
-    <aggregationMapping>
-        <source>
-            <rootDirPath>/amdSec</rootDirPath>
-            <fileRegex>^AMD.*xml$</fileRegex>
-            <xPath destElemName="fileFormat">/mets/amdSec/techMD/mdWrap/xmlData/mix/BasicDigitalObjectInformation/FormatDesignation/formatName</xPath>
-        </source>
-        <destination>
-            <xPath>/METS:mets/METS:amdSec/METS:techMD/METS:mdWrap[@MDTYPE='OTHER']/METS:xmlData/devices/format/fileFormat</xPath>
-            <aggregation type="count" destElemName="fileCount"/>
-        </destination>
-    </aggregationMapping>
-
-    <simpleMapping>
+    <mapping>
         <source>
             <rootDirPath>/</rootDirPath>
             <fileRegex>METS_KPW01169310.xml</fileRegex>
@@ -20,9 +8,9 @@
         <destination>
             <xPath>/METS:mets/@LABEL</xPath>
         </destination>
-    </simpleMapping>
+    </mapping>
 
-    <simpleMapping>
+    <mapping>
         <source>
             <rootDirPath>/amdSec</rootDirPath>
             <fileRegex>AMD_METS_KPW01169310_0001.xml</fileRegex>
@@ -31,6 +19,6 @@
         <destination>
             <xPath>/METS:mets/METS:metsHdr</xPath>
         </destination>
-    </simpleMapping>
+    </mapping>
 
 </profile>

@@ -101,6 +101,24 @@ public class Utils {
         public R getR(){ return r; }
         public void setL(L l){ this.l = l; }
         public void setR(R r){ this.r = r; }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Pair<?, ?> pair = (Pair<?, ?>) o;
+
+            if (l != null ? !l.equals(pair.l) : pair.l != null) return false;
+            return r != null ? r.equals(pair.r) : pair.r == null;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = l != null ? l.hashCode() : 0;
+            result = 31 * result + (r != null ? r.hashCode() : 0);
+            return result;
+        }
     }
 
     public static File[] listFilesMatchingRegex(File root, String regex) throws FileNotFoundException {
