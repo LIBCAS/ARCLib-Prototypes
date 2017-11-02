@@ -76,7 +76,7 @@ public class ArclibXmlGenerator {
 
             XmlBuilder xmlBuilder = new XmlBuilder(uris);
             for (Pair<String, String> xPathToValue : nodesToCreate) {
-                xmlBuilder.addNode(arclibXmlDoc, xPathToValue.getL(), xPathToValue.getR());
+                xmlBuilder.addNode(arclibXmlDoc, xPathToValue.getL(), xPathToValue.getR(), uris.get("ARCLIB"));
             }
         }
 

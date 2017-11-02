@@ -43,7 +43,8 @@ public class XmlBuilder {
      * @return the created Node
      */
 
-    public Node addNode(Document doc, String targetXPath, String value) throws IOException, SAXException, TransformerException {
+    public Node addNode(Document doc, String targetXPath, String value, String namespaceUri) throws IOException, SAXException,
+            TransformerException {
         log.info("adding Node: " + targetXPath + " -> " + value);
 
         String elementName = XPathUtils.getChildElementName(targetXPath);
@@ -92,7 +93,7 @@ public class XmlBuilder {
 
         Node parentNode = xpath.selectSingleNode(doc);
         if (parentNode == null) {
-            parentNode = addNode(doc, parentXPath, null);
+            parentNode = addNode(doc, parentXPath, null, namespaceUri);
         }
 
         //add value as attribute to the parent node and return
